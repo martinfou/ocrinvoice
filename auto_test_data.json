@@ -1,0 +1,1172 @@
+{
+  "tests": [
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/04242025_ACTUR_160.00.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 160.0,
+      "description": "Auto-generated from filename: 04242025_ACTUR_160.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/04242025_ble mand_160.00.pdf",
+      "expected_company": "BLE MAND",
+      "expected_total": 160.0,
+      "description": "Auto-generated from filename: 04242025_ble mand_160.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/04282025_CARREFOUR_180.77.pdf",
+      "expected_company": "CARREFOUR",
+      "expected_total": 180.77,
+      "description": "Auto-generated from filename: 04282025_CARREFOUR_180.77.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/05162025_actur_590.00.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 590.0,
+      "description": "Auto-generated from filename: 05162025_actur_590.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/07012024_CARREFOUR_2024.10.pdf",
+      "expected_company": "CARREFOUR",
+      "expected_total": 2024.1,
+      "description": "Auto-generated from filename: 07012024_CARREFOUR_2024.10.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/08122024_services scolaire_381.67.pdf",
+      "expected_company": "SERVICES SCOLAIRE",
+      "expected_total": 381.67,
+      "description": "Auto-generated from filename: 08122024_services scolaire_381.67.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/09052024_ACTUR_204.00.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 204.0,
+      "description": "Auto-generated from filename: 09052024_ACTUR_204.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/09052024_ACTUR_95.00.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 95.0,
+      "description": "Auto-generated from filename: 09052024_ACTUR_95.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/09152024_join de der_10.34.pdf",
+      "expected_company": "JOIN DE DER",
+      "expected_total": 10.34,
+      "description": "Auto-generated from filename: 09152024_join de der_10.34.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/10242024_Canad_25.90.pdf",
+      "expected_company": "CANAD",
+      "expected_total": 25.9,
+      "description": "Auto-generated from filename: 10242024_Canad_25.90.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/10292024_j acement_86.40.pdf",
+      "expected_company": "J ACEMENT",
+      "expected_total": 86.4,
+      "description": "Auto-generated from filename: 10292024_j acement_86.40.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11012024_LES cont_705.00.pdf",
+      "expected_company": "LES CONT",
+      "expected_total": 705.0,
+      "description": "Auto-generated from filename: 11012024_LES cont_705.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11012024_LES cont_765.00.pdf",
+      "expected_company": "LES CONT",
+      "expected_total": 765.0,
+      "description": "Auto-generated from filename: 11012024_LES cont_765.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11012024_LES cont_765.00_.pdf",
+      "expected_company": "LES CONT",
+      "expected_total": 765.0,
+      "description": "Auto-generated from filename: 11012024_LES cont_765.00_.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11042024_actur_270.00.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 270.0,
+      "description": "Auto-generated from filename: 11042024_actur_270.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11112024_DOLLAR_91.20.pdf",
+      "expected_company": "DOLLAR",
+      "expected_total": 91.2,
+      "description": "Auto-generated from filename: 11112024_DOLLAR_91.20.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11122024_RAXIS_60.00.pdf",
+      "expected_company": "RAXIS",
+      "expected_total": 60.0,
+      "description": "Auto-generated from filename: 11122024_RAXIS_60.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11152024_CONTAC_718.57.pdf",
+      "expected_company": "CONTAC",
+      "expected_total": 718.57,
+      "description": "Auto-generated from filename: 11152024_CONTAC_718.57.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11222024_U COR_7113.97.pdf",
+      "expected_company": "U COR",
+      "expected_total": 7113.97,
+      "description": "Auto-generated from filename: 11222024_U COR_7113.97.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11222024_service cture s l_2021.12.pdf",
+      "expected_company": "SERVICE CTURE S L",
+      "expected_total": 2021.12,
+      "description": "Auto-generated from filename: 11222024_service cture s l_2021.12.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11272024_Diane ste_4.00.pdf",
+      "expected_company": "DIANE STE",
+      "expected_total": 4.0,
+      "description": "Auto-generated from filename: 11272024_Diane ste_4.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11272024_Page 1 de_821.06.pdf",
+      "expected_company": "DE",
+      "expected_total": 821.06,
+      "description": "Auto-generated from filename: 11272024_Page 1 de_821.06.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11272024_U COR_821.06.pdf",
+      "expected_company": "U COR",
+      "expected_total": 821.06,
+      "description": "Auto-generated from filename: 11272024_U COR_821.06.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11272024_service cture s l_5.00.pdf",
+      "expected_company": "SERVICE CTURE S L",
+      "expected_total": 5.0,
+      "description": "Auto-generated from filename: 11272024_service cture s l_5.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11282024_actur_1189.33.pdf",
+      "expected_company": "ACTUR",
+      "expected_total": 1189.33,
+      "description": "Auto-generated from filename: 11282024_actur_1189.33.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/11282024_la Montagne_99.67.pdf",
+      "expected_company": "LA MONTAGNE",
+      "expected_total": 99.67,
+      "description": "Auto-generated from filename: 11282024_la Montagne_99.67.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12052024_ ETAT _27.46.pdf",
+      "expected_company": "ETAT",
+      "expected_total": 27.46,
+      "description": "Auto-generated from filename: 12052024_ ETAT _27.46.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12052024_Con de ser_3138.82.pdf",
+      "expected_company": "CON DE SER",
+      "expected_total": 3138.82,
+      "description": "Auto-generated from filename: 12052024_Con de ser_3138.82.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12312024_Costco Wholesale_4000.00.pdf",
+      "expected_company": "COSTCO WHOLESALE",
+      "expected_total": 4000.0,
+      "description": "Auto-generated from filename: 12312024_Costco Wholesale_4000.00.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12312024_LE CTION_474.08.pdf",
+      "expected_company": "LE CTION",
+      "expected_total": 474.08,
+      "description": "Auto-generated from filename: 12312024_LE CTION_474.08.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12312024_Page 1 de_1.00.pdf",
+      "expected_company": "DE",
+      "expected_total": 1.0,
+      "description": "Auto-generated from filename: 12312024_Page 1 de_1.00.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/12312024_Page 1 de_8757.16.pdf",
+      "expected_company": "DE",
+      "expected_total": 8757.16,
+      "description": "Auto-generated from filename: 12312024_Page 1 de_8757.16.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/Customer account_2025-01-07.pdf",
+      "expected_company": "CUSTOMER ACCOUNT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: Customer account_2025-01-07.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/Invoice_7617.pdf",
+      "expected_company": "INVOICE",
+      "expected_total": 7617.0,
+      "description": "Auto-generated from filename: Invoice_7617.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/Les Gouttières de l'île-aux-noix_Facture_7289_2025-03-06.pdf",
+      "expected_company": "FACTURE",
+      "expected_total": 7289.0,
+      "description": "Auto-generated from filename: Les Gouttières de l'île-aux-noix_Facture_7289_2025-03-06.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2024-04-22_revenu-quebec_roulez electrique.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2024-04-22_revenu-quebec_roulez electrique.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2025-01-17_racine-chevrolet_offre d'achat.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2025-01-17_racine-chevrolet_offre d'achat.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2025-01-17_racine-chevrolet_test batterie 2.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2025-01-17_racine-chevrolet_test batterie 2.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2025-01-17_racine-chevrolet_test batterie.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2025-01-17_racine-chevrolet_test batterie.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2025-01-17_revenu-quebec_depot pour voiture.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2025-01-17_revenu-quebec_depot pour voiture.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-bolt_2025-01-17_revenu-quebec_inspection battery.pdf",
+      "expected_company": "CHEVROLET BOLT",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_chevrolet-bolt_2025-01-17_revenu-quebec_inspection battery.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_chevrolet-spark_2024-12-31_racine-chevrolet_depot 200$ pour achat spark.pdf",
+      "expected_company": "CHEVROLET SPARK",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_chevrolet-spark_2024-12-31_racine-chevrolet_depot 200$ pour achat spark.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-06-30_paye_2023-06-01 - 2023-06-30.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-06-30_paye_2023-06-01 - 2023-06-30.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-07-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-07-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-07-31_paye_2023-07-01 - 2023-07-31.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-07-31_paye_2023-07-01 - 2023-07-31.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-08-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-08-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-08-31_paye_2023-08-01 - 2023-08-31.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-08-31_paye_2023-08-01 - 2023-08-31.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-09-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-09-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-09-30_paye_2023-09-01 - 2023-09-30.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-09-30_paye_2023-09-01 - 2023-09-30.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-10-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-10-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-11-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-11-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-11-30_paye_2023-11-01 - 2023-11-30.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-11-30_paye_2023-11-01 - 2023-11-30.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-12-01_compica_pay stub details.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-12-01_compica_pay stub details.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2023-12-31_paye_2023-12-01 - 2023-12-31.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_compica_2023-12-31_paye_2023-12-01 - 2023-12-31.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-08-01_tundra_beneva analyste developpeur AC202407-02-A.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-08-01_tundra_beneva analyste developpeur AC202407-02-A.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-10-01_revenu-quebec_coz-1027.r accompte provisionel.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-10-01_revenu-quebec_coz-1027.r accompte provisionel.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-10-01_revenu-quebec_coz-1027.s.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-10-01_revenu-quebec_coz-1027.s.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-10-31_paye_2023-10-01 - 2023-10-31.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-10-31_paye_2023-10-01 - 2023-10-31.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-12-31_scotia_T5 2.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-12-31_scotia_T5 2.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-12-31_scotia_T5.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-12-31_scotia_T5.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_compica_2024-12-31_scotia_releve 3.pdf",
+      "expected_company": "COMPICA",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_compica_2024-12-31_scotia_releve 3.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des cigales_2024-07-31_service residentiel encompas_assurance pour la maison.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_des cigales_2024-07-31_service residentiel encompas_assurance pour la maison.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des-cigales_2024-05-13_saint-jean-sur-richelieu_permis de construction.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_des-cigales_2024-05-13_saint-jean-sur-richelieu_permis de construction.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des-cigales_2024-06-27_saint-jean-sur-richelieu_evaluation municipale 2.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_des-cigales_2024-06-27_saint-jean-sur-richelieu_evaluation municipale 2.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des-cigales_2024-06-27_saint-jean-sur-richelieu_evaluation municipale.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_des-cigales_2024-06-27_saint-jean-sur-richelieu_evaluation municipale.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des-cigales_2024-09-06_gagnon_ouverture de credit particulier.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_des-cigales_2024-09-06_gagnon_ouverture de credit particulier.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_des-cigales_2025-12-31_saint-jean-sur-richelieu_borderau de payment taxes municipales.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: document_des-cigales_2025-12-31_saint-jean-sur-richelieu_borderau de payment taxes municipales.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_dodge-grand-caravan_2024-07-17_saint-jean-sur-richelieu_contrat de vente de la van.pdf",
+      "expected_company": "DODGE GRAND CARAVAN",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_dodge-grand-caravan_2024-07-17_saint-jean-sur-richelieu_contrat de vente de la van.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-02-13_industriel-alliance_expiration de votre droit de transformation assurance vie temporaire.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-02-13_industriel-alliance_expiration de votre droit de transformation assurance vie temporaire.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-02-27_bois-expension_avis d'execution.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-02-27_bois-expension_avis d'execution.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-04-01_shokz_warranty card garantie.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-04-01_shokz_warranty card garantie.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-04-22_pierre-fournier_operation pour les chiens rubie et wilson.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-04-22_pierre-fournier_operation pour les chiens rubie et wilson.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-07-17_saint-jean-sur-richelieu_accomptes provisionel .pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-07-17_saint-jean-sur-richelieu_accomptes provisionel .pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-07-24_pierre-fournier_prets personel de 50000 pierre.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-07-24_pierre-fournier_prets personel de 50000 pierre.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-07-25_parent-patenaude_contrat de pret de 5 ans.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-07-25_parent-patenaude_contrat de pret de 5 ans.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-07-25_parent-patenaude_contrat de pret de 5 ans2.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-07-25_parent-patenaude_contrat de pret de 5 ans2.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-10-24_desjardins_assurance desjardins.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-10-24_desjardins_assurance desjardins.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-10-24_desjardins_assurance desjardins1.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-10-24_desjardins_assurance desjardins1.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-12-31_desrocher-cpa_simulation  de salaire 2023.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-12-31_desrocher-cpa_simulation  de salaire 2023.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_martin-fournier_2024-12-31_fond-ftq_$3837.80 investissement.pdf",
+      "expected_company": "MARTIN FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_martin-fournier_2024-12-31_fond-ftq_$3837.80 investissement.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_saint-laurent_2024-12-31_sainte-catherine_donnee economique pour le role d'evaluation.pdf",
+      "expected_company": "SAINT LAURENT",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_saint-laurent_2024-12-31_sainte-catherine_donnee economique pour le role d'evaluation.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_sonia-patenaude_2023-12-14_assurance-maladie_expiration 2025-01.pdf",
+      "expected_company": "SONIA PATENAUDE",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: document_sonia-patenaude_2023-12-14_assurance-maladie_expiration 2025-01.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/document_vincent-fournier_2024-02-13_revenu-quebec_frais de garde de garderie.pdf",
+      "expected_company": "VINCENT FOURNIER",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: document_vincent-fournier_2024-02-13_revenu-quebec_frais de garde de garderie.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_animaux_2024-11-28_veterinaire_$1189.33_operation pour les chiens rubie et wilson.pdf",
+      "expected_company": "VETERINAIRE",
+      "expected_total": 1189.33,
+      "description": "Auto-generated from filename: facture_animaux_2024-11-28_veterinaire_$1189.33_operation pour les chiens rubie et wilson.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_chevrolet-bolt_2025-01-23_fafard_$2406.72_inspection pre-achat.pdf",
+      "expected_company": "FAFARD",
+      "expected_total": 2406.72,
+      "description": "Auto-generated from filename: facture_chevrolet-bolt_2025-01-23_fafard_$2406.72_inspection pre-achat.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2023-06-09_revenu-quebec_$1736.04_quebec taxes.pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 1736.04,
+      "description": "Auto-generated from filename: facture_compica_2023-06-09_revenu-quebec_$1736.04_quebec taxes.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2024-01-28_quickbook_$56.33_logiciel comptabilite.pdf",
+      "expected_company": "QUICKBOOK",
+      "expected_total": 56.33,
+      "description": "Auto-generated from filename: facture_compica_2024-01-28_quickbook_$56.33_logiciel comptabilite.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2024-02-26_revenu-quebec_$4,634.73_avis de cotisation.pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 4.0,
+      "description": "Auto-generated from filename: facture_compica_2024-02-26_revenu-quebec_$4,634.73_avis de cotisation.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2024-02-26_revenu-quebec_$4634.73_avis de cotisation.pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 4634.73,
+      "description": "Auto-generated from filename: facture_compica_2024-02-26_revenu-quebec_$4634.73_avis de cotisation.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2024-02-28_quickbook_$56.33_logiciel comptabilite.pdf",
+      "expected_company": "QUICKBOOK",
+      "expected_total": 56.33,
+      "description": "Auto-generated from filename: facture_compica_2024-02-28_quickbook_$56.33_logiciel comptabilite.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_compica_2024-07-02_visa_$1390.54_.pdf",
+      "expected_company": "VISA",
+      "expected_total": 1390.54,
+      "description": "Auto-generated from filename: facture_compica_2024-07-02_visa_$1390.54_.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des ecluses_2025-06-30_taxes scolaire_552.49$.pdf",
+      "expected_company": "DES ECLUSES",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: facture_des ecluses_2025-06-30_taxes scolaire_552.49$.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2023-12-14_bois-expension_$11.50_ripes - retaille bois.pdf",
+      "expected_company": "BOIS EXPENSION",
+      "expected_total": 11.5,
+      "description": "Auto-generated from filename: facture_des-cigales_2023-12-14_bois-expension_$11.50_ripes - retaille bois.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2023-12-14_futura_$14315.45_fenetre agrandissement.pdf",
+      "expected_company": "FUTURA",
+      "expected_total": 14315.45,
+      "description": "Auto-generated from filename: facture_des-cigales_2023-12-14_futura_$14315.45_fenetre agrandissement.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2023-12-14_futura_$14315.45_fenetre agrandissement2.pdf",
+      "expected_company": "FUTURA",
+      "expected_total": 14315.45,
+      "description": "Auto-generated from filename: facture_des-cigales_2023-12-14_futura_$14315.45_fenetre agrandissement2.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-04-11_techno-pieux_$229.95_document technique.pdf",
+      "expected_company": "TECHNO PIEUX",
+      "expected_total": 229.95,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-04-11_techno-pieux_$229.95_document technique.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-06-17_plomberie-perras_$523.72_changer la main valve et capper des tuyaux.pdf",
+      "expected_company": "PLOMBERIE PERRAS",
+      "expected_total": 523.72,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-06-17_plomberie-perras_$523.72_changer la main valve et capper des tuyaux.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-06-27_saint-jean-sur-richelieu_$984.29_taxes municipales.pdf",
+      "expected_company": "SAINT JEAN SUR RICHELIEU",
+      "expected_total": 984.29,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-06-27_saint-jean-sur-richelieu_$984.29_taxes municipales.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-10-16_vitrerie-saran_$630.05_porte de douche en verre trempe.pdf",
+      "expected_company": "VITRERIE SARAN",
+      "expected_total": 630.05,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-10-16_vitrerie-saran_$630.05_porte de douche en verre trempe.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-12-31_banque-haventree_$12955.39_releve annuel du compte de pret hypothecaire interets paye.pdf",
+      "expected_company": "BANQUE HAVENTREE",
+      "expected_total": 12955.39,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-12-31_banque-haventree_$12955.39_releve annuel du compte de pret hypothecaire interets paye.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-12-31_deneigement-platine_$425.41_deneigement.pdf",
+      "expected_company": "DENEIGEMENT PLATINE",
+      "expected_total": 425.41,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-12-31_deneigement-platine_$425.41_deneigement.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-12-31_deneigement-platine_$425.41_deneigement2.pdf",
+      "expected_company": "DENEIGEMENT PLATINE",
+      "expected_total": 425.41,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-12-31_deneigement-platine_$425.41_deneigement2.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2024-12-31_saint-jean-sur-richelieu_$425.41_deneigement2.pdf",
+      "expected_company": "SAINT JEAN SUR RICHELIEU",
+      "expected_total": 425.41,
+      "description": "Auto-generated from filename: facture_des-cigales_2024-12-31_saint-jean-sur-richelieu_$425.41_deneigement2.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-cigales_2025-12-31_saint-jean-sur-richelieu_$3934.58_taxes municipales .pdf",
+      "expected_company": "SAINT JEAN SUR RICHELIEU",
+      "expected_total": 3934.58,
+      "description": "Auto-generated from filename: facture_des-cigales_2025-12-31_saint-jean-sur-richelieu_$3934.58_taxes municipales .pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-ecluses_2024-07-20_rona_$33.07_portes  pliantes.pdf",
+      "expected_company": "RONA",
+      "expected_total": 33.07,
+      "description": "Auto-generated from filename: facture_des-ecluses_2024-07-20_rona_$33.07_portes  pliantes.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-ecluses_2024-11-11_dollorama_$91.20_articles de bureau.pdf",
+      "expected_company": "DOLLORAMA",
+      "expected_total": 91.2,
+      "description": "Auto-generated from filename: facture_des-ecluses_2024-11-11_dollorama_$91.20_articles de bureau.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_des-ecluses_2024-12-31_banque-haventree_$18106.04_releve annuel du compte de pret hypothecaire interets paye.pdf",
+      "expected_company": "BANQUE HAVENTREE",
+      "expected_total": 18106.04,
+      "description": "Auto-generated from filename: facture_des-ecluses_2024-12-31_banque-haventree_$18106.04_releve annuel du compte de pret hypothecaire interets paye.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_dodge-grand-caravan_2024-03-02_canadian-tire_$97.62_changement d'huile2.pdf",
+      "expected_company": "CANADIAN TIRE",
+      "expected_total": 97.62,
+      "description": "Auto-generated from filename: facture_dodge-grand-caravan_2024-03-02_canadian-tire_$97.62_changement d'huile2.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_dodge-grand-caravan_2024-03-06_canadian-tire_$178.08_changer moteur essuie glace.pdf",
+      "expected_company": "CANADIAN TIRE",
+      "expected_total": 178.08,
+      "description": "Auto-generated from filename: facture_dodge-grand-caravan_2024-03-06_canadian-tire_$178.08_changer moteur essuie glace.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_dodge-grand-caravan_2024-08-01_pieces-auto-mb7_$163.45_expiration de votre droit de transformation assurance vie temporaire.pdf",
+      "expected_company": "DODGE GRAND CARAVAN",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: facture_dodge-grand-caravan_2024-08-01_pieces-auto-mb7_$163.45_expiration de votre droit de transformation assurance vie temporaire.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_dodge-grand-caravan_2024-09-01_pieces-auto-mb7_$45.99_remboursement.pdf",
+      "expected_company": "DODGE GRAND CARAVAN",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: facture_dodge-grand-caravan_2024-09-01_pieces-auto-mb7_$45.99_remboursement.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_education-leanne_2024-04-01_coop-st-jean_$140.23_livres.pdf",
+      "expected_company": "COOP ST JEAN",
+      "expected_total": 140.23,
+      "description": "Auto-generated from filename: facture_education-leanne_2024-04-01_coop-st-jean_$140.23_livres.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_kia_2024-04-22_point-s_$626.21_refaire les lignes de freins.pdf",
+      "expected_company": "POINT S",
+      "expected_total": 626.21,
+      "description": "Auto-generated from filename: facture_kia_2024-04-22_point-s_$626.21_refaire les lignes de freins.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_kia_2024-07-04_saaq_$210.32_enregistrement auto a leanne.pdf",
+      "expected_company": "SAAQ",
+      "expected_total": 210.32,
+      "description": "Auto-generated from filename: facture_kia_2024-07-04_saaq_$210.32_enregistrement auto a leanne.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_kia_2025-01-10_antirouille-laprairie_$252.95_antirouille .pdf",
+      "expected_company": "ANTIROUILLE LAPRAIRIE",
+      "expected_total": 252.95,
+      "description": "Auto-generated from filename: facture_kia_2025-01-10_antirouille-laprairie_$252.95_antirouille .pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_laurie-fournier_2024-04-30_dentiste_$155.00_recu pour impot.pdf",
+      "expected_company": "DENTISTE",
+      "expected_total": 155.0,
+      "description": "Auto-generated from filename: facture_laurie-fournier_2024-04-30_dentiste_$155.00_recu pour impot.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_laurie-fournier_2024-12-31_medicaments_$124.50_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 124.5,
+      "description": "Auto-generated from filename: facture_laurie-fournier_2024-12-31_medicaments_$124.50_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_leanne-fournier_2024-08-12_sport-aux-puces_$45.00_planche snowboard blanche.pdf",
+      "expected_company": "SPORT AUX PUCES",
+      "expected_total": 45.0,
+      "description": "Auto-generated from filename: facture_leanne-fournier_2024-08-12_sport-aux-puces_$45.00_planche snowboard blanche.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_leanne-fournier_2024-12-31_medicaments_$158.75_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 158.75,
+      "description": "Auto-generated from filename: facture_leanne-fournier_2024-12-31_medicaments_$158.75_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2024-02-26_revenu-quebec_$4634.73_bordereau payment .pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 4634.73,
+      "description": "Auto-generated from filename: facture_martin-fournier_2024-02-26_revenu-quebec_$4634.73_bordereau payment .pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2024-04-30_assurance_$42.00_prise de sang.pdf",
+      "expected_company": "ASSURANCE",
+      "expected_total": 42.0,
+      "description": "Auto-generated from filename: facture_martin-fournier_2024-04-30_assurance_$42.00_prise de sang.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2024-04-30_centre-inova-soins_$42.00_prelevement medicau sans urine.pdf",
+      "expected_company": "CENTRE INOVA SOINS",
+      "expected_total": 42.0,
+      "description": "Auto-generated from filename: facture_martin-fournier_2024-04-30_centre-inova-soins_$42.00_prelevement medicau sans urine.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2024-12-31_medicaments_$650.04_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 650.04,
+      "description": "Auto-generated from filename: facture_martin-fournier_2024-12-31_medicaments_$650.04_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2025-01-15_revenu-quebec_$10346.00_accomptes provisionels particulier.pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 10346.0,
+      "description": "Auto-generated from filename: facture_martin-fournier_2025-01-15_revenu-quebec_$10346.00_accomptes provisionels particulier.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2025-01-15_revenu-quebec_$10346.00_accomptes provisionels particulier2.pdf",
+      "expected_company": "REVENU QUEBEC",
+      "expected_total": 10346.0,
+      "description": "Auto-generated from filename: facture_martin-fournier_2025-01-15_revenu-quebec_$10346.00_accomptes provisionels particulier2.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2025-02-01_beneva_$1602.25_assurance paye en trop doit etre rembourse.pdf",
+      "expected_company": "BENEVA",
+      "expected_total": 1602.25,
+      "description": "Auto-generated from filename: facture_martin-fournier_2025-02-01_beneva_$1602.25_assurance paye en trop doit etre rembourse.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_martin-fournier_2025-02-01_canac_$148.32_chaise de bureau.pdf",
+      "expected_company": "CANAC",
+      "expected_total": 148.32,
+      "description": "Auto-generated from filename: facture_martin-fournier_2025-02-01_canac_$148.32_chaise de bureau.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_rem_2024-11-13_$40.75.pdf",
+      "expected_company": "REM",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: facture_rem_2024-11-13_$40.75.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_roulotte_2024-06-08_roulotte-remillard_$5517.27_reparation bras auvent et installation toiles sur slide-out.pdf",
+      "expected_company": "ROULOTTE REMILLARD",
+      "expected_total": 5517.27,
+      "description": "Auto-generated from filename: facture_roulotte_2024-06-08_roulotte-remillard_$5517.27_reparation bras auvent et installation toiles sur slide-out.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_saint laurent_taxes scolaire_2025-06-30_$402.31.pdf",
+      "expected_company": "TAXES SCOLAIRE",
+      "expected_total": 2025.0,
+      "description": "Auto-generated from filename: facture_saint laurent_taxes scolaire_2025-06-30_$402.31.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_saint-laurent_2023-12-13_bois-expension_$42.53_lame diamant ceramique.pdf",
+      "expected_company": "BOIS EXPENSION",
+      "expected_total": 42.53,
+      "description": "Auto-generated from filename: facture_saint-laurent_2023-12-13_bois-expension_$42.53_lame diamant ceramique.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_saint-laurent_2024-03-04_simplex_$41.70_location echelle pour reparer le toit.pdf",
+      "expected_company": "SIMPLEX",
+      "expected_total": 41.7,
+      "description": "Auto-generated from filename: facture_saint-laurent_2024-03-04_simplex_$41.70_location echelle pour reparer le toit.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_saint-laurent_2024-08-18_home-depot_$630.05_lames , goo gone.pdf",
+      "expected_company": "HOME DEPOT",
+      "expected_total": 630.05,
+      "description": "Auto-generated from filename: facture_saint-laurent_2024-08-18_home-depot_$630.05_lames , goo gone.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_saint-laurent_2025-04-10_bureau-en-gros_$9.53_pen .pdf",
+      "expected_company": "BUREAU EN GROS",
+      "expected_total": 9.53,
+      "description": "Auto-generated from filename: facture_saint-laurent_2025-04-10_bureau-en-gros_$9.53_pen .pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_simon-fournier_2023-12-12_dentiste_$305.00_examen dentaire.pdf",
+      "expected_company": "DENTISTE",
+      "expected_total": 305.0,
+      "description": "Auto-generated from filename: facture_simon-fournier_2023-12-12_dentiste_$305.00_examen dentaire.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_simon-fournier_2024-12-31_medicaments_$171.18_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 171.18,
+      "description": "Auto-generated from filename: facture_simon-fournier_2024-12-31_medicaments_$171.18_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_sonia-patenaude_2024-04-01_desjardins_$140.76_assurance vie.pdf",
+      "expected_company": "DESJARDINS",
+      "expected_total": 140.76,
+      "description": "Auto-generated from filename: facture_sonia-patenaude_2024-04-01_desjardins_$140.76_assurance vie.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_sonia-patenaude_2024-04-24_clinique-sante-prive-a-p-brault_$225.00_consultation complex sante impot.pdf",
+      "expected_company": "CLINIQUE SANTE PRIVE A P BRAULT",
+      "expected_total": 225.0,
+      "description": "Auto-generated from filename: facture_sonia-patenaude_2024-04-24_clinique-sante-prive-a-p-brault_$225.00_consultation complex sante impot.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_sonia-patenaude_2024-06-05_assurance_$143.00_dentiste.pdf",
+      "expected_company": "ASSURANCE",
+      "expected_total": 143.0,
+      "description": "Auto-generated from filename: facture_sonia-patenaude_2024-06-05_assurance_$143.00_dentiste.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_sonia-patenaude_2024-12-31_medicaments_$348.42_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 348.42,
+      "description": "Auto-generated from filename: facture_sonia-patenaude_2024-12-31_medicaments_$348.42_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_vincent-fournier_2024-05-15_assurance_$170.00_dentiste.pdf",
+      "expected_company": "ASSURANCE",
+      "expected_total": 170.0,
+      "description": "Auto-generated from filename: facture_vincent-fournier_2024-05-15_assurance_$170.00_dentiste.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_vincent-fournier_2024-06-06_dentiste_$9.53_impot.pdf",
+      "expected_company": "DENTISTE",
+      "expected_total": 9.53,
+      "description": "Auto-generated from filename: facture_vincent-fournier_2024-06-06_dentiste_$9.53_impot.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/facture_vincent-fournier_2024-12-31_medicaments_$108.82_impots.pdf",
+      "expected_company": "MEDICAMENTS",
+      "expected_total": 108.82,
+      "description": "Auto-generated from filename: facture_vincent-fournier_2024-12-31_medicaments_$108.82_impots.pdf",
+      "confidence": "high",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/pad_CREATED_10669287_2024-11-22T08_24_47.879296.pdf",
+      "expected_company": "CREATED",
+      "expected_total": 10669287.0,
+      "description": "Auto-generated from filename: pad_CREATED_10669287_2024-11-22T08_24_47.879296.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/soumission_des-cigales_2023-05-30_sylca_$431386.00_soumission agrantissement cuisine et reno sale de bain.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2023.0,
+      "description": "Auto-generated from filename: soumission_des-cigales_2023-05-30_sylca_$431386.00_soumission agrantissement cuisine et reno sale de bain.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    },
+    {
+      "pdf_path": "/Volumes/T7/Dropbox/scan-snap/facture/soumission_des-cigales_2024-05-12_gary-chartran_$4483.43_thermopompe murale.pdf",
+      "expected_company": "DES CIGALES",
+      "expected_total": 2024.0,
+      "description": "Auto-generated from filename: soumission_des-cigales_2024-05-12_gary-chartran_$4483.43_thermopompe murale.pdf",
+      "confidence": "medium",
+      "added_date": "2025-01-27T10:00:00"
+    }
+  ]
+}
