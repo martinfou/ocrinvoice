@@ -8,10 +8,23 @@ import sys
 from pathlib import Path
 from invoice_ocr_parser import InvoiceOCRParser
 
+# Add dotenv import for .env file support
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv():
+        pass
+
+def load_config():
+    """Load configuration from .env file or use defaults."""
+    load_dotenv()
+    pdf_path = os.getenv('PDF_PATH', os.getcwd())
+    return pdf_path
+
 def test_single_invoice():
     """Test parsing a single invoice"""
-    # Path to the facture folder
-    facture_folder = "/Volumes/T7/Dropbox/scan-snap/facture"
+    # Load path from .env file
+    facture_folder = load_config()
     
     # Find a sample PDF
     pdf_files = list(Path(facture_folder).glob("*.pdf"))
@@ -36,7 +49,7 @@ def test_single_invoice():
     print("="*50)
     print(f"File: {result['file_path']}")
     print(f"Company Name: {result['company_name']}")
-    print(f"Invoice Total: ${result['invoice_total']:.2f}" if result['invoice_total'] else f"Invoice Total: {result['invoice_total']}")
+    print(f"Invoice Total: {result['invoice_total']}" if result['invoice_total'] else "Invoice Total: None")
     print(f"Extraction Method: {result['extraction_method']}")
     print(f"Confidence: {result['confidence']}")
     print(f"Processing Time: {result['processing_time']:.2f} seconds")
@@ -48,7 +61,7 @@ def test_single_invoice():
 
 def test_batch_processing():
     """Test batch processing of invoices"""
-    facture_folder = "/Volumes/T7/Dropbox/scan-snap/facture"
+    facture_folder = load_config()
     
     print(f"Testing batch processing of invoices in: {facture_folder}")
     
@@ -70,7 +83,7 @@ def test_batch_processing():
         if not successful_results.empty:
             print(f"\nSuccessful extractions:")
             for _, row in successful_results.head(5).iterrows():
-                print(f"  {Path(row['file_path']).name}: {row['company_name']} - ${row['invoice_total']:.2f}" if row['invoice_total'] else f"  {Path(row['file_path']).name}: {row['company_name']} - No total found")
+                print(f"  {Path(row['file_path']).name}: {row['company_name']} - {row['invoice_total']}" if row['invoice_total'] else f"  {Path(row['file_path']).name}: {row['company_name']} - No total found")
 
 if __name__ == "__main__":
     print("Invoice OCR Parser Test")

@@ -25,38 +25,104 @@ The OCR Invoice Parser is a Python-based system that extracts company names and 
 
 ## 2. Architecture Overview
 
-### 2.1 Core Components
+### 2.1 System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    OCR Invoice Parser                       │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │   Text Extract  │  │  Data Extract   │  │ File Manager │ │
-│  │   - pdfplumber  │  │  - Company      │  │ - Rename     │ │
-│  │   - Tesseract   │  │  - Total        │  │ - Backup     │ │
-│  │   - Preprocess  │  │  - Patterns     │  │ - Restore    │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │  Fuzzy Matcher  │  │ Invoice Database│  │  Test Suite  │ │
-│  │  - Soundex      │  │  - Known Values │  │  - Validate  │ │
-│  │  - Levenshtein  │  │  - Fallbacks    │  │  - Report    │ │
-│  │  - Threshold    │  │  - JSON Storage │  │  - Debug     │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        CLI[CLI Interface<br/>main.py]
+        TestSuite[Test Suite<br/>validation & reports]
+        BatchProc[Batch Processing<br/>CSV output]
+    end
+    
+    subgraph "Service Layer"
+        OCRParser[OCR Parser Service<br/>text extraction]
+        ExtractionSvc[Extraction Service<br/>company & total]
+        FileMgr[File Manager<br/>rename & backup]
+    end
+    
+    subgraph "Data Layer"
+        FuzzyMatcher[Fuzzy Matcher<br/>Soundex & Levenshtein]
+        InvoiceDB[Invoice Database<br/>JSON storage]
+        FileSystem[File System<br/>PDFs & images]
+    end
+    
+    subgraph "External Dependencies"
+        Tesseract[Tesseract OCR<br/>text recognition]
+        PDFPlumber[pdfplumber<br/>native PDF text]
+        OpenCV[OpenCV<br/>image preprocessing]
+    end
+    
+    CLI --> OCRParser
+    TestSuite --> OCRParser
+    BatchProc --> OCRParser
+    
+    OCRParser --> ExtractionSvc
+    OCRParser --> FileMgr
+    OCRParser --> Tesseract
+    OCRParser --> PDFPlumber
+    OCRParser --> OpenCV
+    
+    ExtractionSvc --> FuzzyMatcher
+    ExtractionSvc --> InvoiceDB
+    FileMgr --> FileSystem
+    
+    style CLI fill:#e1f5fe
+    style TestSuite fill:#e1f5fe
+    style BatchProc fill:#e1f5fe
+    style OCRParser fill:#f3e5f5
+    style ExtractionSvc fill:#f3e5f5
+    style FileMgr fill:#f3e5f5
+    style FuzzyMatcher fill:#e8f5e8
+    style InvoiceDB fill:#e8f5e8
+    style FileSystem fill:#e8f5e8
 ```
 
-### 2.2 Data Flow
+### 2.2 Processing Workflow
 
-```
-PDF Input → Text Extraction → Data Extraction → File Renaming → Output
-    ↓             ↓              ↓               ↓
-PDF File    Raw Text      Company/Total     Renamed PDF
-    ↓             ↓              ↓               ↓
-Images      OCR Text      Confidence       CSV Report
-    ↓             ↓              ↓
-Preprocess  Patterns     Database Lookup
+```mermaid
+flowchart TD
+    Start([PDF Input]) --> Validate{Validate PDF File}
+    Validate -->|Invalid| Error1[Throw Error]
+    Validate -->|Valid| Extract[Extract Text with pdfplumber]
+    
+    Extract --> CheckText{Text Found?}
+    CheckText -->|Yes| ProcessText[Process Native Text]
+    CheckText -->|No| ConvertPDF[Convert PDF to Images]
+    
+    ConvertPDF --> Preprocess[Image Preprocessing - 5 methods]
+    Preprocess --> OCR[Tesseract OCR - multiple configs]
+    OCR --> ProcessText
+    
+    ProcessText --> QualityCheck{Text Quality Assessment}
+    QualityCheck -->|Poor Quality| Unknown[Return Unknown for company]
+    QualityCheck -->|Good Quality| ExtractCompany[Extract Company Name]
+    
+    ExtractCompany --> Pass1[Pass 1: Specific Patterns]
+    Pass1 --> Pass2[Pass 2: Exact Matching]
+    Pass2 --> Pass3[Pass 3: Business Alias Mapping]
+    Pass3 --> Pass4[Pass 4: Generic Patterns]
+    
+    Pass4 --> ExtractTotal[Extract Invoice Total]
+    Unknown --> ExtractTotal
+    
+    ExtractTotal --> TotalPass1[Pass 1: Specific OCR Patterns]
+    TotalPass1 --> TotalPass2[Pass 2: High Priority Total Keywords]
+    TotalPass2 --> TotalPass3[Pass 3: Currency Symbols]
+    TotalPass3 --> TotalPass4[Pass 4: General Numbers]
+    
+    TotalPass4 --> Score[Score All Candidates]
+    Score --> SelectBest[Select Best Candidate]
+    
+    SelectBest --> Rename[Rename PDF to company-$total.pdf]
+    Rename --> Result[Return Results JSON]
+    
+    style Start fill:#81c784
+    style Result fill:#81c784
+    style Error1 fill:#e57373
+    style Unknown fill:#ffb74d
+    style QualityCheck fill:#64b5f6
+    style Score fill:#ba68c8
 ```
 
 ## 3. Functional Requirements
@@ -107,7 +173,7 @@ OCR_CONFIGS = [
 
 ##### Pass 1: Specific Pattern Matching
 ```regex
-# School board patterns
+# Business alias patterns
 r'Centre de services? scolaires? des? ([A-Z][A-Za-z\s&]+)'
 r'([A-Z][A-Za-z\s&]+) Centre de services? scolaires?'
 
@@ -126,11 +192,12 @@ r'BMR\s+Matco'
 - Search for known company names in text (case-insensitive)
 - No fuzzy matching for general companies (prevents false positives)
 
-##### Pass 3: School Board Fuzzy Matching (STRICT)
-- **Threshold**: 0.8 (very strict)
-- **Indicators Required**: Must contain "COMPTE", "TAXE", "SCOLAIRE", "CDMPTE", or "SCOLA"
-- **Algorithm**: Soundex + Levenshtein distance
-- **Target List**: Known school board variations
+##### Pass 3: Business Alias Mapping
+- **Configuration**: External JSON file (`business_aliases.json`)
+- **Exact Matches**: Direct string-to-business mapping
+- **Partial Matches**: Substring detection with business assignment
+- **Fuzzy Matches**: OCR error correction with 0.8 threshold
+- **Algorithm**: Soundex + Levenshtein distance for fuzzy matching
 
 ##### Pass 4: Generic Company Patterns
 - Lines that look like company names (mostly letters)
@@ -278,40 +345,74 @@ def levenshtein_distance(s1, s2):
 
 #### 3.5.3 Fuzzy Matching Thresholds
 - **General Company Matching**: DISABLED (prevents false positives)
-- **School Board Matching**: 0.8 (very strict)
+- **Business Alias Fuzzy Matching**: 0.8 (very strict)
 - **Minimum Word Length**: 3 characters
 - **Maximum Candidates**: 10 per search
 
-### 3.6 Invoice Database Module
+### 3.6 Business Alias Configuration
 
-#### 3.6.1 Database Structure
+#### 3.6.1 Alias File Structure (`business_aliases.json`)
 ```json
 {
-    "invoices": [
-        {
-            "company_name": "La Forfaiterie",
-            "total": 227.94,
-            "confidence": "high",
-            "date_added": "2024-01-01T00:00:00Z"
-        }
+    "exact_matches": {
+        "BMR": "BMR Building Materials",
+        "TD": "TD Bank",
+        "RBC": "Royal Bank of Canada",
+        "compte de taxes scolaire": "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE"
+    },
+    "partial_matches": {
+        "Centre de services scolaires": "CENTRE DE SERVICES SCOLAIRE",
+        "Board of Education": "BOARD OF EDUCATION",
+        "Hydro": "Hydro-Québec"
+    },
+    "fuzzy_candidates": [
+        "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE",
+        "CENTRE DE SERVICES SCOLAIRE",
+        "BMR Building Materials",
+        "BOARD OF EDUCATION"
     ],
-    "statistics": {
-        "total_invoices": 6,
-        "companies": 4,
-        "avg_confidence": 0.85
+    "indicators": {
+        "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE": ["COMPTE", "TAXE", "SCOLAIRE", "CDMPTE", "SCOLA"],
+        "BMR Building Materials": ["BMR", "MATÉRIAUX", "BUILDING"],
+        "Hydro-Québec": ["HYDRO", "ÉLECTRICITÉ", "ENERGY"]
     }
 }
 ```
 
-#### 3.6.2 Database Operations
-- **Add Invoice**: Store company/total pairs with confidence scores
-- **Find Company Match**: Search by fuzzy text matching
-- **Find Total Match**: Search by amount ranges
-- **Get Statistics**: Return database summary
+#### 3.6.2 Alias Matching Logic
+1. **Exact Match**: Check if extracted text exactly matches any key in `exact_matches`
+2. **Partial Match**: Check if any `partial_matches` key is contained in the text
+3. **Fuzzy Match**: If indicators are found, attempt fuzzy matching against `fuzzy_candidates`
+4. **Confidence Scoring**: Higher confidence for exact > partial > fuzzy matches
 
-### 3.7 Test Suite Module
+### 3.7 Invoice Database Module (Optional)
 
-#### 3.7.1 Test Case Structure
+The invoice database provides fallback matching capabilities for business names when primary extraction methods fail. This module is **disabled by default** and must be explicitly enabled.
+
+#### 3.7.1 Database Structure
+
+The database stores business name information:
+- **Companies**: Frequency count of each company name
+- **Company Names**: List of unique company names for fuzzy matching
+
+#### 3.7.2 Database Operations
+
+**Add Company**: Stores new company names with confidence levels
+**Find Company Match**: Searches for company names in text using fuzzy matching
+**Get Statistics**: Returns database usage statistics
+
+**Usage**:
+```python
+# Database is disabled by default
+parser = InvoiceOCRParser()  # use_database=False
+
+# To enable database functionality
+parser = InvoiceOCRParser(use_database=True)
+```
+
+### 3.8 Test Suite Module
+
+#### 3.8.1 Test Case Structure
 ```python
 TEST_CASES = [
     {
@@ -401,7 +502,63 @@ FILE_CONFIG = {
 
 ## 6. API Specification
 
-### 6.1 Core Parser Class
+### 6.1 Class Structure
+
+```mermaid
+classDiagram
+    class InvoiceOCRParser {
+        +tesseract_path: str
+        +debug: bool
+        +use_database: bool
+        +invoice_db: InvoiceDatabase
+        +parse_invoice(pdf_path) Dict
+        +parse_invoices_batch(folder_path) DataFrame
+        +extract_text_from_pdf(pdf_path) str
+        +extract_company_name(text) str
+        +extract_invoice_total(text) Optional[str]
+        +calculate_confidence(company, total, text) str
+        +rename_pdf(pdf_path, company, total) str
+        -_preprocess_standard(image) ndarray
+        -_preprocess_otsu(image) ndarray
+        -_preprocess_enhanced_contrast(image) ndarray
+        -_preprocess_denoised(image) ndarray
+        -_preprocess_morphological(image) ndarray
+    }
+    
+    class FuzzyMatcher {
+        <<static>>
+        +soundex(word) str
+        +levenshtein_distance(s1, s2) int
+        +normalized_levenshtein_distance(s1, s2) float
+        +fuzzy_match(target, candidates, threshold) Optional[str]
+    }
+    
+    class InvoiceDatabase {
+        +db_file: str
+        +data: Dict
+        +add_invoice(company_name, total, confidence)
+        +find_company_match(text) Optional[Tuple]
+        +find_total_match(text) Optional[Tuple]
+        +get_database_stats() Dict
+        -_load_database() Dict
+        -_save_database()
+        -_normalize_company_name(name) str
+    }
+    
+    class InvoiceTestSuite {
+        +test_cases: List[Dict]
+        +run_single_test(test_case) Dict
+        +run_all_tests() List[Dict]
+        +generate_report(results, output_file)
+        -_normalize_company_name(name) str
+    }
+    
+    InvoiceOCRParser --> FuzzyMatcher : uses
+    InvoiceOCRParser --> InvoiceDatabase : contains
+    InvoiceTestSuite --> InvoiceOCRParser : tests
+```
+
+### 6.2 Core Parser Class Methods
 ```python
 class InvoiceOCRParser:
     def __init__(self, tesseract_path=None, debug=False, use_database=True)
@@ -414,9 +571,9 @@ class InvoiceOCRParser:
     def rename_pdf(self, pdf_path, company_name, invoice_total) -> str
 ```
 
-### 6.2 Input/Output Formats
+### 6.3 Input/Output Formats
 
-#### 6.2.1 parse_invoice() Response
+#### 6.3.1 parse_invoice() Response
 ```python
 {
     "company_name": "La Forfaiterie",
@@ -428,7 +585,7 @@ class InvoiceOCRParser:
 }
 ```
 
-#### 6.2.2 Batch Processing CSV Output
+#### 6.3.2 Batch Processing CSV Output
 ```csv
 filename,company_name,invoice_total,confidence,method,processing_time,success,renamed_path
 invoice1.pdf,compte de taxes scolaire,402.31,high,text_extraction,1.45,True,compte_de_taxes_scolaire-$402.31.pdf

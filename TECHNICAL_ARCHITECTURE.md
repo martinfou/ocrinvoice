@@ -4,57 +4,246 @@
 
 ### 1.1 High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Application Layer                       │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │  CLI Interface  │  │   Test Suite    │  │ Batch Proc.  │ │
-│  │  - main()       │  │  - Validation   │  │ - CSV Output │ │
-│  │  - Arguments    │  │  - Reports      │  │ - Progress   │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                      Service Layer                          │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │ OCR Parser Svc  │  │ Extraction Svc  │  │ File Manager │ │
-│  │ - Text Extract  │  │ - Company Name  │  │ - Rename     │ │
-│  │ - OCR Process   │  │ - Invoice Total │  │ - Backup     │ │
-│  │ - Confidence    │  │ - Pattern Match │  │ - Validation │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                      Data Layer                             │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │ Fuzzy Matcher   │  │ Invoice Database│  │  File System │ │
-│  │ - Soundex       │  │ - JSON Storage  │  │ - PDF Files  │ │
-│  │ - Levenshtein   │  │ - CRUD Ops      │  │ - Images     │ │
-│  │ - Algorithms    │  │ - Statistics    │  │ - Logs       │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        CLI[CLI Interface<br/>main.py]
+        TestSuite[Test Suite<br/>validation & reports]
+        BatchProc[Batch Processing<br/>CSV output]
+    end
+    
+    subgraph "Service Layer"
+        OCRParser[OCR Parser Service<br/>text extraction]
+        ExtractionSvc[Extraction Service<br/>company & total]
+        FileMgr[File Manager<br/>rename & backup]
+    end
+    
+    subgraph "Data Layer"
+        FuzzyMatcher[Fuzzy Matcher<br/>Soundex & Levenshtein]
+        InvoiceDB[Invoice Database<br/>JSON storage]
+        FileSystem[File System<br/>PDFs & images]
+    end
+    
+    subgraph "External Dependencies"
+        Tesseract[Tesseract OCR<br/>text recognition]
+        PDFPlumber[pdfplumber<br/>native PDF text]
+        OpenCV[OpenCV<br/>image preprocessing]
+    end
+    
+    CLI --> OCRParser
+    TestSuite --> OCRParser
+    BatchProc --> OCRParser
+    
+    OCRParser --> ExtractionSvc
+    OCRParser --> FileMgr
+    OCRParser --> Tesseract
+    OCRParser --> PDFPlumber
+    OCRParser --> OpenCV
+    
+    ExtractionSvc --> FuzzyMatcher
+    ExtractionSvc --> InvoiceDB
+    FileMgr --> FileSystem
+    
+    style CLI fill:#e1f5fe
+    style TestSuite fill:#e1f5fe
+    style BatchProc fill:#e1f5fe
+    style OCRParser fill:#f3e5f5
+    style ExtractionSvc fill:#f3e5f5
+    style FileMgr fill:#f3e5f5
+    style FuzzyMatcher fill:#e8f5e8
+    style InvoiceDB fill:#e8f5e8
+    style FileSystem fill:#e8f5e8
 ```
 
-### 1.2 Class Hierarchy
+### 1.2 Class Hierarchy and Relationships
 
+```mermaid
+classDiagram
+    class InvoiceOCRParser {
+        +tesseract_path: str
+        +debug: bool
+        +use_database: bool
+        +invoice_db: InvoiceDatabase
+        +parse_invoice(pdf_path) Dict
+        +parse_invoices_batch(folder_path) DataFrame
+        +extract_text_from_pdf(pdf_path) str
+        +extract_company_name(text) str
+        +extract_invoice_total(text) Optional[str]
+        +calculate_confidence(company, total, text) str
+        +rename_pdf(pdf_path, company, total) str
+        -_preprocess_standard(image) ndarray
+        -_preprocess_otsu(image) ndarray
+        -_preprocess_enhanced_contrast(image) ndarray
+        -_preprocess_denoised(image) ndarray
+        -_preprocess_morphological(image) ndarray
+    }
+    
+    class FuzzyMatcher {
+        <<static>>
+        +soundex(word) str
+        +levenshtein_distance(s1, s2) int
+        +normalized_levenshtein_distance(s1, s2) float
+        +fuzzy_match(target, candidates, threshold) Optional[str]
+    }
+    
+    class InvoiceDatabase {
+        +db_file: str
+        +data: Dict
+        +add_invoice(company_name, total, confidence)
+        +find_company_match(text) Optional[Tuple]
+        +find_total_match(text) Optional[Tuple]
+        +get_database_stats() Dict
+        -_load_database() Dict
+        -_save_database()
+        -_normalize_company_name(name) str
+    }
+    
+    class InvoiceTestSuite {
+        +test_cases: List[Dict]
+        +run_single_test(test_case) Dict
+        +run_all_tests() List[Dict]
+        +generate_report(results, output_file)
+        -_normalize_company_name(name) str
+    }
+    
+    InvoiceOCRParser --> FuzzyMatcher : uses
+    InvoiceOCRParser --> InvoiceDatabase : contains
+    InvoiceTestSuite --> InvoiceOCRParser : tests
 ```
-InvoiceOCRParser (Main Class)
-├── FuzzyMatcher (Static Utility)
-│   ├── soundex()
-│   ├── levenshtein_distance()
-│   ├── normalized_levenshtein_distance()
-│   └── fuzzy_match()
-├── InvoiceDatabase
-│   ├── _load_database()
-│   ├── _save_database()
-│   ├── add_invoice()
-│   ├── find_company_match()
-│   ├── find_total_match()
-│   └── get_database_stats()
-└── InvoiceTestSuite
-    ├── run_single_test()
-    ├── run_all_tests()
-    ├── generate_report()
-    └── _normalize_company_name()
+
+### 1.3 Processing Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Parser as InvoiceOCRParser
+    participant PDF as pdfplumber
+    participant OCR as Tesseract
+    participant Extractor as ExtractionService
+    participant Fuzzy as FuzzyMatcher
+    participant DB as InvoiceDatabase
+    participant FS as FileSystem
+    
+    User->>Parser: parse_invoice(pdf_path)
+    Parser->>PDF: extract_text_from_pdf()
+    
+    alt PDF has native text
+        PDF-->>Parser: return text
+    else PDF is image-based
+        Parser->>OCR: convert_pdf_to_images()
+        OCR-->>Parser: return images
+        Parser->>OCR: preprocess_images()
+        OCR-->>Parser: return processed_images
+        Parser->>OCR: extract_text_with_ocr()
+        OCR-->>Parser: return ocr_text
+    end
+    
+    Parser->>Extractor: extract_company_name(text)
+    
+    alt High quality text
+        Extractor->>Extractor: pattern_matching()
+        alt Pattern found
+            Extractor-->>Parser: return company
+        else No pattern match
+            Extractor->>Fuzzy: fuzzy_match()
+            Fuzzy-->>Extractor: return fuzzy_result
+            Extractor-->>Parser: return company_or_unknown
+        end
+    else Poor quality text
+        Extractor-->>Parser: return "Unknown"
+    end
+    
+    Parser->>Extractor: extract_invoice_total(text)
+    Extractor->>Extractor: multi_pass_extraction()
+    Extractor->>Extractor: score_candidates()
+    Extractor-->>Parser: return total
+    
+    Parser->>DB: find_fallback_matches()
+    DB-->>Parser: return fallback_data
+    
+    Parser->>FS: rename_pdf()
+    FS-->>Parser: return new_path
+    
+    Parser-->>User: return results_dict
+```
+
+### 1.4 Data Flow Architecture
+
+```mermaid
+flowchart TD
+    subgraph Input
+        PDF[PDF Invoice File]
+    end
+    
+    subgraph TextExtraction[Text Extraction Pipeline]
+        Native[Native PDF Text<br/>pdfplumber]
+        Convert[PDF to Images<br/>pdf2image]
+        Preprocess[Image Preprocessing<br/>5 methods]
+        OCR[Tesseract OCR<br/>multiple configs]
+        TextMerge[Merge & Clean Text]
+    end
+    
+    subgraph QualityAssessment[Quality Assessment]
+        QualityCheck{Text Quality Check}
+        ScoreText[Calculate Quality Score]
+        SetUnknown[Set Company = Unknown]
+    end
+    
+    subgraph CompanyExtraction[Company Name Extraction]
+        SpecificPatterns[Specific Patterns]
+        ExactMatch[Exact Company Matching]
+        AliasMatch[Business Alias Mapping<br/>Exact/Partial/Fuzzy]
+        GenericPatterns[Generic Patterns]
+    end
+    
+    subgraph TotalExtraction[Invoice Total Extraction]
+        OCRPatterns[OCR Error Patterns]
+        TotalKeywords[Total Keywords]
+        CurrencySymbols[Currency Symbols]
+        NumberPatterns[Number Patterns]
+        Scoring[Candidate Scoring]
+    end
+    
+    subgraph Output
+        Results[JSON Results]
+        RenamedPDF[Renamed PDF]
+        CSVReport[CSV Report]
+        Database[Invoice Database]
+    end
+    
+    PDF --> Native
+    PDF --> Convert
+    Convert --> Preprocess
+    Preprocess --> OCR
+    Native --> TextMerge
+    OCR --> TextMerge
+    
+    TextMerge --> QualityCheck
+    QualityCheck -->|Good Quality| SpecificPatterns
+    QualityCheck -->|Poor Quality| SetUnknown
+    ScoreText --> QualityCheck
+    
+    SpecificPatterns --> ExactMatch
+    ExactMatch --> AliasMatch
+    AliasMatch --> GenericPatterns
+    SetUnknown --> OCRPatterns
+    GenericPatterns --> OCRPatterns
+    
+    OCRPatterns --> TotalKeywords
+    TotalKeywords --> CurrencySymbols
+    CurrencySymbols --> NumberPatterns
+    NumberPatterns --> Scoring
+    
+    Scoring --> Results
+    Results --> RenamedPDF
+    Results --> CSVReport
+    Results --> Database
+    
+    style PDF fill:#81c784
+    style Results fill:#81c784
+    style QualityCheck fill:#64b5f6
+    style SetUnknown fill:#ffb74d
+    style Scoring fill:#ba68c8
 ```
 
 ## 2. Design Patterns and Principles
@@ -126,6 +315,30 @@ class PreprocessorFactory:
 #### Dependency Inversion Principle (DIP)
 - High-level modules don't depend on low-level modules
 - Both depend on abstractions (interfaces)
+
+### 2.2 Data Layer
+
+#### 2.2.1 Configuration Files
+- **business_aliases.json**: Business name mapping configuration
+- **invoice_database.json**: Optional database for fallback matching (disabled by default)
+
+#### 2.2.2 Invoice Database (Optional)
+The invoice database provides fallback matching capabilities for business names and is **disabled by default**.
+
+**Features**:
+- Stores known business names
+- Provides fuzzy matching for company names
+- Automatic learning from successful extractions
+- Company name frequency tracking
+
+**Usage**:
+```python
+# Default: Database disabled
+parser = InvoiceOCRParser()
+
+# Enable database functionality
+parser = InvoiceOCRParser(use_database=True)
+```
 
 ## 3. Data Structures and Algorithms
 
@@ -640,7 +853,7 @@ ENV PYTHONPATH=/app
 ENV TESSERACT_CMD=/usr/bin/tesseract
 
 # Run the application
-CMD ["python", "invoice_ocr_parser.py"]
+CMD ["python", "invoice_ocr_parser_cli.py"]
 ```
 
 ### 9.2 Monitoring and Logging

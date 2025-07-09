@@ -100,7 +100,7 @@ If you prefer to set up manually:
 
 Process all PDFs in a folder:
 ```bash
-python invoice_ocr_parser.py /path/to/invoices output_results.csv
+python invoice_ocr_parser_cli.py /path/to/invoices output_results.csv
 ```
 
 ### Python Script Usage
@@ -185,6 +185,54 @@ When using batch processing, results are saved to a CSV file with columns:
 - `error`: Any error messages
 
 ## Configuration
+
+### Business Name Aliases (`business_aliases.json`)
+
+The parser uses a configurable business alias system to map various string representations to standardized business names:
+
+```json
+{
+    "exact_matches": {
+        "BMR": "BMR Building Materials",
+        "TD": "TD Bank",
+        "compte de taxes scolaire": "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE"
+    },
+    "partial_matches": {
+        "Forfaiterie": "La Forfaiterie",
+        "grandes-seigneuries": "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE"
+    },
+    "fuzzy_candidates": [
+        "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE",
+        "BMR Building Materials"
+    ],
+    "indicators": {
+        "CONSEIL SCOLAIRE DE DISTRICT CATHOLIQUE": ["COMPTE", "TAXE", "SCOLAIRE"],
+        "BMR Building Materials": ["BMR", "BUILDING", "MATERIALS"]
+    }
+}
+```
+
+**Configuration Types:**
+- **Exact Matches**: Direct string-to-business mapping (highest priority)
+- **Partial Matches**: Substring detection with business assignment
+- **Fuzzy Matches**: OCR error correction using Soundex + Levenshtein distance (requires indicators)
+- **Indicators**: Keywords that must be present for fuzzy matching to activate
+
+### Invoice Database (Optional)
+
+The parser includes an optional invoice database for fallback matching. By default, this feature is **disabled**.
+
+To enable the database:
+```python
+# Enable database for fallback matching
+parser = InvoiceOCRParser(use_database=True)
+```
+
+When enabled, the database:
+- Stores known business names for future reference
+- Provides fallback matching when primary extraction fails
+- Automatically learns from successful extractions
+- Saves data to `invoice_database.json`
 
 ### Tesseract Path
 

@@ -152,6 +152,15 @@ test_data/*.pdf
 backup/*.pdf
 output/*.pdf
 
+# PDF files - ignore all PDF files
+*.pdf
+
+# Excel files - ignore all Excel files
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+
 # CSV reports and results
 test_report.csv
 results.csv

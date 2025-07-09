@@ -145,6 +145,11 @@ def main():
     
     print("\nTo run batch processing:")
     print("   python test_parser.py --batch")
+    
+    print("\n📋 Configuration Files:")
+    print("   • business_aliases.json - Configure business name mappings")
+    print("   • invoice_database.json - Optional: Stores known company/total pairs (disabled by default)")
+    print("   • Edit business_aliases.json to customize company name matching")
 
 if __name__ == "__main__":
     main() 

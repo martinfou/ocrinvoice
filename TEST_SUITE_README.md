@@ -112,7 +112,7 @@ python test_suite.py --run
 
 ### 3. Improve the Parser
 Based on test results, you can:
-- **Add new patterns** to `invoice_ocr_parser.py`:
+- **Add new patterns** to `invoice_ocr_parser_cli.py`:
   ```python
   # Add custom company patterns
   parser.company_patterns.append(r'YOUR_CUSTOM_PATTERN')
@@ -200,7 +200,7 @@ python test_suite.py --run
 # (Open test_report.csv in Excel/Google Sheets)
 
 # 5. Make improvements to parser
-# (Edit invoice_ocr_parser.py based on findings)
+# (Edit invoice_ocr_parser_cli.py based on findings)
 
 # 6. Re-run tests
 python test_suite.py --run
