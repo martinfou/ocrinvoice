@@ -1182,7 +1182,7 @@ class InvoiceOCRParser:
         return self.parse_invoices_batch(folder_path, output_file, auto_rename=True)
 
     def rename_pdf(self, pdf_path: str, company_name: str, invoice_total: str, invoice_date: str) -> str:
-        """Rename PDF file based on extracted information using format: date_business_total"""
+        """Rename PDF file based on extracted information using format: date_business_$total"""
         try:
             # Get directory and filename
             directory = os.path.dirname(pdf_path)
@@ -1190,19 +1190,19 @@ class InvoiceOCRParser:
             name, ext = os.path.splitext(filename)
             
             # Clean and prepare components
-            clean_date = invoice_date.replace('-', '') if invoice_date else "nodate"
+            clean_date = invoice_date if invoice_date else "nodate"  # Keep YYYY-MM-DD format
             clean_company = self._clean_filename(company_name) if company_name and company_name != "Unknown" else "unknown"
             clean_total = invoice_total.replace('.', '') if invoice_total else "nototal"
             
-            # Create new filename in format: date_business_total
+            # New format: date_business_$total
             if clean_date != "nodate" and clean_company != "unknown" and clean_total != "nototal":
-                new_name = f"{clean_date}_{clean_company}_{clean_total}{ext}"
+                new_name = f"{clean_date}_{clean_company}_${invoice_total}{ext}"
             elif clean_date != "nodate" and clean_company != "unknown":
                 new_name = f"{clean_date}_{clean_company}{ext}"
             elif clean_company != "unknown" and clean_total != "nototal":
-                new_name = f"{clean_company}_{clean_total}{ext}"
+                new_name = f"{clean_company}_${invoice_total}{ext}"
             elif clean_date != "nodate" and clean_total != "nototal":
-                new_name = f"{clean_date}_{clean_total}{ext}"
+                new_name = f"{clean_date}_${invoice_total}{ext}"
             else:
                 new_name = f"unknown{ext}"
             
