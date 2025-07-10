@@ -1,7 +1,7 @@
 # Business Alias System Implementation Summary
 
 ## Overview
-A flexible, configurable business alias system that maps any string found in invoices to one of five official business names.
+A flexible, configurable business alias system that maps any string found in invoices to one of official business names.
 
 ## Current System Features
 
@@ -10,7 +10,7 @@ A flexible, configurable business alias system that maps any string found in inv
 - **Partial Matches**: Substring detection with business assignment  
 - **Fuzzy Matches**: OCR error correction using Soundex + Levenshtein distance (requires indicators)
 - **Indicators**: Keywords that must be present for fuzzy matching to activate
-- **Official Name Enforcement**: All outputs resolve to one of five official business names
+- **Official Name Enforcement**: All outputs resolve to one of official business names
 
 ### 2. **Configuration File** (`business_aliases.json`)
 ```json
@@ -78,26 +78,13 @@ A flexible, configurable business alias system that maps any string found in inv
 - Can easily add new business types
 - Support for complex matching rules with indicators
 - Confidence scoring for different match types
-- Optional fallback matching via database
 - Easy to modify official names list
 
 ### 4. **User-Friendly**
 - Simple JSON configuration format
 - Clear documentation and examples
 - Test scripts for validation
-- Database functionality optional and clearly documented
 - Consistent output format
-
-## Usage Examples
-
-### Adding a New Business Alias
-```python
-# Add exact match
-alias_manager.add_alias("ABC", "bmr", "exact_matches")
-
-# Add partial match  
-alias_manager.add_alias("XYZ", "banque-td", "partial_matches")
-```
 
 ## Alias Management Tools
 

@@ -121,6 +121,18 @@ def main():
             old_name = os.path.basename(input_path)
             new_name = f"{result['invoice_date']}_{result['company_name']}_${result['invoice_total']}.pdf"
             print(f"   📝 Would rename: {old_name} → {new_name}")
+        
+        # Print the extracted text
+        print("\n--- Extracted Text ---")
+        # Use the new file path if the file was renamed
+        file_path_to_extract = result.get('new_file_path', input_path)
+        text = parser.extract_text_from_pdf(file_path_to_extract)
+        if not text.strip() and hasattr(parser, 'convert_pdf_to_images'):
+            images = parser.convert_pdf_to_images(file_path_to_extract)
+            if images:
+                text = parser.extract_text_with_ocr(images)
+        print(text)
+        print("--- End Extracted Text ---\n")
             
     else:
         # Folder of PDFs

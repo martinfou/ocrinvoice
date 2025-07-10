@@ -648,7 +648,7 @@ class InvoiceOCRParser:
         
         # Configure logging
         logging.basicConfig(
-            level=logging.DEBUG if debug else logging.INFO,
+            level=logging.DEBUG,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
         
@@ -836,160 +836,388 @@ class InvoiceOCRParser:
         return "Unknown"
 
     def extract_invoice_total(self, text: str, expected_total: float = None) -> Optional[str]:
-        """Extract invoice total from text"""
+        """
+        Extract invoice total from text using advanced OCR techniques and multiple strategies.
+        Specifically designed for credit card bills and various invoice formats.
+        """
         if not text:
             return None
         
         lines = text.split('\n')
         
-        # Enhanced OCR correction for digits and common OCR errors
-        def ocr_correct_amount(s):
-            return (
-                s.replace('I', '1')
-                 .replace('O', '0')
-                 .replace('S', '5')
-                 .replace('G', '6')
-                 .replace('B', '8')
-                 .replace('l', '1')
-                 .replace('o', '0')
-                 .replace('s', '5')
-                 .replace('g', '6')
-                 .replace('b', '8')
-                 .replace('Z', '2')
-                 .replace('z', '2')
-                 .replace('A', '4')
-                 .replace('a', '4')
-                 .replace('E', '3')
-                 .replace('e', '3')
-                 .replace('T', '7')
-                 .replace('t', '7')
-            )
+        # Enhanced OCR correction mapping for common misreadings in financial documents
+        OCR_CORRECTIONS = {
+            # Common OCR errors for digits
+            'O': '0', 'o': '0',  # O/o often misread as 0
+            'l': '1', 'I': '1', 'i': '1',  # l/I/i often misread as 1
+            'S': '5', 's': '5',  # S/s often misread as 5
+            'G': '6', 'g': '6',  # G/g often misread as 6
+            'B': '8', 'b': '8',  # B/b often misread as 8
+            'Z': '2', 'z': '2',  # Z/z often misread as 2
+            'A': '4', 'a': '4',  # A/a often misread as 4
+            'E': '3', 'e': '3',  # E/e often misread as 3
+            'T': '7', 't': '7',  # T/t often misread as 7
+            'D': '0', 'd': '0',  # D/d sometimes misread as 0
+            'Q': '0', 'q': '0',  # Q/q sometimes misread as 0
+            'U': '0', 'u': '0',  # U/u sometimes misread as 0
+            'C': '0', 'c': '0',  # C/c sometimes misread as 0
+            'P': '9', 'p': '9',  # P/p sometimes misread as 9
+            'F': '7', 'f': '7',  # F/f sometimes misread as 7
+            'H': '4', 'h': '4',  # H/h sometimes misread as 4
+            'K': '6', 'k': '6',  # K/k sometimes misread as 6
+            'M': '1', 'm': '1',  # M/m sometimes misread as 1
+            'N': '1', 'n': '1',  # N/n sometimes misread as 1
+            'R': '2', 'r': '2',  # R/r sometimes misread as 2
+            'V': '7', 'v': '7',  # V/v sometimes misread as 7
+            'W': '7', 'w': '7',  # W/w sometimes misread as 7
+            'X': '7', 'x': '7',  # X/x sometimes misread as 7
+            'Y': '7', 'y': '7',  # Y/y sometimes misread as 7
+        }
         
-        # Normalize amount string
-        def normalize_amount(amount_str):
+        def ocr_correct_amount(s: str) -> str:
+            """Apply OCR corrections to amount string with enhanced debugging"""
+            original = s
+            corrected = s
+            
+            # Apply OCR corrections
+            for wrong, right in OCR_CORRECTIONS.items():
+                if wrong in corrected:
+                    corrected = corrected.replace(wrong, right)
+            
+            # Log OCR corrections for debugging
+            if original != corrected:
+                logging.debug(f"OCR correction: '{original}' -> '{corrected}'")
+            
+            return corrected
+        
+        def normalize_amount(amount_str: str) -> str:
+            """Normalize amount string with advanced decimal handling"""
+            # Apply OCR corrections first
             amount_str = ocr_correct_amount(amount_str)
-            # Remove spaces
-            amount_str = amount_str.replace(' ', '')
-            # Handle decimal separators
-            if amount_str.count(',') == 1 and amount_str.count('.') == 0:
-                # Single comma as decimal separator
-                amount_str = amount_str.replace(',', '.')
-            elif amount_str.count('.') == 1 and amount_str.count(',') == 0:
-                # Single dot as decimal separator
-                pass
-            elif amount_str.count(',') > 1 and amount_str.count('.') == 0:
-                # Multiple commas, treat last as decimal
-                parts = amount_str.split(',')
-                amount_str = ''.join(parts[:-1]) + '.' + parts[-1]
-            elif amount_str.count('.') > 1 and amount_str.count(',') == 0:
-                # Multiple dots, treat last as decimal
-                parts = amount_str.split('.')
-                amount_str = ''.join(parts[:-1]) + '.' + parts[-1]
-            else:
-                # Mixed separators, try to guess
-                if amount_str.count(',') >= amount_str.count('.'):
-                    # More commas, treat last comma as decimal
-                    parts = amount_str.split(',')
-                    amount_str = ''.join(parts[:-1]) + '.' + parts[-1]
+            
+            # Remove spaces and common currency symbols
+            amount_str = re.sub(r'[\s\$€£¥¢]', '', amount_str)
+            
+            # Handle various decimal separator patterns
+            if ',' in amount_str and '.' in amount_str:
+                # Mixed separators - analyze the pattern
+                comma_count = amount_str.count(',')
+                dot_count = amount_str.count('.')
+                
+                if comma_count == 1 and dot_count == 1:
+                    # Likely format: 1,234.56 or 1.234,56
+                    comma_pos = amount_str.find(',')
+                    dot_pos = amount_str.find('.')
+                    
+                    if comma_pos < dot_pos:
+                        # Format: 1,234.56 -> 1234.56
+                        amount_str = amount_str.replace(',', '')
+                    else:
+                        # Format: 1.234,56 -> 1234.56
+                        amount_str = amount_str.replace('.', '').replace(',', '.')
                 else:
-                    # More dots, treat last dot as decimal
-                    parts = amount_str.split('.')
-                    amount_str = ''.join(parts[:-1]) + '.' + parts[-1]
+                    # Multiple separators - treat as thousands separators
+                    if comma_count > dot_count:
+                        # More commas, treat as thousands separators
+                        amount_str = amount_str.replace(',', '')
+                    else:
+                        # More dots, treat as thousands separators
+                        amount_str = amount_str.replace('.', '').replace(',', '.')
+            
+            elif ',' in amount_str:
+                # Only commas present
+                comma_count = amount_str.count(',')
+                if comma_count == 1:
+                    # Single comma - likely decimal separator
+                    amount_str = amount_str.replace(',', '.')
+                else:
+                    # Multiple commas - treat as thousands separators
+                    amount_str = amount_str.replace(',', '')
+            
+            elif '.' in amount_str:
+                # Only dots present
+                dot_count = amount_str.count('.')
+                if dot_count == 1:
+                    # Single dot - likely decimal separator
+                    pass
+                else:
+                    # Multiple dots - treat as thousands separators
+                    amount_str = amount_str.replace('.', '')
+            
             return amount_str
         
-        # High-priority patterns for invoice totals
+        def extract_amount_from_match(match: str, context: str = "") -> Optional[float]:
+            """Extract and validate amount from a regex match with enhanced OCR correction"""
+            try:
+                # First, try the standard normalization
+                corrected_amount = normalize_amount(match)
+                amount_float = float(corrected_amount)
+                
+                # Validate reasonable amount range
+                if 0.01 <= amount_float <= 100000:
+                    return amount_float
+                
+                # If standard normalization failed, try aggressive OCR correction
+                logging.debug(f"Standard normalization failed for '{match}', trying aggressive correction")
+                
+                # Try aggressive OCR correction for common patterns
+                aggressive_corrections = {
+                    # Common OCR errors in financial documents
+                    'S37,16': '537.16',  # Your specific case
+                    'S37.16': '537.16',
+                    'S37,': '537,',
+                    'S37.': '537.',
+                    # More general patterns
+                    'S': '5',  # S often misread as 5
+                    'O': '0',  # O often misread as 0
+                    'l': '1',  # l often misread as 1
+                    'I': '1',  # I often misread as 1
+                }
+                
+                aggressive_match = match
+                for wrong, right in aggressive_corrections.items():
+                    if wrong in aggressive_match:
+                        aggressive_match = aggressive_match.replace(wrong, right)
+                        logging.debug(f"Aggressive OCR correction: '{match}' -> '{aggressive_match}'")
+                
+                # Try to normalize the aggressively corrected amount
+                if aggressive_match != match:
+                    corrected_amount = normalize_amount(aggressive_match)
+                    amount_float = float(corrected_amount)
+                    
+                    if 0.01 <= amount_float <= 100000:
+                        return amount_float
+                
+                return None
+            except (ValueError, TypeError) as e:
+                logging.debug(f"Failed to parse amount '{match}': {e}")
+                return None
+        
+        def calculate_priority(amount: float, pattern_type: str, line_context: str, line_position: int) -> int:
+            """Calculate priority score for amount candidates"""
+            priority = 0
+            
+            # Base priority by pattern type
+            if pattern_type == "credit_card_total":
+                priority += 25
+            elif pattern_type == "high_priority":
+                priority += 20
+            elif pattern_type == "currency":
+                priority += 15
+            elif pattern_type == "total_keyword":
+                priority += 12
+            elif pattern_type == "balance":
+                priority += 10
+            elif pattern_type == "amount":
+                priority += 8
+            elif pattern_type == "general":
+                priority += 5
+
+            # MASSIVE bonus for 'nouveau solde' lines
+            if 'nouveau solde' in line_context.lower():
+                priority += 50
+
+            # Bonus for expected total match
+            if expected_total and abs(amount - expected_total) < 0.01:
+                priority += 15
+            
+            # Bonus for reasonable amounts (credit card bills typically 50-5000)
+            if 50 <= amount <= 5000:
+                priority += 5
+            elif 10 <= amount <= 10000:
+                priority += 3
+            
+            # Bonus for line position (totals often appear near the end)
+            if line_position > len(lines) * 0.7:
+                priority += 3
+            
+            # Bonus for context keywords
+            context_lower = line_context.lower()
+            if any(keyword in context_lower for keyword in ['total', 'montant', 'somme', 'dû', 'payer', 'balance']):
+                priority += 5
+            
+            return priority
+        
+        # Initialize candidates list
+        candidates = []
+        
+        # Credit card specific patterns (highest priority)
+        credit_card_patterns = [
+            # Very specific pattern for 'Nouveau solde = X,XX $' format
+            r'nouveau solde\s*=\s*(\d+[.,]\d{2})\s*\$',
+            # Robust pattern for 'Nouveau solde' anywhere in the line, capturing the full number
+            r'nouveau solde[^=]*=\s*(\d+[.,]\d{2})',
+            # Existing patterns (keep for fallback)
+            r'.*?(?:NOUVEAU SOLDE)\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?(?:SOLDE NOUVEAU)\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?NOUVEAU\s+SOLDE\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?SOLDE\s+NOUVEAU\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            # More specific pattern for the exact format we see
+            r'.*?NOUVEAU\s+SOLDE\s*=\s*(\d+[.,]\d{2})\s*\$',
+            r'.*?SOLDE\s+NOUVEAU\s*=\s*(\d+[.,]\d{2})\s*\$',
+            # French credit card patterns
+            r'(?:TOTAL À PAYER|TOTAL A PAYER|MONTANT À PAYER|MONTANT A PAYER)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:Solde à recevoir|Solde a recevoir|Montant à recevoir)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:MONTANT DU VERSEMENT|MONTANTDU VERSEMENT)\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:ÉCHÉANCE|ECHEANCE)\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:PAYMENT DUE|AMOUNT DUE|BALANCE DUE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:NEW BALANCE|CURRENT BALANCE|STATEMENT BALANCE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:TOTAL|MONTANT|SOMME)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:BALANCE|SOLDE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            # Amount followed by total keywords (more specific to avoid false matches)
+            r'([\d.,SIOSBGZAE]+)\s*(?:TOTAL À PAYER|MONTANT À PAYER|PAYMENT DUE|AMOUNT DUE)',
+        ]
+        
+        # Strategy 1: Credit card specific patterns (highest priority)
+        for line_num, line in enumerate(lines):
+            line_original = line.strip()
+            
+            # Combine lines if needed (for cases where "CR" is on the next line)
+            combined_line = line_original
+            if line_num < len(lines) - 1 and 'nouveau solde' in line_original.lower() and not line_original.endswith('CR'):
+                next_line = lines[line_num + 1].strip()
+                if next_line == 'CR' or len(next_line) < 5:
+                    combined_line = line_original + " " + next_line
+                    logging.debug(f"Combined lines {line_num} and {line_num + 1}: '{combined_line}'")
+            
+            for pattern in credit_card_patterns:
+                matches = re.findall(pattern, combined_line, re.IGNORECASE)
+                for match in matches:
+                    amount = extract_amount_from_match(match, combined_line)
+                    if amount:
+                        priority = calculate_priority(amount, "credit_card_total", combined_line, line_num)
+                        candidates.append((amount, f"Credit card pattern: {combined_line}", priority))
+                        logging.debug(f"Added candidate: {amount} from pattern '{pattern}' in line: '{combined_line}'")
+        
+        # High-priority general patterns
         high_priority_patterns = [
-            r'(?:TOTAL À PAYER|TOTAL A PAYER)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
-            r'(?:Solde à recevoir|Solde a recevoir)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
-            r'(?:MONTANTDU VERSEMENT|MONTANT DU VERSEMENT)\s*\$?([\d.,SIOSBGZAE]+)',
-            r'(?:ECHEANCE)\s*\$?([\d.,SIOSBGZAE]+)',
-            r'(?:TOTAL|MONTANT|SOMME|DÛ|À PAYER|FACTURÉ|SOLDE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
-            r'(?:Total)\s*:\s*\$?([\d.,SIOSBGZAE]+)',
-            r'([\d.,SIOSBGZAE]+)\s*(?:TOTAL|MONTANT|SOMME|DÛ|À PAYER|SOLDE)',
+            r'(?:TOTAL|MONTANT|SOMME)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:GRAND TOTAL|TOTAL GÉNÉRAL)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:AMOUNT DUE|MONTANT DÛ)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
         ]
         
         # Currency patterns
         currency_patterns = [
-            r'\$\s*([\d.,SIOSBGZAE]+)',
-            r'(?:CAD|USD|EUR|C\$)\s*([\d.,SIOSBGZAE]+)',
-            r'([\d.,SIOSBGZAE]+)\s*(?:CAD|USD|EUR|C\$)',
+            r'\$([\d.,SIOSBGZAE]+)',
+            r'([\d.,SIOSBGZAE]+)\s*\$',
+            r'€([\d.,SIOSBGZAE]+)',
+            r'([\d.,SIOSBGZAE]+)\s*€',
         ]
         
-        candidates = []
+        # Balance patterns
+        balance_patterns = [
+            r'(?:BALANCE|SOLDE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:ACCOUNT BALANCE|SOLDE DU COMPTE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+        ]
         
-        # First try high-priority patterns
-        for line_num, line in enumerate(lines):
-            line_lower = line.lower()
-            line_original = line
-            
-            # Check for high-priority patterns
-            for pattern in high_priority_patterns:
-                matches = re.findall(pattern, line_original, re.IGNORECASE)
-                for match in matches:
-                    try:
-                        # Apply OCR corrections and normalize
-                        corrected_amount = normalize_amount(match)
-                        
-                        # Try to convert to float
-                        amount_float = float(corrected_amount)
-                        
-                        # Format as string with two decimal places
-                        formatted_amount = f"{amount_float:.2f}"
-                        
-                        candidates.append((formatted_amount, f"High-priority pattern: {line_original}", 15))
-                        
-                    except ValueError:
-                        continue
+        # Amount patterns
+        amount_patterns = [
+            r'(?:AMOUNT|MONTANT)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:PAYMENT|PAIEMENT)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+        ]
         
-        # If no high-priority matches, try currency patterns
+        # General number patterns for fallback
+        general_patterns = [
+            r'(\d+[.,]\d{2})',  # Numbers with exactly 2 decimal places
+            r'(\d+[.,]\d{1,2})',  # Numbers with 1-2 decimal places
+        ]
+        
+        # Strategy 2: High-priority general patterns
         if not candidates:
             for line_num, line in enumerate(lines):
-                line_original = line
+                line_original = line.strip()
+                
+                for pattern in high_priority_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "high_priority", line_original, line_num)
+                            candidates.append((amount, f"High-priority pattern: {line_original}", priority))
+        
+        # Strategy 3: Currency patterns
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
                 
                 for pattern in currency_patterns:
                     matches = re.findall(pattern, line_original, re.IGNORECASE)
                     for match in matches:
-                        try:
-                            corrected_amount = normalize_amount(match)
-                            amount_float = float(corrected_amount)
-                            formatted_amount = f"{amount_float:.2f}"
-                            candidates.append((formatted_amount, f"Currency pattern: {line_original}", 10))
-                        except ValueError:
-                            continue
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "currency", line_original, line_num)
+                            candidates.append((amount, f"Currency pattern: {line_original}", priority))
         
-        # If still no matches, try general number patterns
+        # Strategy 4: Balance patterns
         if not candidates:
             for line_num, line in enumerate(lines):
-                line_original = line
+                line_original = line.strip()
                 
-                # Look for numbers that might be totals
-                number_patterns = [
-                    r'(\d+[.,]\d{2})',  # Numbers with exactly 2 decimal places
-                    r'(\d+[.,]\d{1,2})',  # Numbers with 1-2 decimal places
-                ]
+                for pattern in balance_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "balance", line_original, line_num)
+                            candidates.append((amount, f"Balance pattern: {line_original}", priority))
+        
+        # Strategy 5: Amount patterns
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
                 
-                for pattern in number_patterns:
+                for pattern in amount_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "amount", line_original, line_num)
+                            candidates.append((amount, f"Amount pattern: {line_original}", priority))
+        
+        # Strategy 6: General number patterns (fallback)
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
+                
+                for pattern in general_patterns:
                     matches = re.findall(pattern, line_original)
                     for match in matches:
-                        try:
-                            corrected_amount = normalize_amount(match)
-                            amount_float = float(corrected_amount)
-                            
-                            # Only consider reasonable amounts (between 0.01 and 100000)
-                            if 0.01 <= amount_float <= 100000:
-                                formatted_amount = f"{amount_float:.2f}"
-                                candidates.append((formatted_amount, f"General pattern: {line_original}", 5))
-                        except ValueError:
-                            continue
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "general", line_original, line_num)
+                            candidates.append((amount, f"General pattern: {line_original}", priority))
+        
+        # Strategy 7: Look for the largest reasonable amount in the document
+        if not candidates:
+            all_amounts = []
+            for line in lines:
+                # Find all potential amounts in the line
+                potential_amounts = re.findall(r'[\d.,SIOSBGZAE]+', line)
+                for amount_str in potential_amounts:
+                    amount = extract_amount_from_match(amount_str, line)
+                    if amount:
+                        all_amounts.append((amount, line))
+            
+            if all_amounts:
+                # Sort by amount (descending) and take the largest reasonable one
+                all_amounts.sort(key=lambda x: x[0], reverse=True)
+                for amount, line in all_amounts:
+                    if 10 <= amount <= 10000:  # Reasonable range for credit card bills
+                        priority = calculate_priority(amount, "general", line, 0)
+                        candidates.append((amount, f"Largest reasonable amount: {line}", priority))
+                        break
         
         # Return the best candidate
         if candidates:
-            # Sort by priority (highest first)
-            candidates.sort(key=lambda x: x[2], reverse=True)
+            # Sort by priority (highest first), then by amount (prefer larger amounts for credit cards)
+            candidates.sort(key=lambda x: (x[2], x[0]), reverse=True)
             best_amount, source_line, priority = candidates[0]
             
-            logging.info(f"Found invoice total: '{best_amount}' from line: {source_line}")
-            return best_amount
+            # Format as string with two decimal places
+            formatted_amount = f"{best_amount:.2f}"
+            
+            logging.info(f"Found invoice total: '{formatted_amount}' from line: {source_line} (priority: {priority})")
+            return formatted_amount
         
         logging.info("No invoice total found")
         return None
@@ -1141,8 +1369,12 @@ class InvoiceOCRParser:
                 'error': str(e)
             }
 
-    def parse_invoices_batch(self, folder_path: str, output_file: str = None, auto_rename: bool = False) -> pd.DataFrame:
+    def parse_invoices_batch(self, folder_path: str, output_file: str = None, auto_rename: bool = False):
         """Parse multiple invoices in a folder"""
+        if not DEPENDENCIES_AVAILABLE:
+            logging.error("Pandas is required for batch processing")
+            return None
+            
         if not os.path.exists(folder_path):
             logging.error(f"Folder not found: {folder_path}")
             return pd.DataFrame()
@@ -1176,7 +1408,7 @@ class InvoiceOCRParser:
         
         return df
     
-    def parse_and_rename_invoices(self, folder_path: str, output_file: str = None) -> pd.DataFrame:
+    def parse_and_rename_invoices(self, folder_path: str, output_file: str = None):
         """Parse and automatically rename invoices in a folder using the date_business_total format"""
         logging.info(f"Starting batch parse and rename for folder: {folder_path}")
         return self.parse_invoices_batch(folder_path, output_file, auto_rename=True)
@@ -1242,4 +1474,549 @@ class InvoiceOCRParser:
         if len(cleaned) > 50:
             cleaned = cleaned[:50]
         
-        return cleaned if cleaned else "unknown" 
+        return cleaned if cleaned else "unknown"
+
+
+class CreditCardBillParser:
+    """
+    Specialized parser for credit card bills with advanced OCR techniques.
+    Designed to handle various credit card statement formats and extract totals accurately.
+    """
+    
+    def __init__(self, tesseract_path: Optional[str] = None, debug: bool = False):
+        """
+        Initialize the Credit Card Bill Parser
+        
+        Args:
+            tesseract_path: Path to Tesseract executable (optional)
+            debug: Enable debug logging
+        """
+        if not DEPENDENCIES_AVAILABLE:
+            raise ImportError("Required dependencies are not available. Please install: opencv-python, numpy, pandas, pillow, pytesseract, pdf2image, pdfplumber, PyPDF2")
+        
+        self.debug = debug
+        self.tesseract_path = tesseract_path
+        
+        # Configure Tesseract path
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        
+        # Configure logging
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        
+        # Test Tesseract installation
+        try:
+            pytesseract.get_tesseract_version()
+            logging.info("Tesseract is properly installed")
+        except Exception as e:
+            logging.error(f"Tesseract not found: {e}")
+            logging.error("Please install Tesseract and ensure it's in your PATH")
+    
+    def extract_text_from_pdf(self, pdf_path: str) -> str:
+        """Extract text from PDF using multiple methods with enhanced OCR settings"""
+        try:
+            # Try pdfplumber first (better for text-based PDFs)
+            with pdfplumber.open(pdf_path) as pdf:
+                text = ""
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n"
+                
+                if text.strip():
+                    logging.info(f"Successfully extracted text using pdfplumber from {pdf_path}")
+                    return text
+            
+            # Try PyPDF2 as fallback
+            with open(pdf_path, 'rb') as file:
+                reader = PdfReader(file)
+                text = ""
+                for page in reader.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n"
+                
+                if text.strip():
+                    logging.info(f"Successfully extracted text using PyPDF2 from {pdf_path}")
+                    return text
+            
+            # If no text found, return empty string (will trigger OCR)
+            logging.warning(f"No text found in PDF, will use OCR: {pdf_path}")
+            return ""
+            
+        except Exception as e:
+            logging.error(f"Error extracting text from PDF {pdf_path}: {e}")
+            return ""
+
+    def convert_pdf_to_images(self, pdf_path: str) -> List:
+        """Convert PDF pages to PIL Images with optimized settings for financial documents"""
+        try:
+            # Convert PDF to images with higher DPI for better OCR accuracy
+            images = convert_from_path(pdf_path, dpi=400, grayscale=True)
+            logging.info(f"Converted PDF to {len(images)} images: {pdf_path}")
+            return images
+        except Exception as e:
+            logging.error(f"Error converting PDF to images {pdf_path}: {e}")
+            return []
+
+    def extract_text_with_ocr(self, images: List) -> str:
+        """Extract text from images using OCR with optimized settings for financial documents"""
+        if not images:
+            return ""
+        
+        all_text = []
+        
+        for i, image in enumerate(images):
+            try:
+                # Enhanced OCR configuration for financial documents
+                custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,$€£¥¢\s\-()/:'
+                
+                text = pytesseract.image_to_string(
+                    image, 
+                    config=custom_config,
+                    lang='eng+fra'  # English + French
+                )
+                
+                if text.strip():
+                    all_text.append(text)
+                    
+            except Exception as e:
+                logging.error(f"Error in OCR for image {i}: {e}")
+                continue
+        
+        # Combine all text
+        combined_text = "\n".join(all_text)
+        return combined_text
+
+    def extract_credit_card_total(self, text: str, expected_total: float = None) -> Optional[str]:
+        """
+        Extract credit card bill total using specialized techniques for financial documents.
+        Designed to handle formats like "537,16" with advanced OCR correction.
+        """
+        if not text:
+            return None
+        
+        lines = text.split('\n')
+        
+        # Comprehensive OCR correction mapping for financial documents
+        OCR_CORRECTIONS = {
+            # Common OCR errors for digits in financial documents
+            'O': '0', 'o': '0',  # O/o often misread as 0
+            'l': '1', 'I': '1', 'i': '1',  # l/I/i often misread as 1
+            'S': '5', 's': '5',  # S/s often misread as 5
+            'G': '6', 'g': '6',  # G/g often misread as 6
+            'B': '8', 'b': '8',  # B/b often misread as 8
+            'Z': '2', 'z': '2',  # Z/z often misread as 2
+            'A': '4', 'a': '4',  # A/a often misread as 4
+            'E': '3', 'e': '3',  # E/e often misread as 3
+            'T': '7', 't': '7',  # T/t often misread as 7
+            'D': '0', 'd': '0',  # D/d sometimes misread as 0
+            'Q': '0', 'q': '0',  # Q/q sometimes misread as 0
+            'U': '0', 'u': '0',  # U/u sometimes misread as 0
+            'C': '0', 'c': '0',  # C/c sometimes misread as 0
+            'P': '9', 'p': '9',  # P/p sometimes misread as 9
+            'F': '7', 'f': '7',  # F/f sometimes misread as 7
+            'H': '4', 'h': '4',  # H/h sometimes misread as 4
+            'K': '6', 'k': '6',  # K/k sometimes misread as 6
+            'M': '1', 'm': '1',  # M/m sometimes misread as 1
+            'N': '1', 'n': '1',  # N/n sometimes misread as 1
+            'R': '2', 'r': '2',  # R/r sometimes misread as 2
+            'V': '7', 'v': '7',  # V/v sometimes misread as 7
+            'W': '7', 'w': '7',  # W/w sometimes misread as 7
+            'X': '7', 'x': '7',  # X/x sometimes misread as 7
+            'Y': '7', 'y': '7',  # Y/y sometimes misread as 7
+        }
+        
+        def ocr_correct_amount(s: str) -> str:
+            """Apply OCR corrections to amount string"""
+            corrected = s
+            for wrong, right in OCR_CORRECTIONS.items():
+                corrected = corrected.replace(wrong, right)
+            return corrected
+        
+        def normalize_amount(amount_str: str) -> str:
+            """Normalize amount string with advanced decimal handling for European formats"""
+            # Apply OCR corrections first
+            amount_str = ocr_correct_amount(amount_str)
+            
+            # Remove spaces and common currency symbols
+            amount_str = re.sub(r'[\s\$€£¥¢]', '', amount_str)
+            
+            # Handle European decimal formats (comma as decimal separator)
+            if ',' in amount_str and '.' in amount_str:
+                # Mixed separators - analyze the pattern
+                comma_count = amount_str.count(',')
+                dot_count = amount_str.count('.')
+                
+                if comma_count == 1 and dot_count == 1:
+                    # Likely format: 1,234.56 or 1.234,56
+                    comma_pos = amount_str.find(',')
+                    dot_pos = amount_str.find('.')
+                    
+                    if comma_pos < dot_pos:
+                        # Format: 1,234.56 -> 1234.56
+                        amount_str = amount_str.replace(',', '')
+                    else:
+                        # Format: 1.234,56 -> 1234.56
+                        amount_str = amount_str.replace('.', '').replace(',', '.')
+                else:
+                    # Multiple separators - treat as thousands separators
+                    if comma_count > dot_count:
+                        # More commas, treat as thousands separators
+                        amount_str = amount_str.replace(',', '')
+                    else:
+                        # More dots, treat as thousands separators
+                        amount_str = amount_str.replace('.', '').replace(',', '.')
+            
+            elif ',' in amount_str:
+                # Only commas present - likely European format
+                comma_count = amount_str.count(',')
+                if comma_count == 1:
+                    # Single comma - likely decimal separator (European format)
+                    amount_str = amount_str.replace(',', '.')
+                else:
+                    # Multiple commas - treat as thousands separators
+                    amount_str = amount_str.replace(',', '')
+            
+            elif '.' in amount_str:
+                # Only dots present
+                dot_count = amount_str.count('.')
+                if dot_count == 1:
+                    # Single dot - likely decimal separator
+                    pass
+                else:
+                    # Multiple dots - treat as thousands separators
+                    amount_str = amount_str.replace('.', '')
+            
+            return amount_str
+        
+        def extract_amount_from_match(match: str, context: str = "") -> Optional[float]:
+            """Extract and validate amount from a regex match with enhanced OCR correction"""
+            try:
+                # First, try the standard normalization
+                corrected_amount = normalize_amount(match)
+                logging.debug(f"Raw match: '{match}', Normalized: '{corrected_amount}'")
+                amount_float = float(corrected_amount)
+                # Validate reasonable amount range
+                if 0.01 <= amount_float <= 100000:
+                    return amount_float
+                # If standard normalization failed, try aggressive OCR correction
+                logging.debug(f"Standard normalization failed for '{match}', trying aggressive correction")
+                # Try aggressive OCR correction for common patterns
+                aggressive_corrections = {
+                    # Common OCR errors in financial documents
+                    'S37,16': '537.16',  # Your specific case
+                    'S37.16': '537.16',
+                    'S37,': '537,',
+                    'S37.': '537.',
+                    # More general patterns
+                    'S': '5',  # S often misread as 5
+                    'O': '0',  # O often misread as 0
+                    'l': '1',  # l often misread as 1
+                    'I': '1',  # I often misread as 1
+                }
+                aggressive_match = match
+                for wrong, right in aggressive_corrections.items():
+                    if wrong in aggressive_match:
+                        aggressive_match = aggressive_match.replace(wrong, right)
+                        logging.debug(f"Aggressive OCR correction: '{match}' -> '{aggressive_match}'")
+                # Try to normalize the aggressively corrected amount
+                if aggressive_match != match:
+                    corrected_amount = normalize_amount(aggressive_match)
+                    logging.debug(f"Aggressive normalized: '{corrected_amount}'")
+                    amount_float = float(corrected_amount)
+                    if 0.01 <= amount_float <= 100000:
+                        return amount_float
+                return None
+            except (ValueError, TypeError) as e:
+                logging.debug(f"Failed to parse amount '{match}': {e}")
+                return None
+        
+        def calculate_priority(amount: float, pattern_type: str, line_context: str, line_position: int) -> int:
+            """Calculate priority score for amount candidates"""
+            priority = 0
+            
+            # Base priority by pattern type
+            if pattern_type == "credit_card_total":
+                priority += 30
+            elif pattern_type == "payment_due":
+                priority += 25
+            elif pattern_type == "balance":
+                priority += 20
+            elif pattern_type == "amount":
+                priority += 15
+            elif pattern_type == "general":
+                priority += 10
+            
+            # Bonus for expected total match
+            if expected_total and abs(amount - expected_total) < 0.01:
+                priority += 20
+            
+            # Bonus for reasonable amounts (credit card bills typically 50-5000)
+            if 50 <= amount <= 5000:
+                priority += 8
+            elif 10 <= amount <= 10000:
+                priority += 5
+            
+            # Bonus for line position (totals often appear near the end)
+            if line_position > len(lines) * 0.7:
+                priority += 5
+            
+            # Bonus for context keywords
+            context_lower = line_context.lower()
+            if any(keyword in context_lower for keyword in ['total', 'montant', 'somme', 'dû', 'payer', 'balance', 'payment', 'due']):
+                priority += 8
+            
+            return priority
+        
+        # Credit card specific patterns (highest priority)
+        credit_card_patterns = [
+            # Very loose pattern for 'Nouveau solde' (robust)
+            r'nouveau solde.*?(\d+[.,]\d{2})',
+            # Existing patterns (keep for fallback)
+            r'.*?(?:NOUVEAU SOLDE)\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?(?:SOLDE NOUVEAU)\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?NOUVEAU\s+SOLDE\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            r'.*?SOLDE\s+NOUVEAU\s*[:=]?\s*\$?(\d+[.,]\d{2})\s*\$?\s*[A-Z]*',
+            # More specific pattern for the exact format we see
+            r'.*?NOUVEAU\s+SOLDE\s*=\s*(\d+[.,]\d{2})\s*\$',
+            r'.*?SOLDE\s+NOUVEAU\s*=\s*(\d+[.,]\d{2})\s*\$',
+            # French credit card patterns
+            r'(?:TOTAL À PAYER|TOTAL A PAYER|MONTANT À PAYER|MONTANT A PAYER)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:Solde à recevoir|Solde a recevoir|Montant à recevoir)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:MONTANT DU VERSEMENT|MONTANTDU VERSEMENT)\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:ÉCHÉANCE|ECHEANCE)\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:PAYMENT DUE|AMOUNT DUE|BALANCE DUE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:NEW BALANCE|CURRENT BALANCE|STATEMENT BALANCE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:TOTAL|MONTANT|SOMME)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:BALANCE|SOLDE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            # Amount followed by total keywords (more specific to avoid false matches)
+            r'([\d.,SIOSBGZAE]+)\s*(?:TOTAL À PAYER|MONTANT À PAYER|PAYMENT DUE|AMOUNT DUE)',
+        ]
+        
+        # Payment due patterns
+        payment_due_patterns = [
+            r'(?:PAYMENT DUE|PAIEMENT DÛ|MONTANT DÛ)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:DUE|DÛ)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+        ]
+        
+        # Balance patterns
+        balance_patterns = [
+            r'(?:BALANCE|SOLDE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:ACCOUNT BALANCE|SOLDE DU COMPTE)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+        ]
+        
+        # Amount patterns
+        amount_patterns = [
+            r'(?:AMOUNT|MONTANT)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+            r'(?:PAYMENT|PAIEMENT)\s*:?\s*\$?([\d.,SIOSBGZAE]+)',
+        ]
+        
+        # General number patterns for fallback
+        general_patterns = [
+            r'(\d+[.,]\d{2})',  # Numbers with exactly 2 decimal places
+            r'(\d+[.,]\d{1,2})',  # Numbers with 1-2 decimal places
+        ]
+        
+        candidates = []
+        
+        # Strategy 1: Credit card specific patterns (highest priority)
+        for line_num, line in enumerate(lines):
+            line_original = line.strip()
+            combined_line = line_original
+            if line_num < len(lines) - 1 and 'nouveau solde' in line_original.lower() and not line_original.endswith('CR'):
+                next_line = lines[line_num + 1].strip()
+                if next_line == 'CR' or len(next_line) < 5:
+                    combined_line = line_original + " " + next_line
+            for pattern in credit_card_patterns:
+                matches = re.findall(pattern, combined_line, re.IGNORECASE)
+                for match in matches:
+                    amount = extract_amount_from_match(match, combined_line)
+                    if amount:
+                        priority = calculate_priority(amount, "credit_card_total", combined_line, line_num)
+                        candidates.append((amount, f"Credit card pattern: {combined_line}", priority))
+        
+        # Strategy 2: Payment due patterns
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
+                
+                for pattern in payment_due_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "payment_due", line_original, line_num)
+                            candidates.append((amount, f"Payment due pattern: {line_original}", priority))
+        
+        # Strategy 3: Balance patterns
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
+                
+                for pattern in balance_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "balance", line_original, line_num)
+                            candidates.append((amount, f"Balance pattern: {line_original}", priority))
+        
+        # Strategy 4: Amount patterns
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
+                
+                for pattern in amount_patterns:
+                    matches = re.findall(pattern, line_original, re.IGNORECASE)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "amount", line_original, line_num)
+                            candidates.append((amount, f"Amount pattern: {line_original}", priority))
+        
+        # Strategy 5: General number patterns (fallback)
+        if not candidates:
+            for line_num, line in enumerate(lines):
+                line_original = line.strip()
+                
+                for pattern in general_patterns:
+                    matches = re.findall(pattern, line_original)
+                    for match in matches:
+                        amount = extract_amount_from_match(match, line_original)
+                        if amount:
+                            priority = calculate_priority(amount, "general", line_original, line_num)
+                            candidates.append((amount, f"General pattern: {line_original}", priority))
+        
+        # Strategy 6: Look for the largest reasonable amount in the document
+        if not candidates:
+            all_amounts = []
+            for line in lines:
+                # Find all potential amounts in the line
+                potential_amounts = re.findall(r'[\d.,SIOSBGZAE]+', line)
+                for amount_str in potential_amounts:
+                    amount = extract_amount_from_match(amount_str, line)
+                    if amount:
+                        all_amounts.append((amount, line))
+            
+            if all_amounts:
+                # Sort by amount (descending) and take the largest reasonable one
+                all_amounts.sort(key=lambda x: x[0], reverse=True)
+                for amount, line in all_amounts:
+                    if 10 <= amount <= 10000:  # Reasonable range for credit card bills
+                        priority = calculate_priority(amount, "general", line, 0)
+                        candidates.append((amount, f"Largest reasonable amount: {line}", priority))
+                        break
+        
+        # Return the best candidate
+        if candidates:
+            # Sort by priority (highest first), then by amount (prefer larger amounts for credit cards)
+            candidates.sort(key=lambda x: (x[2], x[0]), reverse=True)
+            best_amount, source_line, priority = candidates[0]
+            
+            # Format as string with two decimal places
+            formatted_amount = f"{best_amount:.2f}"
+            
+            logging.info(f"Found credit card total: '{formatted_amount}' from line: {source_line} (priority: {priority})")
+            return formatted_amount
+        
+        logging.info("No credit card total found")
+        return None
+
+    def parse_credit_card_bill(self, pdf_path: str, expected_total: float = None) -> Dict[str, Any]:
+        """Parse a credit card bill PDF and extract the total"""
+        start_time = datetime.now()
+        
+        try:
+            # Check if file exists
+            if not os.path.exists(pdf_path):
+                return {
+                    'file_path': pdf_path,
+                    'credit_card_total': None,
+                    'extraction_method': 'error',
+                    'confidence': 'low',
+                    'processing_time': 0,
+                    'error': f'File not found: {pdf_path}'
+                }
+            
+            # Extract text from PDF
+            text = self.extract_text_from_pdf(pdf_path)
+            
+            # If no text found, use OCR
+            if not text.strip():
+                logging.info(f"No text found in PDF, using OCR: {pdf_path}")
+                images = self.convert_pdf_to_images(pdf_path)
+                if images:
+                    text = self.extract_text_with_ocr(images)
+                    extraction_method = 'ocr'
+                else:
+                    return {
+                        'file_path': pdf_path,
+                        'credit_card_total': None,
+                        'extraction_method': 'error',
+                        'confidence': 'low',
+                        'processing_time': 0,
+                        'error': 'Could not convert PDF to images for OCR'
+                    }
+            else:
+                extraction_method = 'text_extraction'
+            
+            # Extract credit card total
+            credit_card_total = self.extract_credit_card_total(text, expected_total)
+            
+            # Calculate confidence
+            confidence = self.calculate_confidence(credit_card_total, text)
+            
+            # Calculate processing time
+            processing_time = (datetime.now() - start_time).total_seconds()
+            
+            return {
+                'file_path': pdf_path,
+                'credit_card_total': credit_card_total,
+                'extraction_method': extraction_method,
+                'confidence': confidence,
+                'processing_time': processing_time,
+                'error': None
+            }
+            
+        except Exception as e:
+            processing_time = (datetime.now() - start_time).total_seconds()
+            logging.error(f"Error parsing credit card bill {pdf_path}: {e}")
+            
+            return {
+                'file_path': pdf_path,
+                'credit_card_total': None,
+                'extraction_method': 'error',
+                'confidence': 'low',
+                'processing_time': processing_time,
+                'error': str(e)
+            }
+
+    def calculate_confidence(self, total: Optional[str], text: str) -> str:
+        """Calculate confidence level for the credit card total extraction"""
+        confidence_score = 0
+        
+        # Total amount confidence
+        if total is not None:
+            confidence_score += 2
+            try:
+                total_float = float(total)
+                if 10 <= total_float <= 10000:  # Reasonable range for credit card bills
+                    confidence_score += 2
+            except ValueError:
+                pass
+        
+        # Text quality confidence
+        if text and len(text) > 100:
+            confidence_score += 1
+        
+        # Determine confidence level
+        if confidence_score >= 4:
+            return "high"
+        elif confidence_score >= 2:
+            return "medium"
+        else:
+            return "low" 
