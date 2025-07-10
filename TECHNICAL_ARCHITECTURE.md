@@ -11,39 +11,39 @@ graph TB
         TestSuite[Test Suite<br/>validation & reports]
         BatchProc[Batch Processing<br/>CSV output]
     end
-    
+
     subgraph "Service Layer"
         OCRParser[OCR Parser Service<br/>text extraction]
         ExtractionSvc[Extraction Service<br/>company & total]
         FileMgr[File Manager<br/>rename & backup]
     end
-    
+
     subgraph "Data Layer"
         FuzzyMatcher[Fuzzy Matcher<br/>Soundex & Levenshtein]
         InvoiceDB[Invoice Database<br/>JSON storage]
         FileSystem[File System<br/>PDFs & images]
     end
-    
+
     subgraph "External Dependencies"
         Tesseract[Tesseract OCR<br/>text recognition]
         PDFPlumber[pdfplumber<br/>native PDF text]
         OpenCV[OpenCV<br/>image preprocessing]
     end
-    
+
     CLI --> OCRParser
     TestSuite --> OCRParser
     BatchProc --> OCRParser
-    
+
     OCRParser --> ExtractionSvc
     OCRParser --> FileMgr
     OCRParser --> Tesseract
     OCRParser --> PDFPlumber
     OCRParser --> OpenCV
-    
+
     ExtractionSvc --> FuzzyMatcher
     ExtractionSvc --> InvoiceDB
     FileMgr --> FileSystem
-    
+
     style CLI fill:#e1f5fe
     style TestSuite fill:#e1f5fe
     style BatchProc fill:#e1f5fe
@@ -77,7 +77,7 @@ classDiagram
         -_preprocess_denoised(image) ndarray
         -_preprocess_morphological(image) ndarray
     }
-    
+
     class FuzzyMatcher {
         <<static>>
         +soundex(word) str
@@ -85,7 +85,7 @@ classDiagram
         +normalized_levenshtein_distance(s1, s2) float
         +fuzzy_match(target, candidates, threshold) Optional[str]
     }
-    
+
     class InvoiceDatabase {
         +db_file: str
         +data: Dict
@@ -97,7 +97,7 @@ classDiagram
         -_save_database()
         -_normalize_company_name(name) str
     }
-    
+
     class InvoiceTestSuite {
         +test_cases: List[Dict]
         +run_single_test(test_case) Dict
@@ -105,7 +105,7 @@ classDiagram
         +generate_report(results, output_file)
         -_normalize_company_name(name) str
     }
-    
+
     InvoiceOCRParser --> FuzzyMatcher : uses
     InvoiceOCRParser --> InvoiceDatabase : contains
     InvoiceTestSuite --> InvoiceOCRParser : tests
@@ -123,10 +123,10 @@ sequenceDiagram
     participant Fuzzy as FuzzyMatcher
     participant DB as InvoiceDatabase
     participant FS as FileSystem
-    
+
     User->>Parser: parse_invoice(pdf_path)
     Parser->>PDF: extract_text_from_pdf()
-    
+
     alt PDF has native text
         PDF-->>Parser: return text
     else PDF is image-based
@@ -137,9 +137,9 @@ sequenceDiagram
         Parser->>OCR: extract_text_with_ocr()
         OCR-->>Parser: return ocr_text
     end
-    
+
     Parser->>Extractor: extract_company_name(text)
-    
+
     alt High quality text
         Extractor->>Extractor: pattern_matching()
         alt Pattern found
@@ -152,18 +152,18 @@ sequenceDiagram
     else Poor quality text
         Extractor-->>Parser: return "Unknown"
     end
-    
+
     Parser->>Extractor: extract_invoice_total(text)
     Extractor->>Extractor: multi_pass_extraction()
     Extractor->>Extractor: score_candidates()
     Extractor-->>Parser: return total
-    
+
     Parser->>DB: find_fallback_matches()
     DB-->>Parser: return fallback_data
-    
+
     Parser->>FS: rename_pdf()
     FS-->>Parser: return new_path
-    
+
     Parser-->>User: return results_dict
 ```
 
@@ -174,7 +174,7 @@ flowchart TD
     subgraph Input
         PDF[PDF Invoice File]
     end
-    
+
     subgraph TextExtraction[Text Extraction Pipeline]
         Native[Native PDF Text<br/>pdfplumber]
         Convert[PDF to Images<br/>pdf2image]
@@ -182,20 +182,20 @@ flowchart TD
         OCR[Tesseract OCR<br/>multiple configs]
         TextMerge[Merge & Clean Text]
     end
-    
+
     subgraph QualityAssessment[Quality Assessment]
         QualityCheck{Text Quality Check}
         ScoreText[Calculate Quality Score]
         SetUnknown[Set Company = Unknown]
     end
-    
+
     subgraph CompanyExtraction[Company Name Extraction]
         SpecificPatterns[Specific Patterns]
         ExactMatch[Exact Company Matching]
         AliasMatch[Business Alias Mapping<br/>Exact/Partial/Fuzzy]
         GenericPatterns[Generic Patterns]
     end
-    
+
     subgraph TotalExtraction[Invoice Total Extraction]
         OCRPatterns[OCR Error Patterns]
         TotalKeywords[Total Keywords]
@@ -203,42 +203,42 @@ flowchart TD
         NumberPatterns[Number Patterns]
         Scoring[Candidate Scoring]
     end
-    
+
     subgraph Output
         Results[JSON Results]
         RenamedPDF[Renamed PDF]
         CSVReport[CSV Report]
         Database[Invoice Database]
     end
-    
+
     PDF --> Native
     PDF --> Convert
     Convert --> Preprocess
     Preprocess --> OCR
     Native --> TextMerge
     OCR --> TextMerge
-    
+
     TextMerge --> QualityCheck
     QualityCheck -->|Good Quality| SpecificPatterns
     QualityCheck -->|Poor Quality| SetUnknown
     ScoreText --> QualityCheck
-    
+
     SpecificPatterns --> ExactMatch
     ExactMatch --> AliasMatch
     AliasMatch --> GenericPatterns
     SetUnknown --> OCRPatterns
     GenericPatterns --> OCRPatterns
-    
+
     OCRPatterns --> TotalKeywords
     TotalKeywords --> CurrencySymbols
     CurrencySymbols --> NumberPatterns
     NumberPatterns --> Scoring
-    
+
     Scoring --> Results
     Results --> RenamedPDF
     Results --> CSVReport
     Results --> Database
-    
+
     style PDF fill:#81c784
     style Results fill:#81c784
     style QualityCheck fill:#64b5f6
@@ -259,7 +259,7 @@ class OCRStrategy:
 class StandardOCR(OCRStrategy):
     def extract_text(self, images):
         # Standard preprocessing + OCR
-        
+
 class EnhancedOCR(OCRStrategy):
     def extract_text(self, images):
         # Enhanced preprocessing + OCR
@@ -270,19 +270,19 @@ class EnhancedOCR(OCRStrategy):
 def extract_invoice_total(self, text):
     # Template method with multiple passes
     candidates = []
-    
+
     # Pass 1: Specific patterns (hook method)
     candidates.extend(self._extract_specific_patterns(text))
-    
+
     # Pass 2: High priority patterns (hook method)
     candidates.extend(self._extract_high_priority_patterns(text))
-    
+
     # Pass 3: Currency patterns (hook method)
     candidates.extend(self._extract_currency_patterns(text))
-    
+
     # Pass 4: General patterns (hook method)
     candidates.extend(self._extract_general_patterns(text))
-    
+
     return self._select_best_candidate(candidates)
 ```
 
@@ -382,23 +382,23 @@ def soundex(word: str) -> str:
     """
     if not word:
         return "0000"
-    
+
     word = word.upper()
     soundex_code = word[0]
-    
+
     # Mapping consonants to numbers
     mapping = {
         'BFPV': '1', 'CGJKQSXZ': '2', 'DT': '3',
         'L': '4', 'MN': '5', 'R': '6'
     }
-    
+
     for char in word[1:]:
         for consonants, number in mapping.items():
             if char in consonants:
                 if soundex_code[-1] != number:  # Avoid duplicates
                     soundex_code += number
                 break
-    
+
     # Pad or truncate to 4 characters
     soundex_code = soundex_code.ljust(4, '0')[:4]
     return soundex_code
@@ -413,10 +413,10 @@ def levenshtein_distance(s1: str, s2: str) -> int:
     """
     if len(s1) < len(s2):
         return levenshtein_distance(s2, s1)
-    
+
     if len(s2) == 0:
         return len(s1)
-    
+
     # Create matrix
     previous_row = list(range(len(s2) + 1))
     for i, c1 in enumerate(s1):
@@ -427,7 +427,7 @@ def levenshtein_distance(s1: str, s2: str) -> int:
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
-    
+
     return previous_row[-1]
 ```
 
@@ -445,20 +445,20 @@ def calculate_candidate_score(amount: float, line: str, pattern_type: str) -> fl
         "currency": 50,        # 5x higher than number
         "number": 10
     }
-    
+
     score = base_scores.get(pattern_type, 1)
-    
+
     # Context bonuses (additive)
     keywords = {
         "TOTAL": 25, "MONTANT": 20, "$": 15, "CAD": 10,
         "DUE": 8, "BALANCE": 8, "AMOUNT": 5
     }
-    
+
     line_upper = line.upper()
     for keyword, bonus in keywords.items():
         if keyword in line_upper:
             score += bonus
-    
+
     # Amount range scoring (multiplicative)
     if 10 <= amount <= 100000:
         score *= 1.1
@@ -468,7 +468,7 @@ def calculate_candidate_score(amount: float, line: str, pattern_type: str) -> fl
         score *= 0.5  # Penalty for very small amounts
     elif amount > 100000:
         score *= 0.7  # Penalty for very large amounts
-    
+
     return score
 ```
 
@@ -562,7 +562,7 @@ def retry(max_attempts=3, delay=1, backoff=2):
         def wrapper(*args, **kwargs):
             attempts = 0
             current_delay = delay
-            
+
             while attempts < max_attempts:
                 try:
                     return func(*args, **kwargs)
@@ -572,7 +572,7 @@ def retry(max_attempts=3, delay=1, backoff=2):
                         raise e
                     time.sleep(current_delay)
                     current_delay *= backoff
-            
+
         return wrapper
     return decorator
 
@@ -594,7 +594,7 @@ def extract_company_name_with_fallback(self, text):
             return company
     except Exception as e:
         logger.warning(f"Pattern matching failed: {e}")
-    
+
     try:
         # Fallback 1: Fuzzy matching
         company = self._extract_company_fuzzy(text)
@@ -602,7 +602,7 @@ def extract_company_name_with_fallback(self, text):
             return company
     except Exception as e:
         logger.warning(f"Fuzzy matching failed: {e}")
-    
+
     try:
         # Fallback 2: Database lookup
         company = self._lookup_company_database(text)
@@ -610,7 +610,7 @@ def extract_company_name_with_fallback(self, text):
             return company
     except Exception as e:
         logger.warning(f"Database lookup failed: {e}")
-    
+
     # Final fallback: Return "Unknown"
     return "Unknown"
 ```
@@ -625,16 +625,16 @@ def validate_pdf_file(self, pdf_path):
     # Check file existence
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF file not found: {pdf_path}")
-    
+
     # Check file size (prevent memory exhaustion)
     file_size = os.path.getsize(pdf_path)
     if file_size > MAX_FILE_SIZE:
         raise ValueError(f"File too large: {file_size} bytes")
-    
+
     # Check file type
     if not pdf_path.lower().endswith('.pdf'):
         raise ValueError("File must be a PDF")
-    
+
     # Check PDF magic bytes
     with open(pdf_path, 'rb') as f:
         header = f.read(4)
@@ -649,16 +649,16 @@ def sanitize_filename(self, filename):
     """Prevent path traversal attacks in filenames"""
     # Remove path separators
     filename = os.path.basename(filename)
-    
+
     # Remove dangerous characters
     dangerous_chars = ['<', '>', ':', '"', '|', '?', '*']
     for char in dangerous_chars:
         filename = filename.replace(char, '_')
-    
+
     # Limit filename length
     if len(filename) > 255:
         filename = filename[:255]
-    
+
     return filename
 ```
 
@@ -712,7 +712,7 @@ class ConfigManager:
     def __init__(self, config_file='config.ini'):
         self.config = configparser.ConfigParser()
         self.config.read(config_file)
-        
+
     def get_ocr_config(self) -> OCRConfig:
         return OCRConfig(
             dpi=self.config.getint('OCR', 'dpi', fallback=300),
@@ -758,17 +758,17 @@ from unittest.mock import Mock, patch
 class TestInvoiceOCRParser(unittest.TestCase):
     def setUp(self):
         self.parser = InvoiceOCRParser(debug=True)
-        
+
     def test_extract_company_name_success(self):
         text = "La Forfaiterie\nInvoice #123"
         result = self.parser.extract_company_name(text)
         self.assertEqual(result, "La Forfaiterie")
-        
+
     def test_extract_company_name_poor_quality(self):
         text = "∞∂ƒ†¥˙ß∂ƒ∆˙©˙∆ßƒ†¥"  # Garbled text
         result = self.parser.extract_company_name(text)
         self.assertEqual(result, "Unknown")
-        
+
     @patch('pdf2image.convert_from_path')
     def test_ocr_fallback(self, mock_convert):
         mock_convert.return_value = [Mock()]
@@ -783,11 +783,11 @@ class TestIntegration(unittest.TestCase):
         """Test complete pipeline from PDF to renamed file"""
         test_pdf = "test_data/sample_invoice.pdf"
         result = self.parser.parse_invoice(test_pdf)
-        
+
         # Verify extraction
         self.assertIn('company_name', result)
         self.assertIn('invoice_total', result)
-        
+
         # Verify file renaming
         expected_filename = f"{result['company_name']}-${result['invoice_total']}.pdf"
         self.assertTrue(os.path.exists(expected_filename))
@@ -805,19 +805,19 @@ class TestPerformance(unittest.TestCase):
         start_time = time.time()
         result = self.parser.parse_invoice("large_invoice.pdf")
         processing_time = time.time() - start_time
-        
+
         self.assertLess(processing_time, 30)  # Less than 30 seconds
-        
+
     def test_memory_usage(self):
         """Ensure memory usage stays within limits"""
         process = psutil.Process()
         initial_memory = process.memory_info().rss
-        
+
         result = self.parser.parse_invoice("large_invoice.pdf")
-        
+
         final_memory = process.memory_info().rss
         memory_increase = final_memory - initial_memory
-        
+
         self.assertLess(memory_increase, 500 * 1024 * 1024)  # Less than 500MB
 ```
 
@@ -871,16 +871,16 @@ class MonitoringMixin:
             maxBytes=10*1024*1024,  # 10MB
             backupCount=5
         )
-        
+
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         handler.setFormatter(formatter)
-        
+
         logger = logging.getLogger('invoice_parser')
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
-        
+
     def log_performance_metrics(self, operation, duration, success):
         metrics = {
             'timestamp': datetime.now().isoformat(),
@@ -892,4 +892,4 @@ class MonitoringMixin:
         logger.info(f"METRICS: {json.dumps(metrics)}")
 ```
 
-This technical architecture document provides the implementation details and technical considerations that complement the functional specification, giving a senior programmer everything needed to build a robust, maintainable OCR invoice parser system. 
+This technical architecture document provides the implementation details and technical considerations that complement the functional specification, giving a senior programmer everything needed to build a robust, maintainable OCR invoice parser system.

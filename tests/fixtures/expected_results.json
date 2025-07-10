@@ -1,0 +1,168 @@
+{
+  "invoice_parser_results": {
+    "success_cases": [
+      {
+        "input_file": "sample_invoice_1.pdf",
+        "expected_output": {
+          "company": "ABC Company Inc.",
+          "total": "$1,234.56",
+          "date": "2024-01-15",
+          "invoice_number": "INV-2024-001",
+          "confidence": 0.85,
+          "document_type": "invoice",
+          "filename": "sample_invoice_1.pdf"
+        }
+      },
+      {
+        "input_file": "sample_invoice_2.pdf",
+        "expected_output": {
+          "company": "XYZ Corporation",
+          "total": "$567.89",
+          "date": "2024-01-16",
+          "invoice_number": "INV-2024-002",
+          "confidence": 0.92,
+          "document_type": "invoice",
+          "filename": "sample_invoice_2.pdf"
+        }
+      }
+    ],
+    "error_cases": [
+      {
+        "input_file": "nonexistent_file.pdf",
+        "expected_error": "FileNotFoundError"
+      },
+      {
+        "input_file": "invalid_file.txt",
+        "expected_error": "ValueError"
+      }
+    ]
+  },
+  "credit_card_parser_results": {
+    "success_cases": [
+      {
+        "input_file": "sample_credit_card_1.pdf",
+        "expected_output": {
+          "card_issuer": "Scotiabank",
+          "statement_date": "2024-01-31",
+          "due_date": "2024-02-15",
+          "total_amount": "$537.16",
+          "confidence": 0.88,
+          "document_type": "credit_card_bill",
+          "filename": "sample_credit_card_1.pdf"
+        }
+      },
+      {
+        "input_file": "sample_credit_card_2.pdf",
+        "expected_output": {
+          "card_issuer": "TD Bank",
+          "statement_date": "2024-01-31",
+          "due_date": "2024-02-14",
+          "total_amount": "$1,234.56",
+          "confidence": 0.91,
+          "document_type": "credit_card_bill",
+          "filename": "sample_credit_card_2.pdf"
+        }
+      }
+    ]
+  },
+  "ocr_engine_results": {
+    "text_extraction": {
+      "sample_invoice_1.pdf": {
+        "expected_text_length": 1000,
+        "expected_contains": ["ABC Company", "INVOICE", "TOTAL"],
+        "confidence_threshold": 0.7
+      },
+      "sample_credit_card_1.pdf": {
+        "expected_text_length": 800,
+        "expected_contains": ["SCOTIABANK", "STATEMENT", "DUE DATE"],
+        "confidence_threshold": 0.7
+      }
+    }
+  },
+  "utility_function_results": {
+    "fuzzy_matcher": {
+      "SCOTIA": {
+        "candidates": ["Scotiabank", "TD Bank", "RBC"],
+        "expected_match": "Scotiabank",
+        "expected_confidence": 0.9
+      },
+      "TD": {
+        "candidates": ["Scotiabank", "TD Bank", "RBC"],
+        "expected_match": "TD Bank",
+        "expected_confidence": 0.8
+      }
+    },
+    "amount_normalizer": {
+      "123.45": "$123.45",
+      "123.456": "$123.46",
+      "$123.45": "$123.45",
+      "1,234.56": "$1,234.56"
+    },
+    "date_extractor": {
+      "2024-01-15": "2024-01-15",
+      "01/15/2024": "2024-01-15",
+      "15/01/2024": "2024-01-15",
+      "January 15, 2024": "2024-01-15"
+    }
+  },
+  "business_logic_results": {
+    "alias_manager": {
+      "aliases": {
+        "SCOTIA": "Scotiabank",
+        "TD": "TD Bank",
+        "RBC": "Royal Bank of Canada"
+      },
+      "test_cases": [
+        {
+          "input": "SCOTIA",
+          "expected": "Scotiabank"
+        },
+        {
+          "input": "TD BANK",
+          "expected": "TD Bank"
+        },
+        {
+          "input": "UNKNOWN",
+          "expected": "UNKNOWN"
+        }
+      ]
+    }
+  },
+  "cli_command_results": {
+    "parse_command": {
+      "success_output": {
+        "status": "success",
+        "data": {
+          "company": "ABC Company",
+          "total": "$100.00",
+          "date": "2024-01-15"
+        }
+      },
+      "error_output": {
+        "status": "error",
+        "message": "File not found"
+      }
+    },
+    "batch_command": {
+      "success_output": {
+        "status": "success",
+        "processed": 5,
+        "successful": 4,
+        "errors": 1,
+        "results_file": "batch_results.json"
+      }
+    }
+  },
+  "performance_benchmarks": {
+    "single_pdf_parsing": {
+      "time_limit_seconds": 30,
+      "memory_limit_mb": 512,
+      "expected_confidence": 0.7
+    },
+    "batch_processing": {
+      "files_per_minute": 10,
+      "memory_per_file_mb": 50,
+      "concurrent_workers": 4
+    }
+  }
+}

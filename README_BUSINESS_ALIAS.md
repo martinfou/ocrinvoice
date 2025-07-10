@@ -7,7 +7,7 @@ A flexible, configurable business alias system that maps any string found in inv
 
 ### 1. **BusinessAliasManager Class** (`business_alias_manager.py`)
 - **Exact Matches**: Direct string-to-business mapping (highest priority)
-- **Partial Matches**: Substring detection with business assignment  
+- **Partial Matches**: Substring detection with business assignment
 - **Fuzzy Matches**: OCR error correction using Soundex + Levenshtein distance (requires indicators)
 - **Indicators**: Keywords that must be present for fuzzy matching to activate
 - **Official Name Enforcement**: All outputs resolve to one of official business names

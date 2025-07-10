@@ -116,7 +116,7 @@ Based on test results, you can:
   ```python
   # Add custom company patterns
   parser.company_patterns.append(r'YOUR_CUSTOM_PATTERN')
-  
+
   # Add custom total patterns
   parser.total_patterns.append(r'YOUR_CUSTOM_TOTAL_PATTERN')
   ```
@@ -236,4 +236,4 @@ When adding new test cases or improving the parser:
 3. **Maintain test data quality** by reviewing auto-generated cases
 4. **Share successful patterns** that improve accuracy
 
-This test suite is designed to help you iteratively improve the accuracy of your invoice OCR parser through systematic testing and validation. 
+This test suite is designed to help you iteratively improve the accuracy of your invoice OCR parser through systematic testing and validation.

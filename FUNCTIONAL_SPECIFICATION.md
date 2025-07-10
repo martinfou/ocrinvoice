@@ -34,39 +34,39 @@ graph TB
         TestSuite[Test Suite<br/>validation & reports]
         BatchProc[Batch Processing<br/>CSV output]
     end
-    
+
     subgraph "Service Layer"
         OCRParser[OCR Parser Service<br/>text extraction]
         ExtractionSvc[Extraction Service<br/>company & total]
         FileMgr[File Manager<br/>rename & backup]
     end
-    
+
     subgraph "Data Layer"
         FuzzyMatcher[Fuzzy Matcher<br/>Soundex & Levenshtein]
         InvoiceDB[Invoice Database<br/>JSON storage]
         FileSystem[File System<br/>PDFs & images]
     end
-    
+
     subgraph "External Dependencies"
         Tesseract[Tesseract OCR<br/>text recognition]
         PDFPlumber[pdfplumber<br/>native PDF text]
         OpenCV[OpenCV<br/>image preprocessing]
     end
-    
+
     CLI --> OCRParser
     TestSuite --> OCRParser
     BatchProc --> OCRParser
-    
+
     OCRParser --> ExtractionSvc
     OCRParser --> FileMgr
     OCRParser --> Tesseract
     OCRParser --> PDFPlumber
     OCRParser --> OpenCV
-    
+
     ExtractionSvc --> FuzzyMatcher
     ExtractionSvc --> InvoiceDB
     FileMgr --> FileSystem
-    
+
     style CLI fill:#e1f5fe
     style TestSuite fill:#e1f5fe
     style BatchProc fill:#e1f5fe
@@ -85,38 +85,38 @@ flowchart TD
     Start([PDF Input]) --> Validate{Validate PDF File}
     Validate -->|Invalid| Error1[Throw Error]
     Validate -->|Valid| Extract[Extract Text with pdfplumber]
-    
+
     Extract --> CheckText{Text Found?}
     CheckText -->|Yes| ProcessText[Process Native Text]
     CheckText -->|No| ConvertPDF[Convert PDF to Images]
-    
+
     ConvertPDF --> Preprocess[Image Preprocessing - 5 methods]
     Preprocess --> OCR[Tesseract OCR - multiple configs]
     OCR --> ProcessText
-    
+
     ProcessText --> QualityCheck{Text Quality Assessment}
     QualityCheck -->|Poor Quality| Unknown[Return Unknown for company]
     QualityCheck -->|Good Quality| ExtractCompany[Extract Company Name]
-    
+
     ExtractCompany --> Pass1[Pass 1: Specific Patterns]
     Pass1 --> Pass2[Pass 2: Exact Matching]
     Pass2 --> Pass3[Pass 3: Business Alias Mapping]
     Pass3 --> Pass4[Pass 4: Generic Patterns]
-    
+
     Pass4 --> ExtractTotal[Extract Invoice Total]
     Unknown --> ExtractTotal
-    
+
     ExtractTotal --> TotalPass1[Pass 1: Specific OCR Patterns]
     TotalPass1 --> TotalPass2[Pass 2: High Priority Total Keywords]
     TotalPass2 --> TotalPass3[Pass 3: Currency Symbols]
     TotalPass3 --> TotalPass4[Pass 4: General Numbers]
-    
+
     TotalPass4 --> Score[Score All Candidates]
     Score --> SelectBest[Select Best Candidate]
-    
+
     SelectBest --> Rename[Rename PDF to company-$total.pdf]
     Rename --> Result[Return Results JSON]
-    
+
     style Start fill:#81c784
     style Result fill:#81c784
     style Error1 fill:#e57373
@@ -137,7 +137,7 @@ flowchart TD
 
 #### 3.1.2 OCR Text Extraction (Tesseract)
 - **Input**: PDF file (converted to images)
-- **Process**: 
+- **Process**:
   1. Convert PDF pages to images (300 DPI)
   2. Apply image preprocessing techniques
   3. Run multiple OCR configurations
@@ -177,7 +177,7 @@ OCR_CONFIGS = [
 r'Centre de services? scolaires? des? ([A-Z][A-Za-z\s&]+)'
 r'([A-Z][A-Za-z\s&]+) Centre de services? scolaires?'
 
-# Business patterns  
+# Business patterns
 r'([A-Z][A-Za-z\s&]+) (?:Inc|Ltd|Ltée|Corp|Services|Solutions)'
 r'([A-Z][A-Za-z\s&]+) (?:Restaurant|Café|Bar|Store|Magasin)'
 r'([A-Z][A-Za-z\s&]+) (?:Construction|Rénovation|Plomberie)'
@@ -272,27 +272,27 @@ NUMBER_PATTERNS = [
 ```python
 def calculate_score(amount, line, pattern_type):
     score = 0
-    
+
     # Base score by pattern type
     if pattern_type == "specific": score = 1000
     elif pattern_type == "high_priority": score = 100
     elif pattern_type == "currency": score = 50
     elif pattern_type == "number": score = 10
-    
+
     # Bonuses
     if "TOTAL" in line.upper(): score += 25
     if "MONTANT" in line.upper(): score += 20
     if "$" in line: score += 15
     if "CAD" in line.upper(): score += 10
-    
+
     # Amount-based scoring
     if 10 <= amount <= 100000: score += 10
     elif 100 <= amount <= 10000: score += 5
-    
+
     # Penalties
     if amount < 1: score -= 50
     if amount > 100000: score -= 30
-    
+
     return score
 ```
 
@@ -304,16 +304,16 @@ def generate_filename(company_name, total):
     # Clean company name
     clean_company = re.sub(r'[^\w\s-]', '', company_name).strip()
     clean_company = re.sub(r'[\s-]+', '_', clean_company)
-    
+
     # Format total
     if isinstance(total, str):
         total_clean = total.replace('$', '').replace(',', '')
         total_float = float(total_clean)
     else:
         total_float = float(total)
-    
+
     total_formatted = f"${total_float:.2f}"
-    
+
     return f"{clean_company}-{total_formatted}.pdf"
 ```
 
@@ -417,7 +417,7 @@ parser = InvoiceOCRParser(use_database=True)
 TEST_CASES = [
     {
         "pdf_path": "/path/to/invoice1.pdf",
-        "expected_company": "compte de taxes scolaire", 
+        "expected_company": "compte de taxes scolaire",
         "expected_total": 402.31
     }
 ]
@@ -432,7 +432,7 @@ TEST_CASES = [
 
 #### 3.7.3 Test Metrics
 - **Company Match Rate**: Percentage of correct company extractions
-- **Total Match Rate**: Percentage of correct total extractions  
+- **Total Match Rate**: Percentage of correct total extractions
 - **Overall Success Rate**: Percentage with both company and total correct
 - **Error Rate**: Percentage of processing failures
 
@@ -493,7 +493,7 @@ EXTRACTION_CONFIG = {
 ```python
 FILE_CONFIG = {
     "backup_directory": "/path/to/backup",
-    "output_directory": "/path/to/output", 
+    "output_directory": "/path/to/output",
     "naming_pattern": "{company}-${total}.pdf",
     "overwrite_protection": True,
     "filename_sanitization": True
@@ -524,7 +524,7 @@ classDiagram
         -_preprocess_denoised(image) ndarray
         -_preprocess_morphological(image) ndarray
     }
-    
+
     class FuzzyMatcher {
         <<static>>
         +soundex(word) str
@@ -532,7 +532,7 @@ classDiagram
         +normalized_levenshtein_distance(s1, s2) float
         +fuzzy_match(target, candidates, threshold) Optional[str]
     }
-    
+
     class InvoiceDatabase {
         +db_file: str
         +data: Dict
@@ -544,7 +544,7 @@ classDiagram
         -_save_database()
         -_normalize_company_name(name) str
     }
-    
+
     class InvoiceTestSuite {
         +test_cases: List[Dict]
         +run_single_test(test_case) Dict
@@ -552,7 +552,7 @@ classDiagram
         +generate_report(results, output_file)
         -_normalize_company_name(name) str
     }
-    
+
     InvoiceOCRParser --> FuzzyMatcher : uses
     InvoiceOCRParser --> InvoiceDatabase : contains
     InvoiceTestSuite --> InvoiceOCRParser : tests
@@ -577,7 +577,7 @@ class InvoiceOCRParser:
 ```python
 {
     "company_name": "La Forfaiterie",
-    "invoice_total": "227.94", 
+    "invoice_total": "227.94",
     "confidence": "high",
     "extraction_method": "text_extraction",
     "processing_time": 1.23,
@@ -608,7 +608,7 @@ brew install poppler
 ### 7.2 Python Dependencies
 ```txt
 pdf2image==1.16.3
-pytesseract==0.3.10  
+pytesseract==0.3.10
 pdfplumber==0.9.0
 Pillow==10.0.0
 opencv-python==4.8.0.74
@@ -688,4 +688,4 @@ suite.generate_report(results, 'test_report.csv')
 - **Performance Optimization**: Parallel processing capabilities
 - **Error Recovery**: Better handling of partial failures
 
-This functional specification provides comprehensive documentation for implementing the OCR Invoice Parser system, with sufficient detail for independent development by a senior programmer. 
+This functional specification provides comprehensive documentation for implementing the OCR Invoice Parser system, with sufficient detail for independent development by a senior programmer.

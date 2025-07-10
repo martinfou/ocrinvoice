@@ -254,4 +254,4 @@ This will show:
 - OCR extraction details
 - Date parsing steps
 - Confidence calculation
-- File renaming operations 
+- File renaming operations

@@ -187,7 +187,7 @@ parser = CreditCardBillParser(
 ```python
 # Provide expected total for validation
 result = parser.parse_credit_card_bill(
-    "statement.pdf", 
+    "statement.pdf",
     expected_total=537.16
 )
 ```
@@ -277,4 +277,4 @@ For questions, issues, or contributions:
 
 ---
 
-**Note**: This system is specifically designed for robust invoice total extraction with advanced OCR correction. It handles the real-world challenges of scanned documents, including OCR errors, multiple formats, and varying document structures. 
+**Note**: This system is specifically designed for robust invoice total extraction with advanced OCR correction. It handles the real-world challenges of scanned documents, including OCR errors, multiple formats, and varying document structures.

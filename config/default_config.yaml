@@ -1,0 +1,40 @@
+# Default configuration for Invoice OCR Parser
+
+# OCR Settings
+ocr:
+  tesseract_path: null  # Will auto-detect if null
+  language: eng
+  config: --psm 6
+  timeout: 30
+
+# Parser Settings
+parser:
+  confidence_threshold: 0.7
+  max_retries: 3
+  debug_mode: false
+
+# Business Logic Settings
+business:
+  use_database: false
+  alias_file: business_aliases.json
+  auto_save_aliases: true
+
+# Logging Settings
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null  # Set to path for file logging
+  console: true
+
+# Output Settings
+output:
+  format: json  # json, csv, xml
+  include_confidence: true
+  include_raw_text: false
+  output_dir: ./output
+
+# Performance Settings
+performance:
+  max_workers: 4
+  chunk_size: 10
+  memory_limit: 512  # MB

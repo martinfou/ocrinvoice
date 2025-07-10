@@ -63,4 +63,4 @@ echo.
 echo 📋 To run batch processing:
 echo    python test_parser.py --batch
 echo.
-pause 
+pause

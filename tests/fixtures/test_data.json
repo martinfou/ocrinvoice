@@ -1,0 +1,104 @@
+{
+  "sample_invoices": [
+    {
+      "filename": "sample_invoice_1.pdf",
+      "expected": {
+        "company": "ABC Company Inc.",
+        "total": "$1,234.56",
+        "date": "2024-01-15",
+        "invoice_number": "INV-2024-001",
+        "confidence": 0.85
+      }
+    },
+    {
+      "filename": "sample_invoice_2.pdf",
+      "expected": {
+        "company": "XYZ Corporation",
+        "total": "$567.89",
+        "date": "2024-01-16",
+        "invoice_number": "INV-2024-002",
+        "confidence": 0.92
+      }
+    }
+  ],
+  "sample_credit_cards": [
+    {
+      "filename": "sample_credit_card_1.pdf",
+      "expected": {
+        "card_issuer": "Scotiabank",
+        "statement_date": "2024-01-31",
+        "due_date": "2024-02-15",
+        "total_amount": "$537.16",
+        "confidence": 0.88
+      }
+    },
+    {
+      "filename": "sample_credit_card_2.pdf",
+      "expected": {
+        "card_issuer": "TD Bank",
+        "statement_date": "2024-01-31",
+        "due_date": "2024-02-14",
+        "total_amount": "$1,234.56",
+        "confidence": 0.91
+      }
+    }
+  ],
+  "ocr_test_cases": [
+    {
+      "input": "SCOTIA",
+      "expected": "Scotiabank",
+      "type": "business_alias"
+    },
+    {
+      "input": "TD BANK",
+      "expected": "TD Bank",
+      "type": "business_alias"
+    },
+    {
+      "input": "$123.45",
+      "expected": "$123.45",
+      "type": "amount_normalization"
+    },
+    {
+      "input": "123.45",
+      "expected": "$123.45",
+      "type": "amount_normalization"
+    }
+  ],
+  "date_test_cases": [
+    {
+      "input": "2024-01-15",
+      "expected": "2024-01-15",
+      "format": "YYYY-MM-DD"
+    },
+    {
+      "input": "01/15/2024",
+      "expected": "2024-01-15",
+      "format": "MM/DD/YYYY"
+    },
+    {
+      "input": "15/01/2024",
+      "expected": "2024-01-15",
+      "format": "DD/MM/YYYY"
+    },
+    {
+      "input": "January 15, 2024",
+      "expected": "2024-01-15",
+      "format": "Month DD, YYYY"
+    }
+  ],
+  "fuzzy_match_test_cases": [
+    {
+      "input": "SCOTIA",
+      "candidates": ["Scotiabank", "TD Bank", "RBC"],
+      "expected": "Scotiabank",
+      "threshold": 0.8
+    },
+    {
+      "input": "TD",
+      "candidates": ["Scotiabank", "TD Bank", "RBC"],
+      "expected": "TD Bank",
+      "threshold": 0.8
+    }
+  ]
+}

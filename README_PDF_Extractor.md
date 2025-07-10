@@ -21,7 +21,7 @@ source venv/bin/activate
 
 # Dependencies are already installed:
 # - pandas
-# - openpyxl  
+# - openpyxl
 # - python-dotenv
 # - PyPDF2
 ```
@@ -105,4 +105,4 @@ The tool creates an Excel file with the following columns:
 - openpyxl: Excel file handling
 - python-dotenv: Environment variable management
 - PyPDF2: PDF text extraction (primary)
-- pdfplumber: Alternative PDF extraction library (fallback) 
+- pdfplumber: Alternative PDF extraction library (fallback)

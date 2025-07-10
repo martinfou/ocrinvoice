@@ -12,9 +12,13 @@ except ImportError:
         def fuzzy_match(target: str, candidates: List[str], threshold: float = 0.3):
             # Simple fallback implementation
             for candidate in candidates:
-                if target.lower() in candidate.lower() or candidate.lower() in target.lower():
+                if (
+                    target.lower() in candidate.lower()
+                    or candidate.lower() in target.lower()
+                ):
                     return candidate
             return None
+
 
 class BusinessAliasManager:
     """
@@ -22,25 +26,25 @@ class BusinessAliasManager:
     Supports exact matches, partial matches, and fuzzy matching with indicators.
     All outputs resolve to one of the official business names.
     """
-    
+
     def __init__(self, alias_file: str = "business_aliases.json"):
         """
         Initialize the BusinessAliasManager with an alias configuration file.
-        
+
         Args:
             alias_file: Path to the JSON configuration file containing business aliases
         """
         self.alias_file = alias_file
         self.config = self._load_config()
-        
+
         # Load official business names
         self.official_names = set(self.config.get("official_names", []))
         if not self.official_names:
             print("Warning: No official business names defined in configuration.")
-        
+
         # Validate that all alias mappings resolve to an official name
         self._validate_alias_mappings()
-    
+
     def _load_config(self) -> Dict:
         """Load the business alias configuration from JSON file."""
         if not os.path.exists(self.alias_file):
@@ -54,22 +58,24 @@ class BusinessAliasManager:
                 "confidence_weights": {
                     "exact_match": 1.0,
                     "partial_match": 0.8,
-                    "fuzzy_match": 0.6
-                }
+                    "fuzzy_match": 0.6,
+                },
             }
-        
+
         try:
-            with open(self.alias_file, 'r', encoding='utf-8') as f:
+            with open(self.alias_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError) as e:
             print(f"Warning: Could not load alias file {self.alias_file}: {e}")
             return self._load_config()  # Return default config
-    
+
     def _validate_alias_mappings(self):
         """Validate that all alias mappings resolve to an official business name."""
+
         def check_name(name):
             if name not in self.official_names:
                 print(f"Warning: Alias mapping '{name}' is not in official_names list.")
+
         # Check exact_matches
         for alias, business_name in self.config.get("exact_matches", {}).items():
             check_name(business_name)
@@ -79,97 +85,103 @@ class BusinessAliasManager:
         # Check fuzzy_candidates
         for business_name in self.config.get("fuzzy_candidates", []):
             check_name(business_name)
-    
+
     def get_official_names(self):
         """Return the list of official business names."""
         return sorted(self.official_names)
-    
+
     def is_official_name(self, name: str) -> bool:
         """Check if a name is in the official business names list."""
         return name in self.official_names
-    
+
     def find_business_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """
         Find a business match using exact, partial, or fuzzy matching.
         Returns the official business name.
-        
+
         Args:
             text: The text to search for business names
-            
+
         Returns:
             Tuple of (official_business_name, match_type, confidence) or None if no match
         """
         if not text or not isinstance(text, str):
             return None
-        
+
         text_upper = text.upper().strip()
-        
+
         # 1. Exact matches (highest priority)
         exact_match = self._find_exact_match(text_upper)
         if exact_match:
             business_name, match_type, confidence = exact_match
             return (business_name, match_type, confidence)
-        
+
         # 2. Partial matches (medium priority)
         partial_match = self._find_partial_match(text_upper)
         if partial_match:
             business_name, match_type, confidence = partial_match
             return (business_name, match_type, confidence)
-        
+
         # 3. Fuzzy matches (lowest priority, requires indicators)
         fuzzy_match = self._find_fuzzy_match(text_upper)
         if fuzzy_match:
             business_name, match_type, confidence = fuzzy_match
             return (business_name, match_type, confidence)
-        
+
         return None
-    
+
     def _find_exact_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find exact string matches."""
         exact_matches = self.config.get("exact_matches", {})
-        
+
         for alias, business_name in exact_matches.items():
             if text == alias.upper():
-                confidence = self.config.get("confidence_weights", {}).get("exact_match", 1.0)
+                confidence = self.config.get("confidence_weights", {}).get(
+                    "exact_match", 1.0
+                )
                 return (business_name, "exact_match", confidence)
-        
+
         return None
-    
+
     def _find_partial_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find partial substring matches."""
         partial_matches = self.config.get("partial_matches", {})
-        
+
         for alias, business_name in partial_matches.items():
             if alias.upper() in text:
-                confidence = self.config.get("confidence_weights", {}).get("partial_match", 0.8)
+                confidence = self.config.get("confidence_weights", {}).get(
+                    "partial_match", 0.8
+                )
                 return (business_name, "partial_match", confidence)
-        
+
         return None
-    
+
     def _find_fuzzy_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find fuzzy matches using indicators and similarity algorithms."""
         fuzzy_candidates = self.config.get("fuzzy_candidates", [])
         indicators = self.config.get("indicators", {})
-        
+
         # Check if text contains indicators for any business
         for business_name, required_indicators in indicators.items():
             if any(indicator in text for indicator in required_indicators):
                 # Try fuzzy matching against this business
                 match = FuzzyMatcher.fuzzy_match(
-                    target=text,
-                    candidates=[business_name],
-                    threshold=0.8
+                    target=text, candidates=[business_name], threshold=0.8
                 )
                 if match:
-                    confidence = self.config.get("confidence_weights", {}).get("fuzzy_match", 0.6)
+                    confidence = self.config.get("confidence_weights", {}).get(
+                        "fuzzy_match", 0.6
+                    )
                     return (business_name, "fuzzy_match", confidence)
-        
+
         return None
-    
-    def add_alias(self, alias: str, business_name: str, match_type: str = "exact_matches"):
+
+    def add_alias(
+        self, alias: str, business_name: str, match_type: str = "exact_matches"
+    ):
         """
         Add a new alias to the configuration.
-        
+
         Args:
             alias: The alias string to match
             business_name: The canonical business name
@@ -178,30 +190,30 @@ class BusinessAliasManager:
         if match_type in self.config:
             self.config[match_type][alias] = business_name
             self._save_config()
-    
+
     def _save_config(self):
         """Save the current configuration back to the JSON file."""
         try:
-            with open(self.alias_file, 'w', encoding='utf-8') as f:
+            with open(self.alias_file, "w", encoding="utf-8") as f:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Warning: Could not save alias file {self.alias_file}: {e}")
-    
+
     def get_all_business_names(self) -> List[str]:
         """Get all unique business names from the configuration."""
         business_names = set()
-        
+
         # From exact matches
         business_names.update(self.config.get("exact_matches", {}).values())
-        
+
         # From partial matches
         business_names.update(self.config.get("partial_matches", {}).values())
-        
+
         # From fuzzy candidates
         business_names.update(self.config.get("fuzzy_candidates", []))
-        
+
         return sorted(list(business_names))
-    
+
     def get_stats(self) -> Dict:
         """Get statistics about the alias configuration."""
         return {
@@ -209,5 +221,5 @@ class BusinessAliasManager:
             "partial_matches": len(self.config.get("partial_matches", {})),
             "fuzzy_candidates": len(self.config.get("fuzzy_candidates", [])),
             "total_businesses": len(self.get_all_business_names()),
-            "official_names": len(self.official_names)
-        } 
+            "official_names": len(self.official_names),
+        }
