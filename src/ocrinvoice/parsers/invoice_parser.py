@@ -84,13 +84,19 @@ class InvoiceParser(BaseParser):
             "parser_type": "invoice",
         }
 
-        result["confidence"] = self._calculate_confidence(result)
+        # Use base parser validation and confidence calculation
+        result = self.validate_extraction_result(result)
+        
+        # Additional invoice-specific validation
+        invoice_valid = self._validate_invoice_data(result)
+        
+        # If invoice validation fails, mark as invalid
+        if not invoice_valid:
+            result["is_valid"] = False
+            result["invoice_validation_failed"] = True
 
-        self._validate_invoice_data(result)
         self.log_parsing_result(pdf_path, result)
 
-        # Return the data regardless of validation result for now
-        # In a real implementation, you might want to handle invalid data differently
         return result
 
     def extract_company(self, text: str) -> Optional[str]:

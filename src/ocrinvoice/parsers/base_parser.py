@@ -418,6 +418,10 @@ class BaseParser(ABC):
                     )
                     reasons.append(fallback_msg)
 
+            # Check for parser-specific validation failures
+            if result.get("invoice_validation_failed"):
+                reasons.append("invoice-specific validation failed")
+
             # Check raw text for common fallback indicators
             raw_text = result.get("raw_text", "")
             if raw_text:
@@ -437,6 +441,18 @@ class BaseParser(ABC):
             # If no specific reasons found, provide generic message
             if not reasons:
                 reasons.append("unknown validation failure")
+                # Add detailed debug info for unknown failures
+                if self.debug:
+                    self.logger.debug(f"DEBUG: Unknown validation failure details:")
+                    self.logger.debug(f"  - Confidence: {confidence:.2f}")
+                    self.logger.debug(f"  - Threshold: {self.confidence_threshold:.2f}")
+                    self.logger.debug(f"  - Required fields: {required_fields}")
+                    self.logger.debug(f"  - Actual fields: {list(result.keys())}")
+                    for field in required_fields:
+                        value = result.get(field)
+                        self.logger.debug(f"  - {field}: {repr(value)} (type: {type(value).__name__})")
+                    self.logger.debug(f"  - is_valid: {result.get('is_valid')}")
+                    self.logger.debug(f"  - parser_type: {result.get('parser_type')}")
 
             warning_msg = (
                 f"Low confidence parsing {pdf_path} "
