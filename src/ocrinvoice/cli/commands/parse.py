@@ -15,6 +15,7 @@ from typing import Dict, Any, Optional
 from ocrinvoice.parsers.invoice_parser import InvoiceParser
 from ocrinvoice.parsers.credit_card_parser import CreditCardBillParser
 from ocrinvoice.config import get_config
+from ocrinvoice.utils.file_manager import FileManager
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,19 @@ def parse_command(
         # Parse the PDF
         logger.info(f"Starting parsing with {parser.__class__.__name__}")
         result = parser.parse(str(pdf_file))
+
+        # Handle file renaming if enabled
+        config = get_config()
+        file_manager = FileManager(config)
+        new_path = file_manager.process_file(pdf_file, result)
+        
+        # Update the result with the new file path if it was renamed
+        if new_path != pdf_file:
+            result['original_filename'] = pdf_file.name
+            result['new_filename'] = new_path.name
+            result['file_renamed'] = True
+        else:
+            result['file_renamed'] = False
 
         # Format the result
         formatted_result = format_parsing_result(result, pdf_path, parser_type)

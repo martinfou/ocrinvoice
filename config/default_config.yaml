@@ -33,6 +33,13 @@ output:
   include_raw_text: false
   output_dir: ./output
 
+# File Management Settings
+file_management:
+  rename_files: false  # Enable automatic file renaming based on extracted data
+  rename_format: "{date}_{company}_{total}.pdf"  # Format: date_company_$total.pdf
+  rename_dry_run: false  # Preview rename operations without executing them
+  backup_original: false  # Create backup of original files before renaming
+
 # Performance Settings
 performance:
   max_workers: 4

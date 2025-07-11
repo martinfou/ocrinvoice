@@ -86,6 +86,8 @@ def cli(verbose: bool, debug: bool, config: Optional[str]):
 )
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--show-text", "-t", is_flag=True, help="Show extracted raw text")
+@click.option("--rename", is_flag=True, help="Rename file based on extracted data")
+@click.option("--rename-dry-run", is_flag=True, help="Preview rename operation without executing")
 def parse(
     pdf_path: Path,
     output: Optional[Path],
@@ -93,6 +95,8 @@ def parse(
     parser: str,
     verbose: bool,
     show_text: bool,
+    rename: bool,
+    rename_dry_run: bool,
 ):
     """
     Parse a single PDF invoice.
@@ -110,6 +114,14 @@ def parse(
         if output:
             click.echo(f"Output file: {output}")
 
+        # Update config for rename options if specified
+        config = get_config()
+        if rename or rename_dry_run:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['rename_files'] = True
+            if rename_dry_run:
+                config['file_management']['rename_dry_run'] = True
+        
         # Call the actual parse command
         result = parse_command(
             str(pdf_path), str(output) if output else None, format, parser
@@ -181,6 +193,8 @@ def parse(
 @click.option(
     "--recursive", "-r", is_flag=True, help="Process subdirectories recursively"
 )
+@click.option("--rename", is_flag=True, help="Rename files based on extracted data")
+@click.option("--rename-dry-run", is_flag=True, help="Preview rename operations without executing")
 def batch(
     folder_path: Path,
     output: Optional[Path],
@@ -188,6 +202,8 @@ def batch(
     parser: str,
     verbose: bool,
     recursive: bool,
+    rename: bool,
+    rename_dry_run: bool,
 ):
     """
     Process multiple PDF invoices in batch.
@@ -206,6 +222,14 @@ def batch(
         if output:
             click.echo(f"Output file: {output}")
 
+        # Update config for rename options if specified
+        config = get_config()
+        if rename or rename_dry_run:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['rename_files'] = True
+            if rename_dry_run:
+                config['file_management']['rename_dry_run'] = True
+        
         # Call the actual batch command
         result = batch_command(
             str(folder_path), str(output) if output else None, format, parser, recursive
