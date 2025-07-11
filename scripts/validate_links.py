@@ -13,18 +13,20 @@ def extract_links_from_markdown(file_path: Path) -> List[Dict[str, Optional[str]
     """Extract all markdown links from a file."""
     links: List[Dict[str, Optional[str]]] = []
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
         # Find all markdown links [text](url)
-        link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+        link_pattern = r"\[([^\]]+)\]\(([^)]+)\)"
         matches = re.findall(link_pattern, content)
         for text, url in matches:
-            links.append({
-                'text': text,
-                'url': url,
-                'file': str(file_path),
-                'line': None  # Could be enhanced to find line numbers
-            })
+            links.append(
+                {
+                    "text": text,
+                    "url": url,
+                    "file": str(file_path),
+                    "line": None,  # Could be enhanced to find line numbers
+                }
+            )
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
     return links
@@ -32,31 +34,31 @@ def extract_links_from_markdown(file_path: Path) -> List[Dict[str, Optional[str]
 
 def validate_link(link: Dict[str, Optional[str]], docs_root: Path) -> Tuple[bool, str]:
     """Validate if a link is valid."""
-    url = link['url'] or ''
+    url = link["url"] or ""
     # Skip external URLs
-    if url.startswith(('http://', 'https://', 'mailto:')):
+    if url.startswith(("http://", "https://", "mailto:")):
         return True, "External link"
     # Handle relative links
-    if url.startswith('./') or url.startswith('../'):
+    if url.startswith("./") or url.startswith("../"):
         # Resolve relative path
-        link_file = Path(link['file'] or '.')
+        link_file = Path(link["file"] or ".")
         target_path = (link_file.parent / url).resolve()
         if target_path.exists():
             return True, "Valid file"
         else:
             return False, f"File not found: {target_path}"
     # Handle anchor links (same file)
-    if url.startswith('#'):
+    if url.startswith("#"):
         return True, "Anchor link"
     # Handle absolute paths from docs root
-    if url.startswith('/'):
+    if url.startswith("/"):
         target_path = docs_root / url[1:]
         if target_path.exists():
             return True, "Valid file"
         else:
             return False, f"File not found: {target_path}"
     # Handle relative paths without ./
-    link_file = Path(link['file'] or '.')
+    link_file = Path(link["file"] or ".")
     target_path = link_file.parent / url
     if target_path.exists():
         return True, "Valid file"
