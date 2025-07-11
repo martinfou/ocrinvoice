@@ -35,7 +35,8 @@
         "grandes-seigneuries": "taxes-scolaires",
         "hautes-rivieres": "taxes-scolaires",
         "toronto dominion": "banque-td",
-        "scotia": "banque-scotia"
+        "scotia": "banque-scotia",
+        "pharm": "pharmacie"
     },
     "fuzzy_candidates": [
         "taxes-scolaires",
