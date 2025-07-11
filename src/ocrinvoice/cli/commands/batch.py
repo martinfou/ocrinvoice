@@ -5,12 +5,11 @@ This module contains the batch command implementation for
 processing multiple PDF invoices.
 """
 
-import click
 import logging
 import json
 import csv
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 from ocrinvoice.parsers.invoice_parser import InvoiceParser
@@ -76,17 +75,17 @@ def batch_command(
             parser = CreditCardBillParser()
         else:
             raise ValueError(f"Unknown parser type: {parser_type}")
-        
+
         # Initialize file manager for renaming
         config = get_config()
-        
+
         # Add document type to config if specified
         if document_type:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['document_type'] = document_type.lower()
-        
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["document_type"] = document_type.lower()
+
         file_manager = FileManager(config)
-        
+
     except Exception as e:
         logger.error(f"Error initializing parser: {e}")
         return {
@@ -113,14 +112,14 @@ def batch_command(
 
             # Handle file renaming if enabled
             new_path = file_manager.process_file(pdf_file, result)
-            
-            # Update the result with the new file path if it was renamed
+
+            # Update the result with the new file path if it was renamed or dry-run
             if new_path != pdf_file:
-                result['original_filename'] = pdf_file.name
-                result['new_filename'] = new_path.name
-                result['file_renamed'] = True
+                result["original_filename"] = pdf_file.name
+                result["new_filename"] = new_path.name
+                result["file_renamed"] = True
             else:
-                result['file_renamed'] = False
+                result["file_renamed"] = False
 
             # Format the result
             formatted_result = format_batch_result(result, pdf_file, parser_type)
@@ -219,6 +218,9 @@ def format_batch_result(
         **data,
         "timestamp": parser_result.get("timestamp", datetime.now().isoformat()),
         "raw_result": parser_result,
+        "original_filename": parser_result.get("original_filename"),
+        "new_filename": parser_result.get("new_filename"),
+        "file_renamed": parser_result.get("file_renamed", False),
     }
 
 

@@ -5,7 +5,6 @@ This module contains the parse command implementation for
 parsing single PDF invoices.
 """
 
-import click
 import logging
 import json
 import csv
@@ -64,22 +63,22 @@ def parse_command(
 
         # Handle file renaming if enabled
         config = get_config()
-        
+
         # Add document type to config if specified
         if document_type:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['document_type'] = document_type.lower()
-        
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["document_type"] = document_type.lower()
+
         file_manager = FileManager(config)
         new_path = file_manager.process_file(pdf_file, result)
-        
-        # Update the result with the new file path if it was renamed
+
+        # Update the result with the new file path if it was renamed or dry-run
         if new_path != pdf_file:
-            result['original_filename'] = pdf_file.name
-            result['new_filename'] = new_path.name
-            result['file_renamed'] = True
+            result["original_filename"] = pdf_file.name
+            result["new_filename"] = new_path.name
+            result["file_renamed"] = True
         else:
-            result['file_renamed'] = False
+            result["file_renamed"] = False
 
         # Format the result
         formatted_result = format_parsing_result(result, pdf_path, parser_type)
@@ -148,6 +147,9 @@ def format_parsing_result(
         "data": data,
         "raw_result": parser_result,
         "timestamp": parser_result.get("timestamp", ""),
+        "original_filename": parser_result.get("original_filename"),
+        "new_filename": parser_result.get("new_filename"),
+        "file_renamed": parser_result.get("file_renamed", False),
     }
 
 

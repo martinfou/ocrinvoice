@@ -87,12 +87,14 @@ def cli(verbose: bool, debug: bool, config: Optional[str]):
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--show-text", "-t", is_flag=True, help="Show extracted raw text")
 @click.option("--rename", is_flag=True, help="Rename file based on extracted data")
-@click.option("--rename-dry-run", is_flag=True, help="Preview rename operation without executing")
+@click.option(
+    "--rename-dry-run", is_flag=True, help="Preview rename operation without executing"
+)
 @click.option(
     "--document-type",
     "-d",
     type=click.Choice(["facture", "relevé"], case_sensitive=False),
-    help="Document type to prefix filename (facture or relevé)"
+    help="Document type to prefix filename (facture or relevé)",
 )
 def parse(
     pdf_path: Path,
@@ -124,19 +126,23 @@ def parse(
         # Update config for rename options if specified
         config = get_config()
         if rename or rename_dry_run:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['rename_files'] = True
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["rename_files"] = True
             if rename_dry_run:
-                config['file_management']['rename_dry_run'] = True
-        
+                config["file_management"]["rename_dry_run"] = True
+
         # Add document type to config if specified
         if document_type:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['document_type'] = document_type.lower()
-        
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["document_type"] = document_type.lower()
+
         # Call the actual parse command
         result = parse_command(
-            str(pdf_path), str(output) if output else None, format, parser, document_type
+            str(pdf_path),
+            str(output) if output else None,
+            format,
+            parser,
+            document_type,
         )
 
         # Show raw text if requested
@@ -159,6 +165,17 @@ def parse(
         if result.get("status") == "success":
             click.echo("✓ PDF parsed successfully")
 
+            # Display filename information if file was renamed or dry-run
+            if result.get("file_renamed") or rename_dry_run:
+                original_filename = result.get("original_filename", pdf_path.name)
+                new_filename = result.get("new_filename", "unknown")
+                if rename_dry_run:
+                    click.echo("\n📁 File would be renamed:")
+                else:
+                    click.echo("\n📁 File renamed:")
+                click.echo(f"  From: {original_filename}")
+                click.echo(f"  To:   {new_filename}")
+
             # Display summary
             data = result.get("data", {})
             if data:
@@ -170,7 +187,10 @@ def parse(
                 click.echo(f"  Confidence: {data.get('confidence', 'N/A')}")
         else:
             click.echo(
-                f"✗ Parsing failed: {result.get('error', 'Unknown error')}", err=True
+                "\u2717 Parsing failed: {}".format(
+                    result.get("error", "Unknown error")
+                ),
+                err=True,
             )
             sys.exit(1)
 
@@ -206,12 +226,14 @@ def parse(
     "--recursive", "-r", is_flag=True, help="Process subdirectories recursively"
 )
 @click.option("--rename", is_flag=True, help="Rename files based on extracted data")
-@click.option("--rename-dry-run", is_flag=True, help="Preview rename operations without executing")
+@click.option(
+    "--rename-dry-run", is_flag=True, help="Preview rename operations without executing"
+)
 @click.option(
     "--document-type",
     "-d",
     type=click.Choice(["facture", "relevé"], case_sensitive=False),
-    help="Document type to prefix filename (facture or relevé)"
+    help="Document type to prefix filename (facture or relevé)",
 )
 def batch(
     folder_path: Path,
@@ -244,39 +266,68 @@ def batch(
         # Update config for rename options if specified
         config = get_config()
         if rename or rename_dry_run:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['rename_files'] = True
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["rename_files"] = True
             if rename_dry_run:
-                config['file_management']['rename_dry_run'] = True
-        
+                config["file_management"]["rename_dry_run"] = True
+
         # Add document type to config if specified
         if document_type:
-            config['file_management'] = config.get('file_management', {})
-            config['file_management']['document_type'] = document_type.lower()
-        
+            config["file_management"] = config.get("file_management", {})
+            config["file_management"]["document_type"] = document_type.lower()
+
         # Call the actual batch command
         result = batch_command(
-            str(folder_path), str(output) if output else None, format, parser, recursive, document_type
+            str(folder_path),
+            str(output) if output else None,
+            format,
+            parser,
+            recursive,
+            document_type,
         )
 
         if result.get("status") == "success":
             click.echo("✓ Batch processing completed")
 
             # Display summary
-            click.echo(f"\nProcessing Summary:")
+            click.echo("\nProcessing Summary:")
             click.echo(f"  Total files: {result.get('processed', 0)}")
             click.echo(f"  Successful: {result.get('successful', 0)}")
             click.echo(f"  Errors: {result.get('errors', 0)}")
 
+            # Display renamed files information
+            renamed_files = []
+            for file_result in result.get("results", []):
+                if file_result.get("file_renamed") or rename_dry_run:
+                    renamed_files.append(
+                        {
+                            "original": file_result.get("original_filename", "unknown"),
+                            "new": file_result.get("new_filename", "unknown"),
+                        }
+                    )
+
+            if renamed_files:
+                if rename_dry_run:
+                    click.echo("\n📁 Files that would be renamed:")
+                else:
+                    click.echo("\n📁 Renamed Files:")
+                for file_info in renamed_files:
+                    click.echo(f"  {file_info['original']} → {file_info['new']}")
+
             if result.get("errors", 0) > 0:
-                click.echo(f"\nFiles with errors:")
+                click.echo("\nFiles with errors:")
                 for error in result.get("error_details", []):
                     click.echo(
-                        f"  ✗ {error.get('filename', 'Unknown')}: {error.get('error', 'Unknown error')}"
+                        "  \u2717 {}: {}".format(
+                            error.get("filename", "Unknown"),
+                            error.get("error", "Unknown error"),
+                        )
                     )
         else:
             click.echo(
-                f"✗ Batch processing failed: {result.get('error', 'Unknown error')}",
+                "\u2717 Batch processing failed: {}".format(
+                    result.get("error", "Unknown error")
+                ),
                 err=True,
             )
             sys.exit(1)
@@ -331,7 +382,7 @@ def test(
         if result.get("status") == "success":
             click.echo("✓ All tests passed")
         else:
-            click.echo(f"✗ Some tests failed", err=True)
+            click.echo("\u2717 Some tests failed", err=True)
             sys.exit(1)
 
     except Exception as e:
@@ -378,7 +429,7 @@ def aliases():
     """Manage business name aliases (business_aliases.json)"""
     if BusinessAliasManager is None:
         click.echo(
-            "Error: BusinessAliasManager not available. Make sure business_alias_manager.py is in your project.",
+            "Error: BusinessAliasManager not available. Make sure business_alias_manager.py is in your project.",  # noqa: E501
             err=True,
         )
         sys.exit(1)
@@ -407,7 +458,8 @@ def list_aliases():
         exact_matches = manager.config.get("exact_matches", {})
         if exact_matches:
             for alias, name in exact_matches.items():
-                click.echo(f"  '{alias}' → '{name}'")
+                click.echo("Alias: {}".format(alias))
+                click.echo("Name: {}".format(name))
         else:
             click.echo("  (none defined)")
 
@@ -416,7 +468,8 @@ def list_aliases():
         partial_matches = manager.config.get("partial_matches", {})
         if partial_matches:
             for alias, name in partial_matches.items():
-                click.echo(f"  '{alias}' → '{name}'")
+                click.echo(f"Alias: {alias}")
+                click.echo(f"Name: {name}")
         else:
             click.echo("  (none defined)")
 
@@ -431,7 +484,7 @@ def list_aliases():
 
         # Statistics
         stats = manager.get_stats()
-        click.echo(f"\n📊 Statistics:")
+        click.echo("\n📊 Statistics:")
         click.echo(f"  Total official names: {stats['official_names']}")
         click.echo(f"  Total exact matches: {stats['exact_matches']}")
         click.echo(f"  Total partial matches: {stats['partial_matches']}")
@@ -440,7 +493,7 @@ def list_aliases():
 
     except Exception as e:
         logger.error(f"Error listing aliases: {e}")
-        click.echo(f"✗ Error: {e}", err=True)
+        click.echo("\u2717 Error: {}".format(e), err=True)
         sys.exit(1)
 
 
@@ -611,7 +664,7 @@ def test_alias(text: str):
 
         if result:
             official_name, match_type, confidence = result
-            click.echo(f"✅ Match found!")
+            click.echo("\u2705 Match found!")
             click.echo(f"  Official name: '{official_name}'")
             click.echo(f"  Match type: {match_type}")
             click.echo(f"  Confidence: {confidence:.2f}")
