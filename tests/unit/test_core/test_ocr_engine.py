@@ -124,25 +124,47 @@ class TestOCREnginePDFTextExtraction:
                 mock_pypdf2.assert_called_once_with(pdf_file)
 
     def test_extract_text_from_pdf_fallback_to_ocr(self, engine, tmp_path):
-        """Test text extraction with fallback to OCR."""
+        """Test text extraction with OCR as primary method."""
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_text("dummy content")
 
-        with patch.object(engine, "_extract_text_with_pdfplumber") as mock_pdfplumber:
-            mock_pdfplumber.return_value = ""
+        with patch.object(engine, "_extract_text_with_ocr") as mock_ocr:
+            mock_ocr.return_value = "OCR extracted text"
 
-            with patch.object(engine, "_extract_text_with_pypdf2") as mock_pypdf2:
-                mock_pypdf2.return_value = ""
+            with patch.object(engine, "_extract_text_with_pdfplumber") as mock_pdfplumber:
+                mock_pdfplumber.return_value = ""
 
-                with patch.object(engine, "_extract_text_with_ocr") as mock_ocr:
-                    mock_ocr.return_value = "OCR extracted text"
+                with patch.object(engine, "_extract_text_with_pypdf2") as mock_pypdf2:
+                    mock_pypdf2.return_value = ""
 
                     result = engine.extract_text_from_pdf(str(pdf_file))
 
                     assert result == "OCR extracted text"
-                    mock_pdfplumber.assert_called_once_with(pdf_file)
-                    mock_pypdf2.assert_called_once_with(pdf_file)
                     mock_ocr.assert_called_once_with(pdf_file)
+                    # pdfplumber and pypdf2 should not be called since OCR returns text
+                    mock_pdfplumber.assert_not_called()
+                    mock_pypdf2.assert_not_called()
+
+    def test_extract_text_from_pdf_fallback_to_pdfplumber(self, engine, tmp_path):
+        """Test text extraction with fallback to pdfplumber when OCR fails."""
+        pdf_file = tmp_path / "test.pdf"
+        pdf_file.write_text("dummy content")
+
+        with patch.object(engine, "_extract_text_with_ocr") as mock_ocr:
+            mock_ocr.return_value = ""  # OCR returns empty text
+
+            with patch.object(engine, "_extract_text_with_pdfplumber") as mock_pdfplumber:
+                mock_pdfplumber.return_value = "PDFPlumber extracted text"
+
+                with patch.object(engine, "_extract_text_with_pypdf2") as mock_pypdf2:
+                    mock_pypdf2.return_value = ""
+
+                    result = engine.extract_text_from_pdf(str(pdf_file))
+
+                    assert result == "PDFPlumber extracted text"
+                    mock_ocr.assert_called_once_with(pdf_file)
+                    mock_pdfplumber.assert_called_once_with(pdf_file)
+                    mock_pypdf2.assert_not_called()
 
     def test_extract_text_from_pdf_file_not_found(self, engine):
         """Test text extraction with non-existent file."""

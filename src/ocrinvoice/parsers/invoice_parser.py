@@ -221,8 +221,8 @@ class InvoiceParser(BaseParser):
                         break
                     keyword_positions.append(pos)
                     pos += 1
-            # Find all currency amounts
-            currency_pattern = r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})"
+            # Find all currency amounts (including whole numbers)
+            currency_pattern = r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})?"
             for match in re.finditer(currency_pattern, text):
                 amount_start = match.start()
                 amount_end = match.end()
@@ -270,6 +270,7 @@ class InvoiceParser(BaseParser):
                     continue
             return float_amounts
 
+        # Use self.total_keywords if set, otherwise use the default list
         total_keywords = [
             "total",
             "tota",
@@ -285,6 +286,8 @@ class InvoiceParser(BaseParser):
             "final total",
             "balance due",
         ]
+        if hasattr(self, "total_keywords") and self.total_keywords:
+            total_keywords = [kw.lower() for kw in self.total_keywords]
 
         raw_amounts = find_nearby_amounts(text, total_keywords, max_distance=50)
         print("[DEBUG] RAW nearby amounts:", raw_amounts)
@@ -301,8 +304,14 @@ class InvoiceParser(BaseParser):
                 print(f"[DEBUG] Failed to parse amount '{amount_str}': {e}")
         print("[DEBUG] All raw float amounts (before range filtering):", all_raw_floats)
 
+        def filter_out_years_and_small_ints(amounts: List[float]) -> List[float]:
+            # Remove values that look like years (1900-2099) or small ints (1-10)
+            filtered = [a for a in amounts if not (1900 <= a <= 2099 or 1 <= a <= 10)]
+            return filtered if filtered else amounts  # fallback to original if all filtered
+
         raw_floats = filter_valid_amounts(raw_amounts)
-        print("[DEBUG] RAW float amounts (10-10000):", raw_floats)
+        raw_floats = filter_out_years_and_small_ints(raw_floats)
+        print("[DEBUG] RAW float amounts (10-10000, filtered):", raw_floats)
         if len(raw_floats) == 1:
             print("[DEBUG] Selected total from RAW nearby search:", raw_floats[0])
             return float(raw_floats[0])
@@ -325,11 +334,12 @@ class InvoiceParser(BaseParser):
         for line in lines:
             line_lower = line.lower()
             if any(kw in line_lower for kw in total_keywords):
-                found = re.findall(r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})", line)
+                found = re.findall(r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})?", line)
                 line_amounts.extend(found)
         print("[DEBUG] Line-based fallback amounts:", line_amounts)
         line_floats = filter_valid_amounts(line_amounts)
-        print("[DEBUG] Line-based fallback float amounts (0.01-10000):", line_floats)
+        line_floats = filter_out_years_and_small_ints(line_floats)
+        print("[DEBUG] Line-based fallback float amounts (0.01-10000, filtered):", line_floats)
         if len(line_floats) == 1:
             print("[DEBUG] Selected total from line-based fallback:", line_floats[0])
             return float(line_floats[0])
@@ -385,6 +395,13 @@ class InvoiceParser(BaseParser):
                         total_amounts.extend(amounts)
                         preferred_amounts.extend(amounts)
             return total_line_amounts, preferred_amounts
+
+        # If we found amounts in the line-based fallback, use them
+        if line_floats:
+            # Sort by amount and return the highest (most likely to be the total)
+            line_floats.sort()
+            print("[DEBUG] Selected highest amount from line-based fallback:", line_floats[-1])
+            return float(line_floats[-1])
 
         total_line_amounts, preferred_amounts = find_total_candidates(
             lines, self._extract_amounts_with_ocr_correction

@@ -147,7 +147,7 @@ class TestBaseParserTextExtraction:
 
         # Verify
         assert result == "Extracted text content"
-        mock_engine.extract_text_from_pdf.assert_called_once_with(str(pdf_file))
+        mock_engine.extract_text_from_pdf.assert_called_once_with(str(pdf_file), force_ocr=False)
 
     @patch("ocrinvoice.parsers.base_parser.OCREngine")
     def test_extract_text_retry_on_failure(self, mock_ocr_engine, parser, tmp_path):
