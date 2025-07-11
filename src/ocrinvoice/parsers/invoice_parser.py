@@ -126,27 +126,15 @@ class InvoiceParser(BaseParser):
             print(f"[DEBUG] extract_company: BusinessAliasManager not available")
 
         # 1. If any known company is present anywhere in the text, return the first one
+        # Note: This fallback is only used if BusinessAliasManager is not available
+        # All business names should be configured in business_aliases.json
         text_lower = text.lower()
-        for company in self.config.get(
-            "known_companies",
-            [
-                "ABC Company Inc.",
-                "BMR",
-                "TD",
-                "RBC",
-                "SCOTIA",
-                "DESJARDINS",
-                "HYDRO-QUÉBEC",
-                "HYDRO QUEBEC",
-                "LA FORFAITERIE",
-                "COMPTE DE TAXES SCOLAIRE",
-                "CENTRE DE SERVICES SCOLAIRES",
-                "GARY CHARTRAND",
-            ],
-        ):
-            if company.lower() in text_lower:
-                self.logger.debug(f"extract_company: Found known company: '{company}'")
-                return company.lower()
+        known_companies = self.config.get("known_companies", [])
+        if known_companies:
+            for company in known_companies:
+                if company.lower() in text_lower:
+                    self.logger.debug(f"extract_company: Found known company: '{company}'")
+                    return company.lower()
         # 2. After 'INVOICE' or similar, next non-empty line is likely company
         found_header = False
         for line in search_lines:
@@ -179,6 +167,8 @@ class InvoiceParser(BaseParser):
                     continue
                 return line.lower()
         # 3. Fuzzy match: extract candidate lines and match to known_companies
+        # Note: This fallback is only used if BusinessAliasManager is not available
+        # All business names should be configured in business_aliases.json
         from ..utils.fuzzy_matcher import FuzzyMatcher
 
         fuzzy_matcher = FuzzyMatcher()
@@ -191,18 +181,18 @@ class InvoiceParser(BaseParser):
         ]
         best_match = None
         best_score = 0.0
-        for candidate in candidate_lines:
-            match, score = fuzzy_matcher.find_best_match(
-                candidate, self.config.get("known_companies", [])
-            )
-            if score > best_score:
-                best_score = score
-                best_match = match
-        if best_match and best_score > 0.8:
-            return best_match.lower()
+        known_companies = self.config.get("known_companies", [])
+        if known_companies:
+            for candidate in candidate_lines:
+                match, score = fuzzy_matcher.find_best_match(candidate, known_companies)
+                if score > best_score:
+                    best_score = score
+                    best_match = match
+            if best_match and best_score > 0.8:
+                return best_match.lower()
         return None
 
-    def extract_total(self, text: str) -> Optional[str]:
+    def extract_total(self, text: str) -> Optional[float]:
         """Extract invoice total from text using a two-stage approach: raw OCR text first, then cleaned."""
         if not text:
             return None
@@ -309,7 +299,7 @@ class InvoiceParser(BaseParser):
         print("[DEBUG] RAW float amounts (10-10000):", raw_floats)
         if len(raw_floats) == 1:
             print("[DEBUG] Selected total from RAW nearby search:", raw_floats[0])
-            return str(raw_floats[0])
+            return float(raw_floats[0])
         elif len(raw_floats) > 1:
             from collections import Counter
 
@@ -320,7 +310,7 @@ class InvoiceParser(BaseParser):
                     f"[DEBUG] Selected most frequent total from RAW nearby search: "
                     f"{most_common} (appeared {count} times)"
                 )
-                return str(most_common)
+                return float(most_common)
 
         # Fallback: line-based search for amounts on lines containing keywords
         print("[DEBUG] Proximity search failed, trying line-based fallback.")
@@ -336,7 +326,7 @@ class InvoiceParser(BaseParser):
         print("[DEBUG] Line-based fallback float amounts (0.01-10000):", line_floats)
         if len(line_floats) == 1:
             print("[DEBUG] Selected total from line-based fallback:", line_floats[0])
-            return str(line_floats[0])
+            return float(line_floats[0])
         elif len(line_floats) > 1:
             from collections import Counter
 
@@ -347,7 +337,7 @@ class InvoiceParser(BaseParser):
                     f"[DEBUG] Selected most frequent total from line-based fallback: "
                     f"{most_common} (appeared {count} times)"
                 )
-                return str(most_common)
+                return float(most_common)
 
         lines = [line.strip() for line in text.split("\n")]
         if len(lines) == 1 and len(lines[0]) > 200:
@@ -401,16 +391,16 @@ class InvoiceParser(BaseParser):
                 "[DEBUG] Selected total from CLEANED total line:",
                 cleaned_total_floats[0],
             )
-            return str(cleaned_total_floats[0])
+            return float(cleaned_total_floats[0])
         cleaned_preferred_floats = filter_valid_amounts(preferred_amounts)
         if len(cleaned_preferred_floats) == 1:
             print(
                 "[DEBUG] Selected total from CLEANED preferred:",
                 cleaned_preferred_floats[0],
             )
-            return str(cleaned_preferred_floats[0])
-        print("[DEBUG] Multiple or no candidates, returning 'unknown'.")
-        return "unknown"
+            return float(cleaned_preferred_floats[0])
+        print("[DEBUG] Multiple or no candidates, returning None.")
+        return None
 
     def _extract_amounts_with_ocr_correction(self, text: str) -> List[str]:
         """Extract amounts from text with enhanced OCR correction."""

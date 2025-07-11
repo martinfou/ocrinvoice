@@ -56,22 +56,9 @@ class CreditCardBillParser(BaseParser):
                 return official_name.lower()
 
         # For credit card bills, company is often the bank or issuer
-        known_companies = self.config.get(
-            "known_companies",
-            [
-                "VISA",
-                "MASTERCARD",
-                "AMEX",
-                "AMERICAN EXPRESS",
-                "TD",
-                "RBC",
-                "SCOTIA",
-                "DESJARDINS",
-                "NATIONAL BANK",
-                "BMO",
-                "CIBC",
-            ],
-        )
+        # Note: All business names should be configured in business_aliases.json
+        # This fallback is only used if BusinessAliasManager is not available
+        known_companies = self.config.get("known_companies", [])
         if not text:
             return None
         lines = text.split("\n")
@@ -102,7 +89,7 @@ class CreditCardBillParser(BaseParser):
             return candidates[0][0]
         return None
 
-    def extract_total(self, text: str) -> Optional[str]:
+    def extract_total(self, text: str) -> Optional[float]:
         """Extract credit card bill total using advanced OCR correction and normalization."""
         if not text:
             return None
@@ -123,11 +110,17 @@ class CreditCardBillParser(BaseParser):
         ]
         total = self.extract_amount_with_context(text, context_keywords)
         if total:
-            return total
+            try:
+                return float(total)
+            except (ValueError, TypeError):
+                pass
         # Fallback: try to extract any amount
         amounts = self.amount_normalizer.extract_amounts_from_text(text)
         if amounts:
-            return amounts[0]
+            try:
+                return float(amounts[0])
+            except (ValueError, TypeError):
+                pass
         return None
 
     def extract_date(self, text: str) -> Optional[str]:

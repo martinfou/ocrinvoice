@@ -106,14 +106,14 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def extract_total(self, text: str) -> Optional[str]:
+    def extract_total(self, text: str) -> Optional[float]:
         """Extract total amount from text.
 
         Args:
             text: Raw text extracted from the document
 
         Returns:
-            Extracted total amount or None if not found
+            Extracted total amount as float or None if not found
         """
         pass
 
