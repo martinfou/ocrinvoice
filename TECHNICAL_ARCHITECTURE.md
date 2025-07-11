@@ -853,7 +853,7 @@ ENV PYTHONPATH=/app
 ENV TESSERACT_CMD=/usr/bin/tesseract
 
 # Run the application
-CMD ["python", "invoice_ocr_parser_cli.py"]
+CMD ["ocrinvoice"]
 ```
 
 ### 9.2 Monitoring and Logging

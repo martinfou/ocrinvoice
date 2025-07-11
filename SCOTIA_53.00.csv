@@ -1,2 +1,0 @@
-file_path,new_file_path,company_name,invoice_total,invoice_date,extraction_method,confidence,processing_time,error
-2025-02-07_SCOTIA_$53.00_1.pdf,2025-02-07_SCOTIA_$53.00.pdf,SCOTIA,53.00,2025-02-07,text_extraction,high,0.204363,
