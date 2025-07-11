@@ -308,7 +308,15 @@ class BaseParser(ABC):
 
         # Check each field
         for field, value in extracted_data.items():
-            if field in ["raw_text", "parsed_at", "parser_type", "confidence", "is_valid", "extraction_methods", "invoice_validation_failed"]:
+            if field in [
+                "raw_text",
+                "parsed_at",
+                "parser_type",
+                "confidence",
+                "is_valid",
+                "extraction_methods",
+                "invoice_validation_failed",
+            ]:
                 continue  # Skip metadata fields
 
             total_fields += 1
