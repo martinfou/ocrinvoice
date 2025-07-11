@@ -164,10 +164,11 @@ class BaseParser(ABC):
             Exception: If text extraction fails
         """
         path = self.validate_pdf_path(pdf_path)
+        force_ocr = self.config.get("force_ocr", False)
 
         for attempt in range(self.max_retries):
             try:
-                text = self.ocr_engine.extract_text_from_pdf(str(path))
+                text = self.ocr_engine.extract_text_from_pdf(str(path), force_ocr=force_ocr)
                 if text.strip():
                     return text
                 else:

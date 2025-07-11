@@ -80,11 +80,12 @@ class OCREngine:
             self.logger.error(f"Tesseract not found: {e}")
             self.logger.error("Please install Tesseract and ensure it's in your PATH")
 
-    def extract_text_from_pdf(self, pdf_path: Union[str, Path]) -> str:
-        """Extract text from PDF using multiple methods with fallback.
+    def extract_text_from_pdf(self, pdf_path: Union[str, Path], force_ocr: bool = False) -> str:
+        """Extract text from PDF using OCR by default with text extraction as fallback.
 
         Args:
             pdf_path: Path to the PDF file
+            force_ocr: If True, skip text extraction and use OCR directly (deprecated, OCR is now default)
 
         Returns:
             Extracted text from the PDF
@@ -99,19 +100,25 @@ class OCREngine:
 
         self.logger.info(f"Extracting text from PDF: {pdf_path}")
 
-        # Try pdfplumber first (better for text-based PDFs)
-        text = self._extract_text_with_pdfplumber(pdf_path)
-        if text.strip():
-            return text
+        # Always try OCR first for better consistency
+        self.logger.info(f"Using OCR for PDF: {pdf_path}")
+        ocr_text = self._extract_text_with_ocr(pdf_path)
+        
+        # If OCR fails or returns empty text, try text extraction methods as fallback
+        if not ocr_text.strip():
+            self.logger.warning(f"OCR returned empty text, trying text extraction methods: {pdf_path}")
+            
+            # Try pdfplumber as fallback
+            text = self._extract_text_with_pdfplumber(pdf_path)
+            if text.strip():
+                return text
 
-        # Try PyPDF2 as fallback
-        text = self._extract_text_with_pypdf2(pdf_path)
-        if text.strip():
-            return text
+            # Try PyPDF2 as final fallback
+            text = self._extract_text_with_pypdf2(pdf_path)
+            if text.strip():
+                return text
 
-        # If no text found, use OCR
-        self.logger.warning(f"No text found in PDF, using OCR: {pdf_path}")
-        return self._extract_text_with_ocr(pdf_path)
+        return ocr_text
 
     def _extract_text_with_pdfplumber(self, pdf_path: Path) -> str:
         """Extract text using pdfplumber.
