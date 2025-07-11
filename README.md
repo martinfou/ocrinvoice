@@ -208,7 +208,30 @@ ocrinvoice/
 │   └── logging_config.yaml      # Logging configuration
 ├── tests/                       # Test suite
 └── docs/                        # Documentation
+    ├── README.md                # Documentation index
+    ├── user_guide/              # End user documentation
+    ├── architecture/            # Technical architecture
+    └── developer/               # Developer resources
 ```
+
+## 📚 Documentation
+
+### For Users
+- **[Getting Started](docs/user_guide/getting_started.md)** - Installation and first steps
+- **[CLI Reference](docs/user_guide/cli_reference.md)** - Complete command documentation
+- **[Configuration](docs/user_guide/configuration.md)** - System configuration options
+- **[Troubleshooting](docs/user_guide/troubleshooting.md)** - Common issues and solutions
+
+### For Developers
+- **[Development Setup](docs/developer/development_setup.md)** - Setting up development environment
+- **[Contributing Guidelines](docs/developer/contributing.md)** - How to contribute
+- **[Testing Guide](docs/developer/testing.md)** - Testing practices and tools
+- **[API Reference](docs/developer/api_reference.md)** - Internal API documentation
+
+### For Technical Stakeholders
+- **[System Architecture](docs/architecture/system_architecture.md)** - High-level system design
+- **[Feature Analysis](docs/architecture/feature_analysis.md)** - Business and technical feature analysis
+- **[Technical Deep Dive](docs/architecture/technical_deep_dive.md)** - Detailed implementation analysis
 
 ## 🚨 Troubleshooting
 

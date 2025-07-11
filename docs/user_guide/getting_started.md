@@ -126,5 +126,6 @@ Once you've successfully parsed your first invoice:
 
 - Run `ocrinvoice --help` for command overview
 - Run `ocrinvoice parse --help` for specific command help
-- Check the troubleshooting section in the main README
-- Review the examples in the `docs/examples/` directory 
+- Check the [Troubleshooting Guide](./troubleshooting.md) for common issues
+- Review the [CLI Reference](./cli_reference.md) for complete command documentation
+- See the [Configuration Guide](./configuration.md) for system setup

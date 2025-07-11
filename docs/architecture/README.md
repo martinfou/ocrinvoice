@@ -131,7 +131,7 @@ The documentation includes comprehensive Mermaid diagrams showing:
 
 ## Getting Started
 
-1. **For New Users**: Start with the [User Guide](../user_guide.md) for quick setup and usage
+1. **For New Users**: Start with the [User Guide](../user_guide/) for quick setup and usage
 2. **For Developers**: Review the [Technical Deep Dive](./technical_deep_dive.md) for implementation details
 3. **For Architects**: Begin with [System Architecture](./system_architecture.md) for design overview
 4. **For Analysts**: Focus on [Feature Analysis](./feature_analysis.md) for business value assessment
@@ -148,11 +148,11 @@ When updating the architecture documentation:
 
 ## Related Documentation
 
-- **[User Guide](../user_guide.md)**: Getting started and usage instructions
-- **[CLI Reference](../cli_reference.md)**: Command-line interface documentation
-- **[Configuration Guide](../configuration.md)**: System configuration options
-- **[Troubleshooting](../troubleshooting.md)**: Common issues and solutions
-- **[Examples](../examples.md)**: Usage examples and sample outputs
+- **[User Guide](../user_guide/)**: Getting started and usage instructions
+- **[CLI Reference](../user_guide/cli_reference.md)**: Command-line interface documentation
+- **[Configuration Guide](../user_guide/configuration.md)**: System configuration options
+- **[Troubleshooting](../user_guide/troubleshooting.md)**: Common issues and solutions
+- **[Developer Resources](../developer/)**: Development and contribution guides
 
 ---
 
