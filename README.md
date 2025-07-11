@@ -1,188 +1,125 @@
 # Invoice OCR Parser
 
-A comprehensive CLI-based solution for extracting structured data from PDF invoices using advanced OCR techniques. Features a modular architecture with specialized parsers for different document types.
+> **Extract structured data from PDF invoices with advanced OCR and intelligent parsing**
 
-## 🎯 Key Features
-
-### 🖥️ **Command Line Interface**
-- **Easy-to-use CLI** with intuitive commands
-- **Multiple output formats**: JSON, CSV, XML
-- **Batch processing** for multiple files
-- **Business alias management** for consistent company matching
-- **Configuration management** with environment variable support
-
-### 🔧 **Modular Architecture**
-- **Core modules**: Image processing, text extraction, OCR engine
-- **Specialized parsers**: Invoice parser, credit card parser
-- **Utility modules**: Fuzzy matching, amount normalization, OCR corrections
-- **Business modules**: Alias management, database integration
-
-### 📊 **Advanced OCR Correction**
-- **Comprehensive character mapping** for common OCR misreadings
-- Handles 20+ common OCR errors (l→1, O→0, S→5, G→6, B→8, etc.)
-- **Real-world tested** with actual scanned documents
-
-### 🌍 **Multi-Format Support**
-- **European decimal formats**: `537,16` → `537.16`
-- **US decimal formats**: `537.16` → `537.16`
-- **Mixed formats**: `1,234.56` and `1.234,56`
-- **Currency symbols**: `$537,16`, `537,16 €`
+A powerful command-line tool that converts scanned PDF invoices into structured data (JSON, CSV, XML) using advanced OCR techniques, fuzzy matching, and intelligent business name recognition.
 
 ## 🚀 Quick Start
 
-### Installation
+### 1. Installation
 
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd ocrinvoice
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install in editable mode
+# Install the package
 pip install -e .
 ```
 
-### Basic Usage
+### 2. Install Tesseract OCR (Required)
+
+**macOS:**
+```bash
+brew install tesseract
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install tesseract-ocr
+```
+
+**Windows:**
+Download from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
+
+### 3. Your First Invoice Parse
 
 ```bash
 # Parse a single invoice
 ocrinvoice parse invoice.pdf
 
-# Parse with verbose output
-ocrinvoice parse --verbose invoice.pdf
+# See the extracted data in JSON format
+{
+  "company": "HYDRO-QUÉBEC",
+  "total": 137.50,
+  "date": "2023-01-15",
+  "invoice_number": "INV-2023-001",
+  "confidence": 0.85
+}
+```
 
-# Show extracted raw text
-ocrinvoice parse --show-text invoice.pdf
+## 📖 Basic Usage
 
-# Parse credit card statement
-ocrinvoice parse --parser credit_card statement.pdf
+### Parse a Single Invoice
+```bash
+# Basic parse
+ocrinvoice parse invoice.pdf
 
-# Batch process multiple files
+# Save to file
+ocrinvoice parse invoice.pdf --output result.json
+
+# Show raw extracted text
+ocrinvoice parse invoice.pdf --show-text
+
+# Verbose output
+ocrinvoice parse invoice.pdf --verbose
+```
+
+### Process Multiple Invoices
+```bash
+# Process all PDFs in a folder
 ocrinvoice batch invoices/ --output results.csv
 
-# Run tests
-ocrinvoice test
+# Process recursively (including subfolders)
+ocrinvoice batch invoices/ --recursive --output results.csv
 
-# View configuration
-ocrinvoice config
+# Different output formats
+ocrinvoice batch invoices/ --format json --output results.json
+ocrinvoice batch invoices/ --format xml --output results.xml
 ```
 
-## 📋 CLI Commands
-
-### Parse Command
+### Manage Business Names
 ```bash
-ocrinvoice parse [OPTIONS] PDF_PATH
-
-Options:
-  -o, --output PATH               Output file path
-  -f, --format [json|csv|xml]     Output format (default: json)
-  -p, --parser [invoice|credit_card]  Parser type (default: invoice)
-  -v, --verbose                   Enable verbose output
-  -t, --show-text                 Show extracted raw text
-```
-
-### Batch Command
-```bash
-ocrinvoice batch [OPTIONS] INPUT_PATH
-
-Options:
-  -o, --output PATH               Output file path
-  -f, --format [json|csv|xml]     Output format (default: csv)
-  -p, --parser [invoice|credit_card]  Parser type (default: invoice)
-  -r, --recursive                 Process subdirectories recursively
-  -v, --verbose                   Enable verbose output
-```
-
-### Test Command
-```bash
-ocrinvoice test [OPTIONS]
-
-Options:
-  -v, --verbose                   Enable verbose output
-  -c, --coverage                  Generate coverage report
-  --test-dir PATH                 Test directory path
-```
-
-### Business Alias Management
-```bash
-# List all business names and aliases
+# List all known businesses
 ocrinvoice aliases list
 
-# Add a new alias
-ocrinvoice aliases add "alias" "OFFICIAL_NAME"
+# Add a business alias
+ocrinvoice aliases add "Hydro Quebec" "HYDRO-QUÉBEC"
 
 # Add a new official business name
-ocrinvoice aliases add-official "NEW_BUSINESS_NAME"
+ocrinvoice aliases add-official "NEW COMPANY LTD"
 
-# Remove an alias
-ocrinvoice aliases remove "alias"
-
-# Remove an official name
-ocrinvoice aliases remove-official "BUSINESS_NAME"
-
-# Test alias matching
-ocrinvoice aliases test "some text"
+# Test how a business name would be matched
+ocrinvoice aliases test "Hydro Quebec Inc"
 ```
 
-### Configuration
-```bash
-# View current configuration
-ocrinvoice config
+## 🎯 What It Extracts
 
-# Set configuration via environment variables
-export OCRINVOICE_OCR_TESSERACT_PATH="/usr/local/bin/tesseract"
-export OCRINVOICE_BUSINESS_ALIAS_FILE="/path/to/aliases.json"
-```
+The parser automatically extracts these fields from your invoices:
 
-## 📁 Project Structure
-
-```
-ocrinvoice/
-├── src/ocrinvoice/              # Main package
-│   ├── cli/                     # Command line interface
-│   │   ├── main.py             # Main CLI entry point
-│   │   ├── commands/           # CLI command implementations
-│   │   └── utils.py            # CLI utilities
-│   ├── core/                   # Core functionality
-│   │   ├── image_processor.py  # Image preprocessing
-│   │   ├── text_extractor.py   # Text extraction
-│   │   └── ocr_engine.py       # OCR engine
-│   ├── parsers/                # Document parsers
-│   │   ├── base_parser.py      # Base parser class
-│   │   ├── invoice_parser.py   # Invoice parser
-│   │   ├── credit_card_parser.py # Credit card parser
-│   │   └── date_extractor.py   # Date extraction
-│   ├── utils/                  # Utility modules
-│   │   ├── fuzzy_matcher.py    # Fuzzy string matching
-│   │   ├── amount_normalizer.py # Amount normalization
-│   │   └── ocr_corrections.py  # OCR error corrections
-│   ├── business/               # Business logic
-│   │   ├── business_alias_manager.py # Business alias management
-│   │   ├── alias_manager.py    # Alias management
-│   │   └── database.py         # Database operations
-│   └── config.py               # Configuration management
-├── tests/                      # Test suite
-├── config/                     # Configuration files
-├── docs/                       # Documentation
-
-├── config/                     # Configuration files
-│   ├── default_config.yaml
-│   ├── logging_config.yaml
-│   └── business_aliases.json   # Business alias data
-├── pyproject.toml             # Project configuration
-└── README.md                  # This file
-```
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Company** | Business name | "HYDRO-QUÉBEC" |
+| **Total** | Invoice amount | 137.50 |
+| **Date** | Invoice date | "2023-01-15" |
+| **Invoice Number** | Invoice ID | "INV-2023-001" |
+| **Confidence** | Extraction confidence | 0.85 |
 
 ## 🔧 Configuration
 
-### Environment Variables
+### View Current Settings
+```bash
+ocrinvoice config
+```
+
+### Set Environment Variables
 ```bash
 # OCR Settings
 export OCRINVOICE_OCR_TESSERACT_PATH="/usr/local/bin/tesseract"
-export OCRINVOICE_OCR_DPI="300"
 export OCRINVOICE_OCR_LANGUAGE="eng+fra"
 
 # Business Settings
@@ -190,14 +127,13 @@ export OCRINVOICE_BUSINESS_ALIAS_FILE="/path/to/aliases.json"
 
 # Parser Settings
 export OCRINVOICE_PARSER_DEBUG="true"
-export OCRINVOICE_PARSER_CONFIDENCE_THRESHOLD="0.5"
 ```
 
-### Configuration File
-The system automatically loads configuration from:
-1. `config/default_config.yaml` (package default)
-2. `~/.ocrinvoice/config.yaml` (user config)
-3. Environment variables (override)
+### Configuration Files
+The system automatically loads settings from:
+1. `config/default_config.yaml` (package defaults)
+2. `~/.ocrinvoice/config.yaml` (your custom settings)
+3. Environment variables (override everything)
 
 ## 🧪 Testing
 
@@ -206,85 +142,121 @@ The system automatically loads configuration from:
 ocrinvoice test
 ```
 
-### Run Tests with Coverage
+### Test with Coverage
 ```bash
 ocrinvoice test --coverage
 ```
 
-### Run Specific Test Categories
+### Test Specific Components
 ```bash
-# Unit tests only
-pytest tests/unit/
+# Test invoice parsing
+pytest tests/unit/test_parsers/test_invoice_parser.py
 
-# Integration tests only
-pytest tests/integration/
+# Test business aliases
+pytest tests/unit/test_business/test_business_alias_manager.py
 
-# Core functionality tests
-pytest tests/unit/test_core/
+# Test CLI commands
+pytest tests/unit/test_cli/
 ```
 
-## 📊 OCR Correction Examples
+## 🎨 Advanced Features
 
-The system handles common OCR misreadings automatically:
+### OCR Error Correction
+Automatically fixes common OCR mistakes:
 
-| OCR Error | Corrected | Example |
-|-----------|-----------|---------|
-| `l` → `1` | `537,l6` → `537.16` | Lowercase L misread as 1 |
-| `O` → `0` | `537,O6` → `537.06` | Letter O misread as 0 |
-| `S` → `5` | `537,S6` → `537.56` | Letter S misread as 5 |
-| `G` → `6` | `537,G6` → `537.66` | Letter G misread as 6 |
-| `B` → `8` | `537,B6` → `537.86` | Letter B misread as 8 |
+| OCR Error | Fixed To | Example |
+|-----------|----------|---------|
+| `l` → `1` | `537,l6` → `537.16` |
+| `O` → `0` | `537,O6` → `537.06` |
+| `S` → `5` | `537,S6` → `537.56` |
+| `G` → `6` | `537,G6` → `537.66` |
 
-## 🌍 Decimal Format Support
+### International Number Formats
+Handles various decimal formats:
 
-Handles various international decimal formats:
-
-| Format | Example | Result |
-|--------|---------|--------|
+| Format | Input | Output |
+|--------|-------|--------|
 | European | `537,16` | `537.16` |
 | US | `537.16` | `537.16` |
 | Mixed | `1,234.56` | `1234.56` |
-| Mixed | `1.234,56` | `1234.56` |
 | Currency | `$537,16` | `537.16` |
-| Currency | `537,16 €` | `537.16` |
 
-## 🎯 Pattern Matching
+### Fuzzy Business Matching
+Intelligently matches business names even with typos:
 
-### Credit Card Patterns (Highest Priority)
-- `TOTAL À PAYER: 537,16`
-- `MONTANT À PAYER: 1,234,56`
-- `Solde à recevoir: 2,500,00`
-- `PAYMENT DUE: $537.16`
-- `AMOUNT DUE: 1,234.56`
-- `BALANCE DUE: 2,500.00`
+```bash
+# These all match "HYDRO-QUÉBEC"
+ocrinvoice aliases test "Hydro Quebec"
+ocrinvoice aliases test "Hydro-Quebec"
+ocrinvoice aliases test "HYDRO QUEBEC"
+```
 
-### General Invoice Patterns
-- `TOTAL: 537,16`
-- `MONTANT: 1,234.56`
-- `BALANCE: 2,500,00`
-- `GRAND TOTAL: 537.16`
-- `FINAL TOTAL: 537.16`
+## 📁 Project Structure
 
-## 📈 Performance
+```
+ocrinvoice/
+├── src/ocrinvoice/              # Main package
+│   ├── cli/                     # Command line interface
+│   ├── core/                    # Core functionality (OCR, image processing)
+│   ├── parsers/                 # Document parsers (invoice, credit card)
+│   ├── utils/                   # Utilities (fuzzy matching, corrections)
+│   ├── business/                # Business logic (alias management)
+│   └── config.py                # Configuration management
+├── config/                      # Configuration files
+│   ├── default_config.yaml      # Default settings
+│   ├── business_aliases.json    # Business name mappings
+│   └── logging_config.yaml      # Logging configuration
+├── tests/                       # Test suite
+└── docs/                        # Documentation
+```
 
-### Speed
-- **Text extraction**: ~0.1 seconds per page
-- **OCR processing**: ~2-5 seconds per page
-- **Batch processing**: Optimized for multiple files
+## 🚨 Troubleshooting
 
-### Accuracy
-- **OCR correction**: 95%+ accuracy for common errors
-- **Pattern matching**: 90%+ accuracy for standard formats
-- **Priority system**: 85%+ accuracy for correct total selection
+### Common Issues
 
-## 🚨 Error Handling
+**"Tesseract not found"**
+```bash
+# Install Tesseract first
+brew install tesseract  # macOS
+sudo apt-get install tesseract-ocr  # Ubuntu
+```
 
-The system gracefully handles:
-- **Missing dependencies**: Falls back to basic functionality
-- **OCR failures**: Multiple fallback strategies
-- **Invalid amounts**: Range validation (0.01 - 1,000,000)
-- **File errors**: Detailed error reporting
-- **Format issues**: Multiple format attempts
+**"No data extracted"**
+```bash
+# Check if the PDF is readable
+ocrinvoice parse invoice.pdf --show-text
+
+# Try with verbose output
+ocrinvoice parse invoice.pdf --verbose
+```
+
+**"Business name not recognized"**
+```bash
+# Add the business to your aliases
+ocrinvoice aliases add "Company Name" "OFFICIAL_NAME"
+
+# Check existing aliases
+ocrinvoice aliases list
+```
+
+### Getting Help
+
+```bash
+# Show all available commands
+ocrinvoice --help
+
+# Show help for specific command
+ocrinvoice parse --help
+ocrinvoice batch --help
+ocrinvoice aliases --help
+```
+
+## 📊 Performance
+
+- **Speed**: ~2-5 seconds per page
+- **Accuracy**: 90%+ for standard invoice formats
+- **OCR Correction**: 95%+ accuracy for common errors
+- **Batch Processing**: Optimized for multiple files
 
 ## 🤝 Contributing
 
@@ -311,23 +283,14 @@ mypy src/
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - see LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- **Tesseract OCR**: For the underlying OCR engine
-- **PDF processing libraries**: For document handling
-- **Click**: For the CLI framework
-- **Open source community**: For inspiration and feedback
-
-## 📞 Support
-
-For questions, issues, or contributions:
-1. **Check the documentation** above
-2. **Run the test suite** to verify functionality
-3. **Open an issue** with detailed information
-4. **Provide sample documents** (anonymized) for debugging
+- **Tesseract OCR**: Underlying OCR engine
+- **Click**: CLI framework
+- **Open source community**: Inspiration and feedback
 
 ---
 
-**Note**: This system is specifically designed for robust invoice data extraction with advanced OCR correction. It handles the real-world challenges of scanned documents, including OCR errors, multiple formats, and varying document structures.
+**Ready to extract invoice data?** Start with `ocrinvoice parse your-invoice.pdf` and see the magic happen! ✨
