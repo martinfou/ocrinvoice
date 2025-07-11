@@ -167,8 +167,11 @@ ocrinvoice/
 ├── tests/                      # Test suite
 ├── config/                     # Configuration files
 ├── docs/                       # Documentation
-├── examples/                   # Example files
-├── business_aliases.json       # Business alias data
+
+├── config/                     # Configuration files
+│   ├── default_config.yaml
+│   ├── logging_config.yaml
+│   └── business_aliases.json   # Business alias data
 ├── pyproject.toml             # Project configuration
 └── README.md                  # This file
 ```

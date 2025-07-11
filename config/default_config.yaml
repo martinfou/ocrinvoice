@@ -16,7 +16,7 @@ parser:
 # Business Logic Settings
 business:
   use_database: false
-  alias_file: business_aliases.json
+  alias_file: config/business_aliases.json
   auto_save_aliases: true
 
 # Logging Settings

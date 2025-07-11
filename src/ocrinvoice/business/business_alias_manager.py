@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Optional, Tuple, Dict, List
+from pathlib import Path
 
 # Import FuzzyMatcher from the utils module
 try:
@@ -27,14 +28,15 @@ class BusinessAliasManager:
     All outputs resolve to one of the official business names.
     """
 
-    def __init__(self, alias_file: str = "business_aliases.json"):
+    def __init__(self, alias_file: Optional[str] = None):
         """
         Initialize the BusinessAliasManager with an alias configuration file.
 
         Args:
-            alias_file: Path to the JSON configuration file containing business aliases
+            alias_file: Path to the JSON configuration file containing business aliases.
+                       If None, will try to find the file using the same logic as the config system.
         """
-        self.alias_file = alias_file
+        self.alias_file = self._resolve_alias_file_path(alias_file)
         self.config = self._load_config()
 
         # Load official business names
@@ -44,6 +46,38 @@ class BusinessAliasManager:
 
         # Validate that all alias mappings resolve to an official name
         self._validate_alias_mappings()
+
+    def _resolve_alias_file_path(self, alias_file: Optional[str]) -> str:
+        """
+        Resolve the alias file path using the same logic as the config system.
+        
+        Args:
+            alias_file: Explicit path to alias file, or None to auto-detect
+            
+        Returns:
+            Resolved path to the alias file
+        """
+        if alias_file:
+            return alias_file
+            
+        # Try multiple locations in order of preference
+        possible_paths = [
+            # From current working directory
+            Path.cwd() / "config" / "business_aliases.json",
+            # From project root (when running from source)
+            Path(__file__).parent.parent.parent.parent / "config" / "business_aliases.json",
+            # From installed package
+            Path(__file__).parent.parent.parent / "config" / "business_aliases.json",
+            # From user's home directory
+            Path.home() / ".ocrinvoice" / "business_aliases.json",
+        ]
+        
+        for path in possible_paths:
+            if path.exists():
+                return str(path)
+                
+        # If no file found, return the first path as default
+        return str(possible_paths[0])
 
     def _load_config(self) -> Dict:
         """Load the business alias configuration from JSON file."""

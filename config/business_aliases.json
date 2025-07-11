@@ -8,7 +8,8 @@
         "hydro-québec",
         "la-forfaiterie",
         "pharmacie",
-        "taxes-scolaires"
+        "taxes-scolaires",
+        "test-official-name"
     ],
     "exact_matches": {
         "bmr": "bmr",
@@ -21,7 +22,9 @@
         "gary-chartran": "gary-chartran",
         "garychartrand": "gary-chartran",
         "scotia": "banque-scotia",
-        "pharmacie": "pharmacie"
+        "pharmacie": "pharmacie",
+        "test-alias": "bmr",
+        "test-company": "test-official-name"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",

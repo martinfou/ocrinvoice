@@ -22,7 +22,8 @@ This document outlines a comprehensive plan to improve the code organization, do
 - [x] Create `docs/` directory structure
 - [x] Create `config/` directory with config files
 - [x] Create `scripts/` directory with setup scripts
-- [x] Create `examples/` directory with usage examples
+- [x] ~~Create `examples/` directory with usage examples~~ (Removed - redundant with CLI)
+- [x] Move `business_aliases.json` to `config/` directory for better organization
 
 **Tests:**
 - [x] Verify all directories are created correctly
@@ -99,10 +100,7 @@ ocrinvoice/
 │   ├── setup.sh
 │   ├── setup.bat
 │   └── install_dependencies.py
-└── examples/
-    ├── basic_usage.py
-    ├── advanced_usage.py
-    └── custom_parsers.py
+
 ```
 
 ### 1.2 Create Configuration System

@@ -83,7 +83,7 @@ class InvoiceParser(BaseParser):
         if not text:
             return None
 
-        lines = text.split("\n")
+        lines = [line.strip() for line in text.split("\n")]
         search_lines = lines[:20]
         known_companies = self.config.get(
             "known_companies",
@@ -102,136 +102,53 @@ class InvoiceParser(BaseParser):
                 "GARY CHARTRAND",
             ],
         )
-        exclude_indicators = [
-            "TOTAL",
-            "AMOUNT",
-            "DUE",
-            "BALANCE",
-            "GRAND TOTAL",
-            "FINAL TOTAL",
-            "INVOICE",
-            "BILL",
-            "RECEIPT",
-            "DATE",
-            "TIME",
-            "PHONE",
-            "FAX",
-            "EMAIL",
-            "WEB",
-            "WWW",
-            "HTTP",
-            "HTTPS",
-            "COM",
-            "ORG",
-            "NET",
-            "ADDRESS",
-            "STREET",
-            "AVENUE",
-            "BOULEVARD",
-            "ROAD",
-            "DRIVE",
-            "CITY",
-            "STATE",
-            "PROVINCE",
-            "POSTAL",
-            "ZIP",
-            "CODE",
-            "ACCOUNT",
-            "REFERENCE",
-            "REF",
-            "INVOICE #",
-            "BILL #",
-            "QUANTITY",
-            "QTY",
-            "DESCRIPTION",
-            "DESC",
-            "UNIT",
-            "PRICE",
-            "SUBTOTAL",
-            "TAX",
-            "SHIPPING",
-            "HANDLING",
-            "DISCOUNT",
-            "PAYMENT",
-            "TERMS",
-            "DUE DATE",
-            "BALANCE DUE",
-        ]
-        explicit_exclude = ["CUSTOMER NAME", "BILL TO:", "SHIP TO:", "TO:"]
-        # 1. If multiple known companies are present, return the one that appears first in the text
+        # 1. If any known company is present anywhere in the text, return the first one found
         text_lower = text.lower()
-        company_positions = [
-            (text_lower.find(company.lower()), company)
-            for company in known_companies
-            if company.lower() in text_lower
-        ]
-        company_positions = [cp for cp in company_positions if cp[0] != -1]
-        if company_positions:
-            company_positions.sort()
-            self.logger.debug(
-                f"extract_company: Found known company: '{company_positions[0][1]}'"
-            )
-            return company_positions[0][1]
+        for company in known_companies:
+            if company.lower() in text_lower:
+                self.logger.debug(
+                    f"extract_company: Found known company: '{company}'"
+                )
+                return company
         # 2. After 'INVOICE' or similar, next non-empty, non-excluded line is likely company
         found_header = False
-        after_header_lines = []
         for line in search_lines:
-            line = line.strip()
             if not line:
                 continue
-            # Check for company keywords first
-            if any(
-                keyword.lower() in line.lower() for keyword in self.company_keywords
-            ):
-                # Extract company name after the keyword
+            # Do not return lines that look like dates or contain 'Date:'
+            if re.match(r"\d{4}-\d{2}-\d{2}", line) or "date:" in line.lower():
+                continue
+            if any(keyword.lower() in line.lower() for keyword in self.company_keywords):
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     company = parts[1].strip()
-                    if company and not any(
-                        ind in company.upper() for ind in exclude_indicators
-                    ):
-                        self.logger.debug(
-                            f"extract_company: Found company after keyword: '{company}'"
-                        )
+                    if company:
                         return company
-            # Check for invoice/bill keywords
             if not found_header and any(h in line.upper() for h in ["INVOICE", "BILL"]):
                 found_header = True
                 continue
-            if found_header:
-                if line:
-                    after_header_lines.append(line)
-                # Skip lines that look like invoice numbers or dates
-                if re.match(r"invoice\s*#?\s*[A-Z0-9\-]+", line, re.IGNORECASE):
-                    continue
-                if re.match(r"\d{4}-\d{2}-\d{2}", line):
-                    continue
-                if any(ind in line.upper() for ind in exclude_indicators):
-                    continue
-                if line.upper() in explicit_exclude:
-                    continue
-                self.logger.debug(
-                    f"extract_company: After header, returning line: '{line}' as company candidate."
-                )
-                return line
-        # Fallback: first non-empty line after header that is not excluded and not invoice number/date
-        for line in after_header_lines:
-            if (
-                line
-                and not any(ind in line.upper() for ind in exclude_indicators)
-                and line.upper() not in explicit_exclude
+            if found_header and line and not any(
+                kw in line.upper() for kw in ["TOTAL", "AMOUNT", "DUE", "BALANCE", "INVOICE", "BILL"]
             ):
-                if re.match(r"invoice\s*#?\s*[A-Z0-9\-]+", line, re.IGNORECASE):
+                # Do not return lines that look like dates or contain 'Date:'
+                if re.match(r"\d{4}-\d{2}-\d{2}", line) or "date:" in line.lower():
                     continue
-                if re.match(r"\d{4}-\d{2}-\d{2}", line):
-                    continue
-                self.logger.debug(
-                    f"extract_company: Fallback, returning line: '{line}' as company candidate."
-                )
                 return line
-        # Fuzzy match: try to find best match among known companies
-        best_match, score = self.fuzzy_matcher.find_best_match(text, known_companies)
-        if best_match and score > 0.8:
+        # 3. Fuzzy match: extract candidate lines and match to known_companies
+        from ..utils.fuzzy_matcher import FuzzyMatcher
+        fuzzy_matcher = FuzzyMatcher()
+        candidate_lines = [
+            l for l in lines
+            if l and not re.match(r"\d{4}-\d{2}-\d{2}", l) and "date:" not in l.lower()
+        ]
+        best_match = None
+        best_score = 0.0
+        for candidate in candidate_lines:
+            match, score = fuzzy_matcher.find_best_match(candidate, known_companies)
+            if score > best_score:
+                best_score = score
+                best_match = match
+        if best_match and best_score > 0.8:
             return best_match
         return None
 
@@ -240,13 +157,12 @@ class InvoiceParser(BaseParser):
         if not text:
             return None
 
-        # Look for total lines specifically
-        lines = text.split("\n")
+        lines = [line.strip() for line in text.split("\n")]
         total_amounts = []
 
         for line in lines:
             line_lower = line.lower()
-            # Look for lines that contain "total:" but not "subtotal:"
+            # Look for lines that contain "total:" but not "subtotal:" (case-insensitive, allow anywhere in line)
             if "total:" in line_lower and "subtotal:" not in line_lower:
                 amounts = self.amount_normalizer.extract_amounts_from_text(line)
                 if amounts:
@@ -272,7 +188,6 @@ class InvoiceParser(BaseParser):
         # Return the highest amount found
         if total_amounts:
             try:
-                # Convert all amounts to float and return the highest
                 float_amounts = []
                 for amount_str in total_amounts:
                     cleaned = (
@@ -286,24 +201,30 @@ class InvoiceParser(BaseParser):
             except (ValueError, TypeError):
                 pass
 
-        # Fallback: try to extract any amount
-        amounts = self.amount_normalizer.extract_amounts_from_text(text)
-        if amounts:
-            try:
-                cleaned = (
-                    amounts[0]
-                    .replace("$", "")
-                    .replace("€", "")
-                    .replace("£", "")
-                    .replace("¥", "")
-                )
-                value = float(cleaned)
-                if value < 10:
-                    return None
-                return value
-            except (ValueError, TypeError):
-                return None
-
+        # Fallback: try to extract any amount above a reasonable threshold, but ignore line items and years
+        float_amounts = []
+        for line in lines:
+            if any(kw in line.lower() for kw in ["item", "qty", "quantity"]):
+                continue
+            amounts = self.amount_normalizer.extract_amounts_from_text(line)
+            for amount_str in amounts:
+                try:
+                    cleaned = (
+                        amount_str.replace("$", "")
+                        .replace("€", "")
+                        .replace("£", "")
+                        .replace("¥", "")
+                    )
+                    value = float(cleaned)
+                    # Ignore values that look like years (1900-2100)
+                    if 1900 <= value <= 2100:
+                        continue
+                    if value > 10:
+                        float_amounts.append(value)
+                except (ValueError, TypeError):
+                    continue
+        if float_amounts:
+            return max(float_amounts)
         return None
 
     def extract_date(self, text: str) -> Optional[str]:
