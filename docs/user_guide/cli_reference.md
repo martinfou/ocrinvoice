@@ -38,6 +38,8 @@ ocrinvoice parse [OPTIONS] PDF_PATH
 | `--parser` | `-p` | Parser type (invoice, credit_card) | invoice |
 | `--verbose` | `-v` | Enable verbose output | False |
 | `--show-text` | `-t` | Show extracted raw text | False |
+| `--rename` | `-r` | Rename PDF file based on extracted data | False |
+| `--dry-run` | `-d` | Show what would be renamed without actually renaming | False |
 
 **Examples:**
 ```bash
@@ -58,6 +60,12 @@ ocrinvoice parse invoice.pdf --verbose
 
 # Credit card statement
 ocrinvoice parse statement.pdf --parser credit_card
+
+# Rename file based on extracted data
+ocrinvoice parse invoice.pdf --rename
+
+# Dry run to see what would be renamed
+ocrinvoice parse invoice.pdf --rename --dry-run
 ```
 
 ### `batch` - Process Multiple Documents
@@ -79,6 +87,8 @@ ocrinvoice batch [OPTIONS] INPUT_PATH
 | `--parser` | `-p` | Parser type (invoice, credit_card) | invoice |
 | `--recursive` | `-r` | Process subdirectories recursively | False |
 | `--verbose` | `-v` | Enable verbose output | False |
+| `--rename` | | Rename PDF files based on extracted data | False |
+| `--dry-run` | | Show what would be renamed without actually renaming | False |
 
 **Examples:**
 ```bash
@@ -96,7 +106,38 @@ ocrinvoice batch invoices/ --recursive --output all_results.csv
 
 # Verbose output
 ocrinvoice batch invoices/ --verbose
+
+# Rename all PDF files based on extracted data
+ocrinvoice batch invoices/ --rename
+
+# Dry run to see what would be renamed
+ocrinvoice batch invoices/ --rename --dry-run
 ```
+
+### File Renaming
+
+The `--rename` option allows you to automatically rename PDF files based on the extracted data. Files are renamed using the format:
+
+```
+{date}_{company}_{total}.pdf
+```
+
+**Examples:**
+- `2023-01-15_HYDRO-QUÉBEC_137.50.pdf`
+- `2023-02-20_RONA_89.99.pdf`
+- `2023-03-10_BANQUE-TD_2500.00.pdf`
+
+**Features:**
+- **Automatic formatting**: Dates are formatted as YYYY-MM-DD
+- **Company normalization**: Company names are converted to uppercase and special characters are handled
+- **Total formatting**: Totals are formatted with 2 decimal places
+- **Safe renaming**: If a file with the same name already exists, a number is appended
+- **Dry run mode**: Use `--dry-run` to preview what would be renamed without making changes
+
+**Notes:**
+- Files are only renamed if all required data (date, company, total) is successfully extracted
+- Original files are preserved and renamed in place
+- The `--dry-run` option is useful for testing before applying changes
 
 ### `aliases` - Manage Business Aliases
 
@@ -284,4 +325,4 @@ ocrinvoice parse --help
 ocrinvoice batch --help
 ocrinvoice aliases --help
 ocrinvoice test --help
-``` 
+```

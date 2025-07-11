@@ -119,6 +119,18 @@ graph TB
 - **Alias Management**: Consistent business name mapping
 - **Configuration Persistence**: Save and load business rules
 
+#### Utility Layer (`src/ocrinvoice/utils/`)
+- **Purpose**: Helper utilities and file management
+- **Components**:
+  - `file_manager.py`: Automatic file renaming based on extracted data
+  - `fuzzy_matcher.py`: String matching and similarity calculations
+  - `amount_normalizer.py`: Monetary amount processing and validation
+
+**Key Features**:
+- **File Renaming**: Automatic organization of processed documents
+- **Safe Operations**: Conflict resolution and dry-run capabilities
+- **Data Normalization**: Consistent formatting of extracted data
+
 ### 2.3 Core Services Layer
 
 #### Text Extractor (`src/ocrinvoice/core/text_extractor.py`)
@@ -218,6 +230,19 @@ flowchart TD
         InvoiceValidate --> Confidence
         Confidence --> Format[Output Formatting]
         Format --> Result[Structured Output]
+    end
+
+    subgraph "File Management"
+        Result --> RenameCheck{Rename Enabled?}
+        RenameCheck -->|Yes| GenerateName[Generate Filename]
+        RenameCheck -->|No| End[End]
+        GenerateName --> SafeCheck{Safe Mode?}
+        SafeCheck -->|Yes| ConflictCheck{File Exists?}
+        SafeCheck -->|No| Rename[Perform Rename]
+        ConflictCheck -->|Yes| AppendNumber[Append Number]
+        ConflictCheck -->|No| Rename
+        AppendNumber --> Rename
+        Rename --> End
     end
 ```
 

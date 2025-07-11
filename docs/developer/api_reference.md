@@ -581,6 +581,100 @@ is_valid = normalizer.validate_amount("$123.45")
 print(f"Valid: {is_valid}")  # Output: Valid: True
 ```
 
+### File Manager (`src/ocrinvoice/utils/file_manager.py`)
+
+The FileManager class handles automatic file renaming based on extracted invoice data.
+
+#### Class: `FileManager`
+
+```python
+class FileManager:
+    """Manage file operations including automatic renaming based on extracted data."""
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+        """Initialize the file manager.
+
+        Args:
+            config: Configuration dictionary
+        """
+```
+
+#### Methods
+
+##### `generate_filename(data: Dict[str, Any], format_template: str = "{date}_{company}_{total}.pdf") -> Optional[str]`
+
+Generate a filename based on extracted data.
+
+**Parameters:**
+- `data`: Dictionary containing extracted invoice data
+- `format_template`: Template string for filename format
+
+**Returns:**
+- Generated filename or None if required data is missing
+
+**Example:**
+```python
+from ocrinvoice.utils.file_manager import FileManager
+
+manager = FileManager()
+data = {
+    "date": "2023-01-15",
+    "company": "HYDRO-QUÉBEC",
+    "total": 137.50
+}
+filename = manager.generate_filename(data)
+print(f"Generated filename: {filename}")  # Output: Generated filename: 2023-01-15_HYDRO-QUÉBEC_137.50.pdf
+```
+
+##### `rename_file(original_path: Union[str, Path], new_filename: str, safe_mode: bool = True, dry_run: bool = False) -> bool`
+
+Rename a file with the new filename.
+
+**Parameters:**
+- `original_path`: Path to the original file
+- `new_filename`: New filename to use
+- `safe_mode`: If True, append numbers to avoid conflicts
+- `dry_run`: If True, only show what would be done without making changes
+
+**Returns:**
+- True if successful, False otherwise
+
+**Example:**
+```python
+manager = FileManager()
+success = manager.rename_file(
+    "invoice.pdf",
+    "2023-01-15_HYDRO-QUÉBEC_137.50.pdf",
+    safe_mode=True,
+    dry_run=False
+)
+print(f"Rename successful: {success}")
+```
+
+##### `process_rename(data: Dict[str, Any], file_path: Union[str, Path], config: Optional[Dict[str, Any]] = None) -> bool`
+
+Process file renaming based on extracted data and configuration.
+
+**Parameters:**
+- `data`: Dictionary containing extracted invoice data
+- `file_path`: Path to the file to rename
+- `config`: Optional configuration dictionary
+
+**Returns:**
+- True if renaming was successful or not needed, False if failed
+
+**Example:**
+```python
+manager = FileManager()
+data = {
+    "date": "2023-01-15",
+    "company": "HYDRO-QUÉBEC",
+    "total": 137.50
+}
+success = manager.process_rename(data, "invoice.pdf")
+print(f"Process successful: {success}")
+```
+
 ## 🏢 Business Logic API Modules
 
 ### Business Alias Manager (`src/ocrinvoice/business/business_alias_manager.py`)

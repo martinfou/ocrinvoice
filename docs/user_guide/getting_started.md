@@ -121,6 +121,26 @@ Once you've successfully parsed your first invoice:
 2. **Set up business aliases** for consistent naming
 3. **Configure the system** for your specific needs
 4. **Explore advanced features** like OCR correction
+5. **Try file renaming** to automatically organize your invoices
+
+## File Renaming Feature
+
+The system can automatically rename your PDF files based on extracted data:
+
+```bash
+# Rename a single file
+ocrinvoice parse invoice.pdf --rename
+
+# Preview what would be renamed (dry run)
+ocrinvoice parse invoice.pdf --rename --dry-run
+
+# Rename multiple files
+ocrinvoice batch invoices/ --rename
+```
+
+Files are renamed using the format: `{date}_{company}_{total}.pdf`
+
+**Example:** `2023-01-15_HYDRO-QUÉBEC_137.50.pdf`
 
 ## Getting Help
 

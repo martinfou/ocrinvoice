@@ -40,6 +40,13 @@ output:
   default_format: json
   include_raw_text: false
   include_confidence: true
+
+# File Renaming Settings
+rename:
+  enabled: false
+  format: "{date}_{company}_{total}.pdf"
+  safe_mode: true
+  dry_run: false
 ```
 
 ### User Configuration
@@ -95,6 +102,15 @@ Set these environment variables to override configuration:
 | `OCRINVOICE_OUTPUT_DEFAULT_FORMAT` | Default output format | `json` |
 | `OCRINVOICE_OUTPUT_INCLUDE_RAW_TEXT` | Include raw text in output | `false` |
 | `OCRINVOICE_OUTPUT_INCLUDE_CONFIDENCE` | Include confidence scores | `true` |
+
+### File Renaming Settings
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OCRINVOICE_RENAME_ENABLED` | Enable automatic file renaming | `false` |
+| `OCRINVOICE_RENAME_FORMAT` | File naming format | `{date}_{company}_{total}.pdf` |
+| `OCRINVOICE_RENAME_SAFE_MODE` | Enable safe mode (append numbers for conflicts) | `true` |
+| `OCRINVOICE_RENAME_DRY_RUN` | Enable dry run mode | `false` |
 
 ## Setting Environment Variables
 
@@ -180,6 +196,24 @@ export OCRINVOICE_OUTPUT_INCLUDE_RAW_TEXT="true"
 export OCRINVOICE_PARSER_CONFIDENCE_THRESHOLD="0.5"
 ```
 
+### File Renaming Mode
+
+```yaml
+# ~/.ocrinvoice/config.yaml
+rename:
+  enabled: true
+  format: "{date}_{company}_{total}.pdf"
+  safe_mode: true
+  dry_run: false
+```
+
+Or using environment variables:
+
+```bash
+export OCRINVOICE_RENAME_ENABLED="true"
+export OCRINVOICE_RENAME_SAFE_MODE="true"
+```
+
 ## Configuration Validation
 
 The system validates configuration on startup:
@@ -262,4 +296,4 @@ ocrinvoice config
 
 # Check for syntax errors in YAML files
 python -c "import yaml; yaml.safe_load(open('~/.ocrinvoice/config.yaml'))"
-``` 
+```

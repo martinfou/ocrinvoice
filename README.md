@@ -47,6 +47,10 @@ ocrinvoice parse invoice.pdf --output result.json
 # Process multiple invoices
 ocrinvoice batch invoices/ --output results.csv
 
+# Rename files based on extracted data
+ocrinvoice parse invoice.pdf --rename
+ocrinvoice batch invoices/ --rename --dry-run
+
 # Manage business aliases
 ocrinvoice aliases add "Hydro Quebec" "HYDRO-QUÉBEC"
 ocrinvoice aliases list
@@ -83,6 +87,18 @@ ocrinvoice config
 | **Date** | Invoice date | "2023-01-15" |
 | **Invoice Number** | Invoice ID | "INV-2023-001" |
 | **Confidence** | Extraction confidence | 0.85 |
+
+## 🗂️ File Organization
+
+Automatically rename your PDF files based on extracted data:
+
+```bash
+# Single file: 2023-01-15_HYDRO-QUÉBEC_137.50.pdf
+ocrinvoice parse invoice.pdf --rename
+
+# Batch processing with preview
+ocrinvoice batch invoices/ --rename --dry-run
+```
 
 ## 📁 Project Structure
 

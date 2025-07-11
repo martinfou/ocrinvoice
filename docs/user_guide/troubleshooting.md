@@ -324,6 +324,103 @@ ocrinvoice parse --help
    python -m json.tool result.json
    ```
 
+### File Renaming Issues
+
+#### Issue: Files Not Being Renamed
+
+**Symptoms:**
+- Files remain with original names
+- No renaming messages
+- Rename option ignored
+
+**Solutions:**
+
+1. **Check Rename Configuration:**
+   ```bash
+   ocrinvoice config | grep -A 5 "rename:"
+   ```
+
+2. **Enable Rename Option:**
+   ```bash
+   # Use CLI flag
+   ocrinvoice parse invoice.pdf --rename
+
+   # Or set environment variable
+   export OCRINVOICE_RENAME_ENABLED="true"
+   ```
+
+3. **Verify Required Data:**
+   ```bash
+   # Check if all required fields are extracted
+   ocrinvoice parse invoice.pdf --verbose
+   ```
+
+4. **Use Dry Run Mode:**
+   ```bash
+   ocrinvoice parse invoice.pdf --rename --dry-run
+   ```
+
+#### Issue: Incorrect File Names
+
+**Symptoms:**
+- Files renamed with wrong data
+- Missing or incorrect company names
+- Wrong dates or amounts
+
+**Solutions:**
+
+1. **Check Extracted Data:**
+   ```bash
+   ocrinvoice parse invoice.pdf --verbose
+   ```
+
+2. **Verify Business Aliases:**
+   ```bash
+   ocrinvoice aliases list
+   ocrinvoice aliases test "Company Name"
+   ```
+
+3. **Test with Dry Run:**
+   ```bash
+   ocrinvoice parse invoice.pdf --rename --dry-run
+   ```
+
+4. **Check File Name Format:**
+   ```bash
+   # View current format
+   ocrinvoice config | grep -A 3 "rename:"
+   ```
+
+#### Issue: File Name Conflicts
+
+**Symptoms:**
+- Error: "File already exists"
+- Renaming fails
+- Duplicate file names
+
+**Solutions:**
+
+1. **Enable Safe Mode:**
+   ```bash
+   export OCRINVOICE_RENAME_SAFE_MODE="true"
+   ```
+
+2. **Check for Existing Files:**
+   ```bash
+   ls -la *.pdf
+   ```
+
+3. **Use Dry Run to Preview:**
+   ```bash
+   ocrinvoice batch invoices/ --rename --dry-run
+   ```
+
+4. **Manual Conflict Resolution:**
+   ```bash
+   # Move conflicting files first
+   mv existing_file.pdf backup/
+   ```
+
 ## Advanced Troubleshooting
 
 ### Debug Mode
@@ -376,10 +473,10 @@ grep -i warning debug.log
    ocrinvoice --version
    tesseract --version
    python --version
-   
+
    # Configuration
    ocrinvoice config
-   
+
    # Test with sample file
    ocrinvoice parse sample.pdf --verbose
    ```
@@ -437,4 +534,4 @@ ocrinvoice aliases list  # Review business aliases
 
 ---
 
-**Still having issues?** Collect the information above and create a detailed issue report with your specific problem. 
+**Still having issues?** Collect the information above and create a detailed issue report with your specific problem.

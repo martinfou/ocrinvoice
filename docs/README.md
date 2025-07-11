@@ -14,9 +14,9 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 ### 📖 [User Guide](./user_guide/)
 **For end users** - Complete usage instructions
 - [Getting Started](./user_guide/getting_started.md) - Installation and first steps
-- [CLI Reference](./user_guide/cli_reference.md) - Complete command reference
-- [Configuration](./user_guide/configuration.md) - System configuration options
-- [Troubleshooting](./user_guide/troubleshooting.md) - Common issues and solutions
+- [CLI Reference](./user_guide/cli_reference.md) - Complete command reference with file renaming features
+- [Configuration](./user_guide/configuration.md) - System configuration options including rename settings
+- [Troubleshooting](./user_guide/troubleshooting.md) - Common issues and solutions including file renaming problems
 
 ### 🏗️ [Architecture Documentation](./architecture/)
 **For technical stakeholders** - System design and analysis
@@ -30,7 +30,7 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 - [Development Setup](./developer/development_setup.md) - Setting up development environment
 - [Contributing Guidelines](./developer/contributing.md) - How to contribute to the project
 - [Testing Guide](./developer/testing.md) - Running tests and quality assurance
-- [API Reference](./developer/api_reference.md) - Internal API documentation
+- [API Reference](./developer/api_reference.md) - Internal API documentation including FileManager utility
 
 ## 🎯 Quick Navigation by User Type
 
