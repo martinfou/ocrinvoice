@@ -4,6 +4,7 @@
         "banque-td",
         "bmr",
         "desjardins",
+        "gagnon",
         "gary-chartran",
         "hydro-québec",
         "la-forfaiterie",
@@ -26,7 +27,8 @@
         "pharmacie": "pharmacie",
         "test-alias": "bmr",
         "test-company": "test-official-name",
-        "rona": "rona"
+        "rona": "rona",
+        "gagnon": "gagnon"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",
@@ -38,8 +40,10 @@
         "hautes-rivieres": "taxes-scolaires",
         "toronto dominion": "banque-td",
         "scotia": "banque-scotia",
-        "rona":"rona",
-        "pharm": "pharmacie"
+        "rona": "rona",
+        "pharm": "pharmacie",
+        "gagnon": "gagnon",
+        "gagn 0 n": "gagnon"
     },
     "fuzzy_candidates": [
         "taxes-scolaires",

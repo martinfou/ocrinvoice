@@ -22,7 +22,7 @@ class OCRCorrections:
             "l": "1",  # Lowercase L to one
             "I": "1",  # Capital I to one
             "S": "5",  # Letter S to five
-            "G": "6",  # Letter G to six
+            # "G": "6",  # Letter G to six - REMOVED: too aggressive, corrupts company names
             "B": "8",  # Letter B to eight
             "g": "9",  # Lowercase G to nine
             "rn": "m",  # rn to m

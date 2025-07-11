@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional, Union, List
 
 from .base_parser import BaseParser
 from .date_extractor import DateExtractor
+from ..business.business_alias_manager import BusinessAliasManager
 
 
 class InvoiceParser(BaseParser):
@@ -50,12 +51,29 @@ class InvoiceParser(BaseParser):
         if text is None:
             text = ""
 
-        preprocessed = self.preprocess_text(text)
+        # Try extraction on raw text first, then fallback to corrected text if not found
+        ocr_corrections = self.ocr_corrections
+        corrected_text = ocr_corrections.correct_text(text)
 
-        company = self.extract_company(preprocessed)
-        total = self.extract_total(preprocessed)
-        date = self.extract_date(preprocessed)
-        invoice_number = self.extract_invoice_number(preprocessed)
+        # Company
+        company = self.extract_company(text)
+        if not company:
+            company = self.extract_company(corrected_text)
+
+        # Total
+        total = self.extract_total(text)
+        if not total:
+            total = self.extract_total(corrected_text)
+
+        # Date
+        date = self.extract_date(text)
+        if not date:
+            date = self.extract_date(corrected_text)
+
+        # Invoice number
+        invoice_number = self.extract_invoice_number(text)
+        if not invoice_number:
+            invoice_number = self.extract_invoice_number(corrected_text)
 
         result = {
             "company": company,
@@ -84,14 +102,28 @@ class InvoiceParser(BaseParser):
         search_lines = lines[:20]
         # Use BusinessAliasManager for company name matching
         if self.business_alias_manager:
+            print(f"[DEBUG] extract_company: Searching text for business matches...")
+            print(
+                f"[DEBUG] extract_company: Text sample (first 200 chars): {text[:200]}"
+            )
+            print(f"[DEBUG] extract_company: Full text length: {len(text)}")
+            print(
+                f"[DEBUG] extract_company: Text contains 'GAGNON': {'GAGNON' in text}"
+            )
+            print(
+                f"[DEBUG] extract_company: Text contains 'gagnon': {'gagnon' in text}"
+            )
             result = self.business_alias_manager.find_business_match(text)
             if result:
                 official_name, match_type, confidence = result
-                self.logger.debug(
-                    f"extract_company: Found company using BusinessAliasManager: "
-                    f"'{official_name}' ({match_type}, confidence: {confidence})"
+                print(
+                    f"[DEBUG] extract_company: Found company using BusinessAliasManager: '{official_name}' ({match_type}, confidence: {confidence})"
                 )
                 return official_name.lower()
+            else:
+                print(f"[DEBUG] extract_company: No business match found in text")
+        else:
+            print(f"[DEBUG] extract_company: BusinessAliasManager not available")
 
         # 1. If any known company is present anywhere in the text, return the first one
         text_lower = text.lower()
@@ -194,7 +226,7 @@ class InvoiceParser(BaseParser):
                     keyword_positions.append(pos)
                     pos += 1
             # Find all currency amounts
-            currency_pattern = r'\$?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})'
+            currency_pattern = r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})"
             for match in re.finditer(currency_pattern, text):
                 amount_start = match.start()
                 amount_end = match.end()
@@ -236,20 +268,43 @@ class InvoiceParser(BaseParser):
             for amount_str in amounts:
                 try:
                     value = normalize_amount(amount_str)
-                    if 10 <= value <= 10000:
+                    if 0.01 <= value <= 10000:
                         float_amounts.append(value)
                 except (ValueError, TypeError):
                     continue
             return float_amounts
 
         total_keywords = [
-            "total", "tota", "mastercard", "visa", "amex", "american express",
-            "credit card", "debit card", "card payment", "amount due",
-            "grand total", "final total", "balance due"
+            "total",
+            "tota",
+            "mastercard",
+            "visa",
+            "amex",
+            "american express",
+            "credit card",
+            "debit card",
+            "card payment",
+            "amount due",
+            "grand total",
+            "final total",
+            "balance due",
         ]
 
         raw_amounts = find_nearby_amounts(text, total_keywords, max_distance=50)
         print("[DEBUG] RAW nearby amounts:", raw_amounts)
+        print("[DEBUG] Total keywords being searched:", total_keywords)
+        print("[DEBUG] Text sample (first 200 chars):", text[:200])
+
+        # Debug: Show all amounts before range filtering
+        all_raw_floats = []
+        for amount_str in raw_amounts:
+            try:
+                value = normalize_amount(amount_str)
+                all_raw_floats.append(value)
+            except (ValueError, TypeError) as e:
+                print(f"[DEBUG] Failed to parse amount '{amount_str}': {e}")
+        print("[DEBUG] All raw float amounts (before range filtering):", all_raw_floats)
+
         raw_floats = filter_valid_amounts(raw_amounts)
         print("[DEBUG] RAW float amounts (10-10000):", raw_floats)
         if len(raw_floats) == 1:
@@ -257,6 +312,7 @@ class InvoiceParser(BaseParser):
             return str(raw_floats[0])
         elif len(raw_floats) > 1:
             from collections import Counter
+
             counter = Counter(raw_floats)
             most_common, count = counter.most_common(1)[0]
             if list(counter.values()).count(count) == 1 and count > 1:
@@ -266,10 +322,37 @@ class InvoiceParser(BaseParser):
                 )
                 return str(most_common)
 
+        # Fallback: line-based search for amounts on lines containing keywords
+        print("[DEBUG] Proximity search failed, trying line-based fallback.")
+        lines = [line.strip() for line in text.split("\n")]
+        line_amounts = []
+        for line in lines:
+            line_lower = line.lower()
+            if any(kw in line_lower for kw in total_keywords):
+                found = re.findall(r"\$?\d+(?:[.,]\d{3})*(?:[.,]\d{2})", line)
+                line_amounts.extend(found)
+        print("[DEBUG] Line-based fallback amounts:", line_amounts)
+        line_floats = filter_valid_amounts(line_amounts)
+        print("[DEBUG] Line-based fallback float amounts (0.01-10000):", line_floats)
+        if len(line_floats) == 1:
+            print("[DEBUG] Selected total from line-based fallback:", line_floats[0])
+            return str(line_floats[0])
+        elif len(line_floats) > 1:
+            from collections import Counter
+
+            counter = Counter(line_floats)
+            most_common, count = counter.most_common(1)[0]
+            if list(counter.values()).count(count) == 1 and count > 1:
+                print(
+                    f"[DEBUG] Selected most frequent total from line-based fallback: "
+                    f"{most_common} (appeared {count} times)"
+                )
+                return str(most_common)
+
         lines = [line.strip() for line in text.split("\n")]
         if len(lines) == 1 and len(lines[0]) > 200:
             long_line = lines[0]
-            split_text = re.split(r'[;,]|\s{3,}', long_line)
+            split_text = re.split(r"[;,]|\s{3,}", long_line)
             lines = [line.strip() for line in split_text if line.strip()]
 
         def find_total_candidates(
@@ -327,45 +410,45 @@ class InvoiceParser(BaseParser):
             )
             return str(cleaned_preferred_floats[0])
         print("[DEBUG] Multiple or no candidates, returning 'unknown'.")
-        return 'unknown'
+        return "unknown"
 
     def _extract_amounts_with_ocr_correction(self, text: str) -> List[str]:
         """Extract amounts from text with enhanced OCR correction."""
         # First try the normal amount normalizer
         amounts = self.amount_normalizer.extract_amounts_from_text(text)
-        
+
         # Try with additional OCR corrections
         corrected_text = text
         # Arabic/Unicode decimal separators
-        corrected_text = re.sub(r'[٠٫٬]', '.', corrected_text)
+        corrected_text = re.sub(r"[٠٫٬]", ".", corrected_text)
         # Space before decimal
-        corrected_text = re.sub(r'\s+\.\s*', '.', corrected_text)
-        corrected_text = re.sub(r'\.\s+', '.', corrected_text)  # Space after decimal
+        corrected_text = re.sub(r"\s+\.\s*", ".", corrected_text)
+        corrected_text = re.sub(r"\.\s+", ".", corrected_text)  # Space after decimal
         more_amounts = self.amount_normalizer.extract_amounts_from_text(corrected_text)
         for amt in more_amounts:
             if amt not in amounts:
                 amounts.append(amt)
-        
+
         # More aggressive OCR correction
         corrected_text = text
         # Fix decimal separators with spaces
-        pattern1 = r'(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})'
-        corrected_text = re.sub(pattern1, r'\1.\2', corrected_text)
+        pattern1 = r"(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})"
+        corrected_text = re.sub(pattern1, r"\1.\2", corrected_text)
         # Fix comma-dot patterns
-        pattern2 = r'(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})'
-        corrected_text = re.sub(pattern2, r'\1.\2', corrected_text)
-        corrected_text = re.sub(r'(\d+)\s*\.\s*(\d+)', r'\1.\2', corrected_text)
+        pattern2 = r"(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})"
+        corrected_text = re.sub(pattern2, r"\1.\2", corrected_text)
+        corrected_text = re.sub(r"(\d+)\s*\.\s*(\d+)", r"\1.\2", corrected_text)
         more_amounts = self.amount_normalizer.extract_amounts_from_text(corrected_text)
         for amt in more_amounts:
             if amt not in amounts:
                 amounts.append(amt)
-        
+
         # Manual pattern matching for common OCR errors
         patterns = [
             # $1,076 ٠13 or $1,076.13
-            r'[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})',
+            r"[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})",
             # $1,076 ,.13
-            r'[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})',
+            r"[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})",
         ]
         for pattern in patterns:
             matches = re.findall(pattern, text)
@@ -374,7 +457,7 @@ class InvoiceParser(BaseParser):
                     amount_str = f"${match[0]}.{match[1]}"
                     if amount_str not in amounts:
                         amounts.append(amount_str)
-        
+
         return amounts
 
     def extract_date(self, text: str) -> Optional[str]:

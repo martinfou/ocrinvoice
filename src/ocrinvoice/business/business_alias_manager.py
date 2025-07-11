@@ -165,25 +165,31 @@ class BusinessAliasManager:
 
         # Normalize text to lowercase for case-insensitive comparison
         text_normalized = text.lower().strip()
+        print(f"[DEBUG] BusinessAliasManager: Searching for business matches in text")
+        print(f"[DEBUG] BusinessAliasManager: Text sample (first 200 chars): {text_normalized[:200]}")
 
         # 1. Exact matches (highest priority)
         exact_match = self._find_exact_match(text_normalized)
         if exact_match:
             business_name, match_type, confidence = exact_match
+            print(f"[DEBUG] BusinessAliasManager: Found exact match: '{business_name}'")
             return (business_name, match_type, confidence)
 
         # 2. Partial matches (medium priority)
         partial_match = self._find_partial_match(text_normalized)
         if partial_match:
             business_name, match_type, confidence = partial_match
+            print(f"[DEBUG] BusinessAliasManager: Found partial match: '{business_name}'")
             return (business_name, match_type, confidence)
 
         # 3. Fuzzy matches (lowest priority, requires indicators)
         fuzzy_match = self._find_fuzzy_match(text_normalized)
         if fuzzy_match:
             business_name, match_type, confidence = fuzzy_match
+            print(f"[DEBUG] BusinessAliasManager: Found fuzzy match: '{business_name}'")
             return (business_name, match_type, confidence)
 
+        print(f"[DEBUG] BusinessAliasManager: No matches found")
         return None
 
     def _find_exact_match(self, text: str) -> Optional[Tuple[str, str, float]]:
@@ -201,17 +207,33 @@ class BusinessAliasManager:
         return None
 
     def _find_partial_match(self, text: str) -> Optional[Tuple[str, str, float]]:
-        """Find partial substring matches (case-insensitive)."""
+        """Find partial substring matches (case-insensitive, robust to whitespace and Unicode)."""
+        import unicodedata
+        def normalize(s):
+            # Lowercase, strip, normalize unicode, collapse whitespace
+            s = s.lower()
+            s = unicodedata.normalize('NFKC', s)
+            s = ' '.join(s.split())
+            return s
+
         partial_matches = self.config.get("partial_matches", {})
+        print(f"[DEBUG] BusinessAliasManager: Checking partial matches...")
+        print(f"[DEBUG] BusinessAliasManager: Available partial matches: {list(partial_matches.keys())}")
+        print(f"[DEBUG] BusinessAliasManager: Text repr: {repr(text)}")
+        text_norm = normalize(text)
+        print(f"[DEBUG] BusinessAliasManager: Normalized text: {repr(text_norm)}")
 
         for alias, business_name in partial_matches.items():
-            # Check if lowercase alias is contained in lowercase text
-            if alias.lower() in text:
+            alias_norm = normalize(alias)
+            print(f"[DEBUG] BusinessAliasManager: Checking if alias '{alias}' (norm: '{alias_norm}') is in text (norm)...")
+            if alias_norm in text_norm:
+                print(f"[DEBUG] BusinessAliasManager: Found partial match! '{alias_norm}' is in text (norm)")
                 confidence = self.config.get("confidence_weights", {}).get(
                     "partial_match", 0.8
                 )
                 return (business_name, "partial_match", confidence)
 
+        print(f"[DEBUG] BusinessAliasManager: No partial matches found")
         return None
 
     def _find_fuzzy_match(self, text: str) -> Optional[Tuple[str, str, float]]:
