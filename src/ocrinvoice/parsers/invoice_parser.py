@@ -473,6 +473,8 @@ class InvoiceParser(BaseParser):
             r"\b(\d{2}-\d{2}-\d{4})\b",
             r"\b(\d{1,2}/\d{1,2}/\d{4})\b",
             r"\b(\d{1,2}-\d{1,2}-\d{4})\b",
+            r"\b(\d{1,2}/\d{1,2}/\d{2})\b",  # M/D/YY format
+            r"\b(\d{2}/\d{2}/\d{2})\b",  # MM/DD/YY format
             # Month name patterns
             r"\b(January|Jan)\s+(\d{1,2}),?\s+(\d{4})\b",
             r"\b(February|Feb)\s+(\d{1,2}),?\s+(\d{4})\b",
@@ -547,6 +549,26 @@ class InvoiceParser(BaseParser):
                     elif re.match(r"\d{1,2}-\d{1,2}-\d{4}", d):
                         parts = d.split("-")
                         d = f"{parts[2]}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+                    elif re.match(r"\d{1,2}/\d{1,2}/\d{2}", d):
+                        # Convert M/D/YY to YYYY-MM-DD
+                        parts = d.split("/")
+                        year = parts[2]
+                        # Convert 2-digit year to 4-digit (assuming 20xx for years 00-29, 19xx for 30-99)
+                        if int(year) <= 29:
+                            year = "20" + year
+                        else:
+                            year = "19" + year
+                        d = f"{year}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+                    elif re.match(r"\d{2}/\d{2}/\d{2}", d):
+                        # Convert MM/DD/YY to YYYY-MM-DD
+                        parts = d.split("/")
+                        year = parts[2]
+                        # Convert 2-digit year to 4-digit (assuming 20xx for years 00-29, 19xx for 30-99)
+                        if int(year) <= 29:
+                            year = "20" + year
+                        else:
+                            year = "19" + year
+                        d = f"{year}-{parts[1]}-{parts[0]}"
                     return d
                 elif len(match.groups()) == 3:
                     # Month name pattern
