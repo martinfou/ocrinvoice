@@ -1,29 +1,32 @@
-"""
-Credit Card Bill Parser implementation.
+"""Credit card bill parser for extracting structured data from credit card PDFs."""
 
-This module contains the CreditCardBillParser class for extracting
-structured data from credit card bill PDFs.
-"""
-
-from typing import Any, Dict, Optional, Union
-from pathlib import Path
 import logging
+import re
+from pathlib import Path
+from typing import Dict, Any, Optional, Union
+
 from .base_parser import BaseParser
-from ..core.ocr_engine import OCREngine
-from ..utils.fuzzy_matcher import FuzzyMatcher
-from ..utils.amount_normalizer import AmountNormalizer
-from ..utils.ocr_corrections import OCRCorrections
-from ..parsers.date_extractor import DateExtractor
+from .date_extractor import DateExtractor
+from ..business.business_alias_manager import BusinessAliasManager
 
 
 class CreditCardBillParser(BaseParser):
     """Parser for extracting credit card bill data from PDFs using OCR."""
 
     def __init__(self, config: Dict[str, Any]):
+        # Ensure config is never None
+        config = config or {}
         super().__init__(config)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.debug = config.get("debug", False)
         self.company_aliases = config.get("company_aliases", {})
+
+        # Initialize business alias manager for company name matching
+        try:
+            self.business_alias_manager = BusinessAliasManager()
+        except Exception as e:
+            self.logger.warning(f"Could not initialize BusinessAliasManager: {e}")
+            self.business_alias_manager = None
 
     def parse(self, pdf_path: Union[str, Path]) -> Dict[str, Any]:
         """Parse the credit card bill PDF and return structured data."""
@@ -41,6 +44,17 @@ class CreditCardBillParser(BaseParser):
 
     def extract_company(self, text: str) -> Optional[str]:
         """Extract company name from text using multiple strategies."""
+        # Use BusinessAliasManager for company name matching
+        if self.business_alias_manager:
+            result = self.business_alias_manager.find_business_match(text)
+            if result:
+                official_name, match_type, confidence = result
+                self.logger.debug(
+                    f"extract_company: Found company using BusinessAliasManager: "
+                    f"'{official_name}' ({match_type}, confidence: {confidence})"
+                )
+                return official_name.lower()
+
         # For credit card bills, company is often the bank or issuer
         known_companies = self.config.get(
             "known_companies",
@@ -80,10 +94,11 @@ class CreditCardBillParser(BaseParser):
                 line = line.strip()
                 if len(line) < 5 or len(line) > 60:
                     continue
+                digit_count = sum(c.isdigit() for c in line)
                 if (
                     line
                     and line[0].isalpha()
-                    and sum(c.isdigit() for c in line) < len(line) * 0.1
+                    and digit_count < len(line) * 0.1
                 ):
                     candidates.append((line, 5))
         if candidates:

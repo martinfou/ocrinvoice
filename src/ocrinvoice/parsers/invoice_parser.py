@@ -1,38 +1,36 @@
-"""Invoice OCR Parser for extracting data from invoice PDFs."""
+"""Invoice parser for extracting structured data from invoice PDFs."""
 
-from typing import Any, Dict, Optional, Union
-from pathlib import Path
 import logging
-from .base_parser import BaseParser
-from ..core.ocr_engine import OCREngine
-from ..utils.fuzzy_matcher import FuzzyMatcher
-from ..utils.amount_normalizer import AmountNormalizer
-from ..utils.ocr_corrections import OCRCorrections
-from ..parsers.date_extractor import DateExtractor
 import re
+from pathlib import Path
+from typing import Dict, Any, Optional, Union
+
+from .base_parser import BaseParser
+from .date_extractor import DateExtractor
+from ..business.business_alias_manager import BusinessAliasManager
 
 
 class InvoiceParser(BaseParser):
     """Parser for extracting invoice data from PDFs using OCR."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """Initialize the invoice parser.
-
-        Args:
-            config: Configuration dictionary for parser settings
-        """
+        # Ensure config is never None
         config = config or {}
         super().__init__(config)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.debug = config.get("debug", False)
-        self.company_aliases = config.get("company_aliases", {})
-
-        # Add missing attributes that tests expect
-        self.company_keywords = config.get("company_keywords", ["INVOICE", "BILL"])
-        self.amount_keywords = config.get("amount_keywords", ["TOTAL", "AMOUNT", "DUE"])
-        self.date_keywords = config.get("date_keywords", ["DATE", "ISSUED", "DUE"])
+        self.company_keywords = config.get(
+            "company_keywords", ["company", "inc", "ltd", "corp"]
+        )
         self.total_keywords = config.get("total_keywords", ["TOTAL", "AMOUNT DUE"])
+        self.date_keywords = config.get("date_keywords", ["DATE", "INVOICE DATE"])
         self.parser_type = "invoice"
+        # Initialize business alias manager for company name matching
+        try:
+            self.business_alias_manager = BusinessAliasManager()
+        except Exception as e:
+            self.logger.warning(f"Could not initialize BusinessAliasManager: {e}")
+            self.business_alias_manager = None
 
     def parse(self, pdf_path: Union[str, Path], max_retries: int = 3) -> Dict[str, Any]:
         """Parse the invoice PDF and return structured data."""
@@ -71,7 +69,7 @@ class InvoiceParser(BaseParser):
 
         result["confidence"] = self._calculate_confidence(result)
 
-        is_valid = self._validate_invoice_data(result)
+        self._validate_invoice_data(result)
         self.log_parsing_result(pdf_path, result)
 
         # Return the data regardless of validation result for now
@@ -85,7 +83,20 @@ class InvoiceParser(BaseParser):
 
         lines = [line.strip() for line in text.split("\n")]
         search_lines = lines[:20]
-        known_companies = self.config.get(
+        # Use BusinessAliasManager for company name matching
+        if self.business_alias_manager:
+            result = self.business_alias_manager.find_business_match(text)
+            if result:
+                official_name, match_type, confidence = result
+                self.logger.debug(
+                    f"extract_company: Found company using BusinessAliasManager: "
+                    f"'{official_name}' ({match_type}, confidence: {confidence})"
+                )
+                return official_name.lower()
+
+        # 1. If any known company is present anywhere in the text, return the first one found
+        text_lower = text.lower()
+        for company in self.config.get(
             "known_companies",
             [
                 "ABC Company Inc.",
@@ -101,15 +112,12 @@ class InvoiceParser(BaseParser):
                 "CENTRE DE SERVICES SCOLAIRES",
                 "GARY CHARTRAND",
             ],
-        )
-        # 1. If any known company is present anywhere in the text, return the first one found
-        text_lower = text.lower()
-        for company in known_companies:
+        ):
             if company.lower() in text_lower:
                 self.logger.debug(
                     f"extract_company: Found known company: '{company}'"
                 )
-                return company
+                return company.lower()
         # 2. After 'INVOICE' or similar, next non-empty, non-excluded line is likely company
         found_header = False
         for line in search_lines:
@@ -123,7 +131,7 @@ class InvoiceParser(BaseParser):
                 if len(parts) > 1:
                     company = parts[1].strip()
                     if company:
-                        return company
+                        return company.lower()
             if not found_header and any(h in line.upper() for h in ["INVOICE", "BILL"]):
                 found_header = True
                 continue
@@ -133,23 +141,23 @@ class InvoiceParser(BaseParser):
                 # Do not return lines that look like dates or contain 'Date:'
                 if re.match(r"\d{4}-\d{2}-\d{2}", line) or "date:" in line.lower():
                     continue
-                return line
+                return line.lower()
         # 3. Fuzzy match: extract candidate lines and match to known_companies
         from ..utils.fuzzy_matcher import FuzzyMatcher
         fuzzy_matcher = FuzzyMatcher()
         candidate_lines = [
-            l for l in lines
-            if l and not re.match(r"\d{4}-\d{2}-\d{2}", l) and "date:" not in l.lower()
+            line for line in lines
+            if line and not re.match(r"\d{4}-\d{2}-\d{2}", line) and "date:" not in line.lower()
         ]
         best_match = None
         best_score = 0.0
         for candidate in candidate_lines:
-            match, score = fuzzy_matcher.find_best_match(candidate, known_companies)
+            match, score = fuzzy_matcher.find_best_match(candidate, self.config.get("known_companies", []))
             if score > best_score:
                 best_score = score
                 best_match = match
         if best_match and best_score > 0.8:
-            return best_match
+            return best_match.lower()
         return None
 
     def extract_total(self, text: str) -> Optional[float]:
@@ -162,7 +170,8 @@ class InvoiceParser(BaseParser):
 
         for line in lines:
             line_lower = line.lower()
-            # Look for lines that contain "total:" but not "subtotal:" (case-insensitive, allow anywhere in line)
+            # Look for lines that contain "total:" but not "subtotal:" 
+            # (case-insensitive, allow anywhere in line)
             if "total:" in line_lower and "subtotal:" not in line_lower:
                 amounts = self.amount_normalizer.extract_amounts_from_text(line)
                 if amounts:
@@ -201,7 +210,8 @@ class InvoiceParser(BaseParser):
             except (ValueError, TypeError):
                 pass
 
-        # Fallback: try to extract any amount above a reasonable threshold, but ignore line items and years
+        # Fallback: try to extract any amount above a reasonable threshold, 
+        # but ignore line items and years
         float_amounts = []
         for line in lines:
             if any(kw in line.lower() for kw in ["item", "qty", "quantity"]):
@@ -335,12 +345,14 @@ class InvoiceParser(BaseParser):
             return None
         # Invoice number patterns
         patterns = [
-            r"invoice\s*#?\s*([A-Z0-9\-]{4,})",
+            r"invoice\s*number\s*:\s*([A-Z0-9\-]{4,})",  # Invoice Number: format
+            r"invoice\s*#\s*:\s*([A-Z0-9\-]{4,})",  # Invoice #: format
+            r"invoice\s*:\s*([A-Z0-9\-]{4,})",  # Invoice: format
+            r"inv\s*:\s*([A-Z0-9\-]{4,})",  # INV: format
             r"bill\s*#\s*:\s*([A-Z0-9\-]{4,})",  # Bill #: format
             r"bill\s*#\s*([A-Z0-9\-]{4,})",  # Bill # format
             r"bill\s*#?\s*([A-Z0-9\-]{4,})",  # Fallback bill pattern
             r"invoice\s*id\s*:\s*([A-Z0-9\-]{4,})",  # Invoice ID: format (case insensitive)
-            r"invoice\s*:\s*([A-Z0-9\-]{4,})",  # Invoice: format
             r"([A-Z]{2,4}-\d{4}-\d{3})",
             r"([A-Z]{2,4}\d{4}\d{3})",
             r"([A-Z]{2,4}-\d{3})",  # BILL-001 format
@@ -352,7 +364,7 @@ class InvoiceParser(BaseParser):
             if match:
                 group = match.group(1)
                 # Only return if not just the keyword and looks like a real invoice number
-                if group and group.lower() not in ["invoice", "bill", "inv"]:
+                if group and group.lower() not in ["invoice", "bill", "inv", "number"]:
                     # For digit-only patterns, must be at least 4 digits and not look like a year
                     if re.match(r"^\d+$", group):
                         if len(group) >= 4 and not (
@@ -366,6 +378,9 @@ class InvoiceParser(BaseParser):
                         return group
                     # For patterns with digits and hyphens (like 2023-001), must contain digits
                     elif re.search(r"\d", group) and "-" in group:
+                        return group
+                    # For alphanumeric patterns without digits (like ABC123)
+                    elif re.search(r"[A-Z]", group, re.IGNORECASE) and len(group) >= 4:
                         return group
         return None
 
@@ -401,7 +416,6 @@ class InvoiceParser(BaseParser):
     def _calculate_confidence(self, data: Dict[str, Any]) -> float:
         """Calculate confidence score for the parsed data."""
         confidence = 0.0
-        total_fields = 4
 
         if data.get("company"):
             confidence += 0.25

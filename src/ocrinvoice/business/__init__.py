@@ -5,7 +5,7 @@ This package contains business-specific functionality including alias management
 database operations, and business rule implementations.
 """
 
-from .alias_manager import BusinessAliasManager
+from .business_alias_manager import BusinessAliasManager
 from .database import InvoiceDatabase
 
 __all__ = [
