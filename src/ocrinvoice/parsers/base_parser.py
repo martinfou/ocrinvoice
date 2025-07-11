@@ -320,11 +320,11 @@ class BaseParser(ABC):
                 # Additional confidence based on field type
                 if field == "company" and len(str(value)) > 2:
                     field_confidence += 0.3
-                elif field == "total" and self.amount_normalizer.validate_amount(
+                if field == "total" and self.amount_normalizer.validate_amount(
                     str(value)
                 ):
                     field_confidence += 0.3
-                elif field == "date" and self._parse_date_string(str(value)):
+                if field == "date" and self._parse_date_string(str(value)):
                     field_confidence += 0.3
 
                 confidence += field_confidence
