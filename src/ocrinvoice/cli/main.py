@@ -88,6 +88,12 @@ def cli(verbose: bool, debug: bool, config: Optional[str]):
 @click.option("--show-text", "-t", is_flag=True, help="Show extracted raw text")
 @click.option("--rename", is_flag=True, help="Rename file based on extracted data")
 @click.option("--rename-dry-run", is_flag=True, help="Preview rename operation without executing")
+@click.option(
+    "--document-type",
+    "-d",
+    type=click.Choice(["facture", "relevé"], case_sensitive=False),
+    help="Document type to prefix filename (facture or relevé)"
+)
 def parse(
     pdf_path: Path,
     output: Optional[Path],
@@ -97,6 +103,7 @@ def parse(
     show_text: bool,
     rename: bool,
     rename_dry_run: bool,
+    document_type: Optional[str],
 ):
     """
     Parse a single PDF invoice.
@@ -122,9 +129,14 @@ def parse(
             if rename_dry_run:
                 config['file_management']['rename_dry_run'] = True
         
+        # Add document type to config if specified
+        if document_type:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['document_type'] = document_type.lower()
+        
         # Call the actual parse command
         result = parse_command(
-            str(pdf_path), str(output) if output else None, format, parser
+            str(pdf_path), str(output) if output else None, format, parser, document_type
         )
 
         # Show raw text if requested
@@ -195,6 +207,12 @@ def parse(
 )
 @click.option("--rename", is_flag=True, help="Rename files based on extracted data")
 @click.option("--rename-dry-run", is_flag=True, help="Preview rename operations without executing")
+@click.option(
+    "--document-type",
+    "-d",
+    type=click.Choice(["facture", "relevé"], case_sensitive=False),
+    help="Document type to prefix filename (facture or relevé)"
+)
 def batch(
     folder_path: Path,
     output: Optional[Path],
@@ -204,6 +222,7 @@ def batch(
     recursive: bool,
     rename: bool,
     rename_dry_run: bool,
+    document_type: Optional[str],
 ):
     """
     Process multiple PDF invoices in batch.
@@ -230,9 +249,14 @@ def batch(
             if rename_dry_run:
                 config['file_management']['rename_dry_run'] = True
         
+        # Add document type to config if specified
+        if document_type:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['document_type'] = document_type.lower()
+        
         # Call the actual batch command
         result = batch_command(
-            str(folder_path), str(output) if output else None, format, parser, recursive
+            str(folder_path), str(output) if output else None, format, parser, recursive, document_type
         )
 
         if result.get("status") == "success":

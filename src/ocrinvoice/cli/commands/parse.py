@@ -25,6 +25,7 @@ def parse_command(
     output: Optional[str] = None,
     format: str = "json",
     parser_type: str = "invoice",
+    document_type: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Parse a single PDF invoice.
@@ -63,6 +64,12 @@ def parse_command(
 
         # Handle file renaming if enabled
         config = get_config()
+        
+        # Add document type to config if specified
+        if document_type:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['document_type'] = document_type.lower()
+        
         file_manager = FileManager(config)
         new_path = file_manager.process_file(pdf_file, result)
         

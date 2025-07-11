@@ -27,6 +27,7 @@ def batch_command(
     format: str = "csv",
     parser_type: str = "invoice",
     recursive: bool = False,
+    document_type: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process multiple PDF invoices in batch.
@@ -78,6 +79,12 @@ def batch_command(
         
         # Initialize file manager for renaming
         config = get_config()
+        
+        # Add document type to config if specified
+        if document_type:
+            config['file_management'] = config.get('file_management', {})
+            config['file_management']['document_type'] = document_type.lower()
+        
         file_manager = FileManager(config)
         
     except Exception as e:

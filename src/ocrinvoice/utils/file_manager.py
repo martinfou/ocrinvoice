@@ -21,6 +21,7 @@ class FileManager:
         self.rename_format = self.file_config.get('rename_format', '{date}_{company}_{total}.pdf')
         self.dry_run = self.file_config.get('rename_dry_run', False)
         self.backup_original = self.file_config.get('backup_original', False)
+        self.document_type = self.file_config.get('document_type')
     
     def safe_filename(self, text: str) -> str:
         """Convert text to a safe filename by removing/replacing invalid characters."""
@@ -81,6 +82,10 @@ class FileManager:
             total=total
         )
         
+        # Add document type prefix if specified
+        if self.document_type:
+            filename = f"{self.document_type}_{filename}"
+        
         # Make it safe
         return self.safe_filename(filename)
     
@@ -121,7 +126,8 @@ class FileManager:
                 print(f"🔍 DRY RUN - Would rename:")
                 print(f"   From: {pdf_path.name}")
                 print(f"   To:   {new_filename}")
-                print(f"   Data: Date={extracted_data.get('date', 'unknown')}, "
+                doc_type_info = f"Document Type: {self.document_type}, " if self.document_type else ""
+                print(f"   Data: {doc_type_info}Date={extracted_data.get('date', 'unknown')}, "
                       f"Company={extracted_data.get('company', 'unknown')}, "
                       f"Total={extracted_data.get('total', 'unknown')}")
                 return None
@@ -134,7 +140,8 @@ class FileManager:
                 # Rename the file
                 pdf_path.rename(new_path)
                 print(f"✅ Renamed: {pdf_path.name} → {new_filename}")
-                print(f"   Data: Date={extracted_data.get('date', 'unknown')}, "
+                doc_type_info = f"Document Type: {self.document_type}, " if self.document_type else ""
+                print(f"   Data: {doc_type_info}Date={extracted_data.get('date', 'unknown')}, "
                       f"Company={extracted_data.get('company', 'unknown')}, "
                       f"Total={extracted_data.get('total', 'unknown')}")
                 return new_path
