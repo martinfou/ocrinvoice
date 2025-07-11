@@ -8,6 +8,7 @@
         "hydro-québec",
         "la-forfaiterie",
         "pharmacie",
+        "rona",
         "taxes-scolaires",
         "test-official-name"
     ],
@@ -24,7 +25,8 @@
         "scotia": "banque-scotia",
         "pharmacie": "pharmacie",
         "test-alias": "bmr",
-        "test-company": "test-official-name"
+        "test-company": "test-official-name",
+        "rona": "rona"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",
@@ -36,6 +38,7 @@
         "hautes-rivieres": "taxes-scolaires",
         "toronto dominion": "banque-td",
         "scotia": "banque-scotia",
+        "rona":"rona",
         "pharm": "pharmacie"
     },
     "fuzzy_candidates": [

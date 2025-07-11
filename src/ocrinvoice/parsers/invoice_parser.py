@@ -3,11 +3,10 @@
 import logging
 import re
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 
 from .base_parser import BaseParser
 from .date_extractor import DateExtractor
-from ..business.business_alias_manager import BusinessAliasManager
 
 
 class InvoiceParser(BaseParser):
@@ -94,7 +93,7 @@ class InvoiceParser(BaseParser):
                 )
                 return official_name.lower()
 
-        # 1. If any known company is present anywhere in the text, return the first one found
+        # 1. If any known company is present anywhere in the text, return the first one
         text_lower = text.lower()
         for company in self.config.get(
             "known_companies",
@@ -116,7 +115,7 @@ class InvoiceParser(BaseParser):
             if company.lower() in text_lower:
                 self.logger.debug(f"extract_company: Found known company: '{company}'")
                 return company.lower()
-        # 2. After 'INVOICE' or similar, next non-empty, non-excluded line is likely company
+        # 2. After 'INVOICE' or similar, next non-empty line is likely company
         found_header = False
         for line in search_lines:
             if not line:
@@ -171,82 +170,212 @@ class InvoiceParser(BaseParser):
             return best_match.lower()
         return None
 
-    def extract_total(self, text: str) -> Optional[float]:
-        """Extract invoice total from text using advanced OCR correction and normalization."""
+    def extract_total(self, text: str) -> Optional[str]:
+        """Extract invoice total from text using a two-stage approach: raw OCR text first, then cleaned."""
         if not text:
             return None
 
-        lines = [line.strip() for line in text.split("\n")]
-        total_amounts = []
+        from typing import List, Tuple, Callable
 
-        for line in lines:
-            line_lower = line.lower()
-            # Look for lines that contain "total:" but not "subtotal:"
-            # (case-insensitive, allow anywhere in line)
-            if "total:" in line_lower and "subtotal:" not in line_lower:
-                amounts = self.amount_normalizer.extract_amounts_from_text(line)
-                if amounts:
-                    total_amounts.extend(amounts)
+        def find_nearby_amounts(
+            text: str, keywords: List[str], max_distance: int = 50
+        ) -> List[str]:
+            """Find currency amounts within max_distance characters of any keyword."""
+            amounts: List[str] = []
+            text_lower = text.lower()
+            # Find all keyword positions
+            keyword_positions: List[int] = []
+            for keyword in keywords:
+                pos = 0
+                while True:
+                    pos = text_lower.find(keyword, pos)
+                    if pos == -1:
+                        break
+                    keyword_positions.append(pos)
+                    pos += 1
+            # Find all currency amounts
+            currency_pattern = r'\$?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})'
+            for match in re.finditer(currency_pattern, text):
+                amount_start = match.start()
+                amount_end = match.end()
+                amount_text = match.group()
+                # Check if this amount is near any keyword
+                for keyword_pos in keyword_positions:
+                    if (
+                        abs(amount_start - keyword_pos) <= max_distance
+                        or abs(amount_end - keyword_pos) <= max_distance
+                    ):
+                        amounts.append(amount_text)
+                        break
+            return amounts
 
-        # If no total found, look for other total indicators
-        if not total_amounts:
-            for line in lines:
-                line_lower = line.lower()
-                if any(
-                    keyword in line_lower
-                    for keyword in [
-                        "amount due:",
-                        "grand total:",
-                        "final total:",
-                        "balance due:",
-                    ]
-                ):
-                    amounts = self.amount_normalizer.extract_amounts_from_text(line)
-                    if amounts:
-                        total_amounts.extend(amounts)
+        def normalize_amount(amount_str: str) -> float:
+            """Convert amount string to float, handling different decimal separators."""
+            cleaned = (
+                amount_str.replace("$", "")
+                .replace("€", "")
+                .replace("£", "")
+                .replace("¥", "")
+            )
+            if "," in cleaned and "." in cleaned:
+                comma_pos = cleaned.rfind(",")
+                dot_pos = cleaned.rfind(".")
+                if comma_pos > dot_pos:
+                    cleaned = cleaned.replace(".", "").replace(",", ".")
+                else:
+                    cleaned = cleaned.replace(",", "")
+            elif "," in cleaned and "." not in cleaned:
+                if cleaned.count(",") == 1 and len(cleaned.split(",")[1]) == 2:
+                    cleaned = cleaned.replace(",", ".")
+                else:
+                    cleaned = cleaned.replace(",", "")
+            return float(cleaned)
 
-        # Return the highest amount found
-        if total_amounts:
-            try:
-                float_amounts = []
-                for amount_str in total_amounts:
-                    cleaned = (
-                        amount_str.replace("$", "")
-                        .replace("€", "")
-                        .replace("£", "")
-                        .replace("¥", "")
-                    )
-                    float_amounts.append(float(cleaned))
-                return max(float_amounts)
-            except (ValueError, TypeError):
-                pass
-
-        # Fallback: try to extract any amount above a reasonable threshold,
-        # but ignore line items and years
-        float_amounts = []
-        for line in lines:
-            if any(kw in line.lower() for kw in ["item", "qty", "quantity"]):
-                continue
-            amounts = self.amount_normalizer.extract_amounts_from_text(line)
+        def filter_valid_amounts(amounts: List[str]) -> List[float]:
+            float_amounts: List[float] = []
             for amount_str in amounts:
                 try:
-                    cleaned = (
-                        amount_str.replace("$", "")
-                        .replace("€", "")
-                        .replace("£", "")
-                        .replace("¥", "")
-                    )
-                    value = float(cleaned)
-                    # Ignore values that look like years (1900-2100)
-                    if 1900 <= value <= 2100:
-                        continue
-                    if value > 10:
+                    value = normalize_amount(amount_str)
+                    if 10 <= value <= 10000:
                         float_amounts.append(value)
                 except (ValueError, TypeError):
                     continue
-        if float_amounts:
-            return max(float_amounts)
-        return None
+            return float_amounts
+
+        total_keywords = [
+            "total", "tota", "mastercard", "visa", "amex", "american express",
+            "credit card", "debit card", "card payment", "amount due",
+            "grand total", "final total", "balance due"
+        ]
+
+        raw_amounts = find_nearby_amounts(text, total_keywords, max_distance=50)
+        print("[DEBUG] RAW nearby amounts:", raw_amounts)
+        raw_floats = filter_valid_amounts(raw_amounts)
+        print("[DEBUG] RAW float amounts (10-10000):", raw_floats)
+        if len(raw_floats) == 1:
+            print("[DEBUG] Selected total from RAW nearby search:", raw_floats[0])
+            return str(raw_floats[0])
+        elif len(raw_floats) > 1:
+            from collections import Counter
+            counter = Counter(raw_floats)
+            most_common, count = counter.most_common(1)[0]
+            if list(counter.values()).count(count) == 1 and count > 1:
+                print(
+                    f"[DEBUG] Selected most frequent total from RAW nearby search: "
+                    f"{most_common} (appeared {count} times)"
+                )
+                return str(most_common)
+
+        lines = [line.strip() for line in text.split("\n")]
+        if len(lines) == 1 and len(lines[0]) > 200:
+            long_line = lines[0]
+            split_text = re.split(r'[;,]|\s{3,}', long_line)
+            lines = [line.strip() for line in split_text if line.strip()]
+
+        def find_total_candidates(
+            lines: List[str], extract_amounts_func: Callable[[str], List[str]]
+        ) -> Tuple[List[str], List[str]]:
+            total_amounts: List[str] = []
+            preferred_amounts: List[str] = []
+            total_line_amounts: List[str] = []
+            for line in lines:
+                line_lower = line.lower()
+                if (
+                    re.search(r"tota[^a-z]*\s*:", line_lower)
+                    and "subtotal:" not in line_lower
+                ):
+                    amounts = extract_amounts_func(line)
+                    if amounts:
+                        total_amounts.extend(amounts)
+                        preferred_amounts.extend(amounts)
+                        total_line_amounts.extend(amounts)
+                elif any(
+                    keyword in line_lower
+                    for keyword in [
+                        "mastercard",
+                        "visa",
+                        "amex",
+                        "american express",
+                        "credit card",
+                        "debit card",
+                        "card payment",
+                    ]
+                ):
+                    amounts = extract_amounts_func(line)
+                    if amounts:
+                        total_amounts.extend(amounts)
+                        preferred_amounts.extend(amounts)
+            return total_line_amounts, preferred_amounts
+
+        total_line_amounts, preferred_amounts = find_total_candidates(
+            lines, self._extract_amounts_with_ocr_correction
+        )
+        print("[DEBUG] CLEANED total line amounts:", total_line_amounts)
+        print("[DEBUG] CLEANED preferred amounts:", preferred_amounts)
+        cleaned_total_floats = filter_valid_amounts(total_line_amounts)
+        if len(cleaned_total_floats) == 1:
+            print(
+                "[DEBUG] Selected total from CLEANED total line:",
+                cleaned_total_floats[0],
+            )
+            return str(cleaned_total_floats[0])
+        cleaned_preferred_floats = filter_valid_amounts(preferred_amounts)
+        if len(cleaned_preferred_floats) == 1:
+            print(
+                "[DEBUG] Selected total from CLEANED preferred:",
+                cleaned_preferred_floats[0],
+            )
+            return str(cleaned_preferred_floats[0])
+        print("[DEBUG] Multiple or no candidates, returning 'unknown'.")
+        return 'unknown'
+
+    def _extract_amounts_with_ocr_correction(self, text: str) -> List[str]:
+        """Extract amounts from text with enhanced OCR correction."""
+        # First try the normal amount normalizer
+        amounts = self.amount_normalizer.extract_amounts_from_text(text)
+        
+        # Try with additional OCR corrections
+        corrected_text = text
+        # Arabic/Unicode decimal separators
+        corrected_text = re.sub(r'[٠٫٬]', '.', corrected_text)
+        # Space before decimal
+        corrected_text = re.sub(r'\s+\.\s*', '.', corrected_text)
+        corrected_text = re.sub(r'\.\s+', '.', corrected_text)  # Space after decimal
+        more_amounts = self.amount_normalizer.extract_amounts_from_text(corrected_text)
+        for amt in more_amounts:
+            if amt not in amounts:
+                amounts.append(amt)
+        
+        # More aggressive OCR correction
+        corrected_text = text
+        # Fix decimal separators with spaces
+        pattern1 = r'(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})'
+        corrected_text = re.sub(pattern1, r'\1.\2', corrected_text)
+        # Fix comma-dot patterns
+        pattern2 = r'(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})'
+        corrected_text = re.sub(pattern2, r'\1.\2', corrected_text)
+        corrected_text = re.sub(r'(\d+)\s*\.\s*(\d+)', r'\1.\2', corrected_text)
+        more_amounts = self.amount_normalizer.extract_amounts_from_text(corrected_text)
+        for amt in more_amounts:
+            if amt not in amounts:
+                amounts.append(amt)
+        
+        # Manual pattern matching for common OCR errors
+        patterns = [
+            # $1,076 ٠13 or $1,076.13
+            r'[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})',
+            # $1,076 ,.13
+            r'[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*,\s*\.\s*(\d{2})',
+        ]
+        for pattern in patterns:
+            matches = re.findall(pattern, text)
+            for match in matches:
+                if len(match) == 2:
+                    amount_str = f"${match[0]}.{match[1]}"
+                    if amount_str not in amounts:
+                        amounts.append(amount_str)
+        
+        return amounts
 
     def extract_date(self, text: str) -> Optional[str]:
         if not text:
@@ -363,7 +492,8 @@ class InvoiceParser(BaseParser):
             r"bill\s*#\s*:\s*([A-Z0-9\-]{4,})",  # Bill #: format
             r"bill\s*#\s*([A-Z0-9\-]{4,})",  # Bill # format
             r"bill\s*#?\s*([A-Z0-9\-]{4,})",  # Fallback bill pattern
-            r"invoice\s*id\s*:\s*([A-Z0-9\-]{4,})",  # Invoice ID: format (case insensitive)
+            # Invoice ID: format (case insensitive)
+            r"invoice\s*id\s*:\s*([A-Z0-9\-]{4,})",
             r"([A-Z]{2,4}-\d{4}-\d{3})",
             r"([A-Z]{2,4}\d{4}\d{3})",
             r"([A-Z]{2,4}-\d{3})",  # BILL-001 format
