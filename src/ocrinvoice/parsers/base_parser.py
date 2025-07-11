@@ -1,7 +1,7 @@
 """Base parser class for all document parsers."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List, Union, Tuple
+from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import logging
 import re
@@ -168,7 +168,9 @@ class BaseParser(ABC):
 
         for attempt in range(self.max_retries):
             try:
-                text = self.ocr_engine.extract_text_from_pdf(str(path), force_ocr=force_ocr)
+                text = self.ocr_engine.extract_text_from_pdf(
+                    str(path), force_ocr=force_ocr
+                )
                 if text.strip():
                     return text
                 else:
@@ -351,6 +353,10 @@ class BaseParser(ABC):
         # Add validation status
         validated["is_valid"] = confidence >= self.confidence_threshold
 
+        # Track extraction methods used (if available)
+        if "extraction_methods" not in validated:
+            validated["extraction_methods"] = {}
+
         return validated
 
     def log_parsing_result(
@@ -370,9 +376,73 @@ class BaseParser(ABC):
                 f"Successfully parsed {pdf_path} (confidence: {confidence:.2f})"
             )
         else:
-            self.logger.warning(
-                f"Low confidence parsing {pdf_path} (confidence: {confidence:.2f})"
+            # Determine why parsing is considered low confidence
+            reasons = []
+
+            # Check if confidence is below threshold
+            if confidence < self.confidence_threshold:
+                threshold_msg = (
+                    f"confidence {confidence:.2f} < threshold "
+                    f"{self.confidence_threshold:.2f}"
+                )
+                reasons.append(threshold_msg)
+
+            # Check for missing required fields
+            required_fields = ["company", "total", "date"]
+            missing_fields = [
+                field for field in required_fields if not result.get(field)
+            ]
+            if missing_fields:
+                reasons.append(f"missing fields: {', '.join(missing_fields)}")
+
+            # Check if any fields are None or empty strings
+            empty_fields = [
+                field
+                for field in required_fields
+                if result.get(field) in [None, "", "unknown"]
+            ]
+            if empty_fields:
+                reasons.append(f"empty/invalid fields: {', '.join(empty_fields)}")
+
+            # Check for fallback extraction indicators
+            extraction_methods = result.get("extraction_methods", {})
+            if extraction_methods:
+                fallback_methods = [
+                    method
+                    for method, used in extraction_methods.items()
+                    if used and "fallback" in method.lower()
+                ]
+                if fallback_methods:
+                    fallback_msg = (
+                        f"used fallback methods: {', '.join(fallback_methods)}"
+                    )
+                    reasons.append(fallback_msg)
+
+            # Check raw text for common fallback indicators
+            raw_text = result.get("raw_text", "")
+            if raw_text:
+                fallback_indicators = []
+                if "Selected most frequent total from RAW" in raw_text:
+                    fallback_indicators.append("RAW nearby search")
+                if "line-based fallback" in raw_text:
+                    fallback_indicators.append("line-based fallback")
+                if "Proximity search failed" in raw_text:
+                    fallback_indicators.append("proximity search failed")
+                if fallback_indicators:
+                    fallback_text_msg = (
+                        f"fallback extraction used: {', '.join(fallback_indicators)}"
+                    )
+                    reasons.append(fallback_text_msg)
+
+            # If no specific reasons found, provide generic message
+            if not reasons:
+                reasons.append("unknown validation failure")
+
+            warning_msg = (
+                f"Low confidence parsing {pdf_path} "
+                f"(confidence: {confidence:.2f}, reasons: {'; '.join(reasons)})"
             )
+            self.logger.warning(warning_msg)
 
         if self.debug:
             self.logger.debug(f"Parsing result: {result}")
@@ -415,3 +485,21 @@ class BaseParser(ABC):
             results["errors"].append(f"OCR engine test failed: {e}")
 
         return results
+
+    def track_extraction_method(
+        self, result: Dict[str, Any], field: str, method: str
+    ) -> None:
+        """Track which extraction method was used for a field.
+
+        Args:
+            result: Result dictionary to update
+            field: Field name (e.g., 'total', 'company', 'date')
+            method: Extraction method used (e.g., 'primary', 'fallback')
+        """
+        if "extraction_methods" not in result:
+            result["extraction_methods"] = {}
+
+        if field not in result["extraction_methods"]:
+            result["extraction_methods"][field] = []
+
+        result["extraction_methods"][field].append(method)
