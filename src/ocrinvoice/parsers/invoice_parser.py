@@ -114,9 +114,7 @@ class InvoiceParser(BaseParser):
             ],
         ):
             if company.lower() in text_lower:
-                self.logger.debug(
-                    f"extract_company: Found known company: '{company}'"
-                )
+                self.logger.debug(f"extract_company: Found known company: '{company}'")
                 return company.lower()
         # 2. After 'INVOICE' or similar, next non-empty, non-excluded line is likely company
         found_header = False
@@ -126,7 +124,9 @@ class InvoiceParser(BaseParser):
             # Do not return lines that look like dates or contain 'Date:'
             if re.match(r"\d{4}-\d{2}-\d{2}", line) or "date:" in line.lower():
                 continue
-            if any(keyword.lower() in line.lower() for keyword in self.company_keywords):
+            if any(
+                keyword.lower() in line.lower() for keyword in self.company_keywords
+            ):
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     company = parts[1].strip()
@@ -135,8 +135,13 @@ class InvoiceParser(BaseParser):
             if not found_header and any(h in line.upper() for h in ["INVOICE", "BILL"]):
                 found_header = True
                 continue
-            if found_header and line and not any(
-                kw in line.upper() for kw in ["TOTAL", "AMOUNT", "DUE", "BALANCE", "INVOICE", "BILL"]
+            if (
+                found_header
+                and line
+                and not any(
+                    kw in line.upper()
+                    for kw in ["TOTAL", "AMOUNT", "DUE", "BALANCE", "INVOICE", "BILL"]
+                )
             ):
                 # Do not return lines that look like dates or contain 'Date:'
                 if re.match(r"\d{4}-\d{2}-\d{2}", line) or "date:" in line.lower():
@@ -144,15 +149,21 @@ class InvoiceParser(BaseParser):
                 return line.lower()
         # 3. Fuzzy match: extract candidate lines and match to known_companies
         from ..utils.fuzzy_matcher import FuzzyMatcher
+
         fuzzy_matcher = FuzzyMatcher()
         candidate_lines = [
-            line for line in lines
-            if line and not re.match(r"\d{4}-\d{2}-\d{2}", line) and "date:" not in line.lower()
+            line
+            for line in lines
+            if line
+            and not re.match(r"\d{4}-\d{2}-\d{2}", line)
+            and "date:" not in line.lower()
         ]
         best_match = None
         best_score = 0.0
         for candidate in candidate_lines:
-            match, score = fuzzy_matcher.find_best_match(candidate, self.config.get("known_companies", []))
+            match, score = fuzzy_matcher.find_best_match(
+                candidate, self.config.get("known_companies", [])
+            )
             if score > best_score:
                 best_score = score
                 best_match = match
@@ -170,7 +181,7 @@ class InvoiceParser(BaseParser):
 
         for line in lines:
             line_lower = line.lower()
-            # Look for lines that contain "total:" but not "subtotal:" 
+            # Look for lines that contain "total:" but not "subtotal:"
             # (case-insensitive, allow anywhere in line)
             if "total:" in line_lower and "subtotal:" not in line_lower:
                 amounts = self.amount_normalizer.extract_amounts_from_text(line)
@@ -210,7 +221,7 @@ class InvoiceParser(BaseParser):
             except (ValueError, TypeError):
                 pass
 
-        # Fallback: try to extract any amount above a reasonable threshold, 
+        # Fallback: try to extract any amount above a reasonable threshold,
         # but ignore line items and years
         float_amounts = []
         for line in lines:

@@ -95,11 +95,7 @@ class CreditCardBillParser(BaseParser):
                 if len(line) < 5 or len(line) > 60:
                     continue
                 digit_count = sum(c.isdigit() for c in line)
-                if (
-                    line
-                    and line[0].isalpha()
-                    and digit_count < len(line) * 0.1
-                ):
+                if line and line[0].isalpha() and digit_count < len(line) * 0.1:
                     candidates.append((line, 5))
         if candidates:
             candidates.sort(key=lambda x: (x[1], -len(x[0])), reverse=True)

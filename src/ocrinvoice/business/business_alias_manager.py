@@ -64,8 +64,10 @@ class BusinessAliasManager:
         possible_paths = [
             # From current working directory
             Path.cwd() / "config" / "business_aliases.json",
-                    # From project root (when running from source)
-        Path(__file__).parent.parent.parent.parent / "config" / "business_aliases.json",
+            # From project root (when running from source)
+            Path(__file__).parent.parent.parent.parent
+            / "config"
+            / "business_aliases.json",
             # From installed package
             Path(__file__).parent.parent.parent / "config" / "business_aliases.json",
             # From user's home directory
@@ -220,9 +222,7 @@ class BusinessAliasManager:
         # Check if text contains indicators for any business (case-insensitive)
         for business_name, required_indicators in indicators.items():
             # Check if any indicator is in the normalized text
-            if any(
-                indicator.lower() in text for indicator in required_indicators
-            ):
+            if any(indicator.lower() in text for indicator in required_indicators):
                 # Try fuzzy matching against this business
                 match = FuzzyMatcher.fuzzy_match(
                     target=text, candidates=[business_name], threshold=0.8
