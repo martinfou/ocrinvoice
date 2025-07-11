@@ -10,10 +10,30 @@ import yaml
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
 
-# Default config file path
-DEFAULT_CONFIG_PATH: Path = (
-    Path(__file__).parent.parent.parent / "config" / "default_config.yaml"
-)
+
+# Default config file path - try multiple locations
+def _find_config_path() -> Path:
+    """Find the configuration file path, trying multiple locations."""
+    possible_paths = [
+        # From installed package
+        Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
+        # From project root (when running from source)
+        Path(__file__).parent.parent.parent.parent / "config" / "default_config.yaml",
+        # From current working directory
+        Path.cwd() / "config" / "default_config.yaml",
+        # From user's home directory
+        Path.home() / ".ocrinvoice" / "config.yaml",
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            return path
+
+    # If no config file found, return the first path as default
+    return possible_paths[0]
+
+
+DEFAULT_CONFIG_PATH: Path = _find_config_path()
 
 # Prefix for environment variables
 ENV_PREFIX: str = "OCRINVOICE_"
@@ -37,7 +57,25 @@ def load_yaml_config(config_path: Path = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
         yaml.YAMLError: If the YAML file is malformed
     """
     if not config_path.exists():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
+        # Try to find the config file in other locations
+        possible_paths = [
+            Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
+            Path(__file__).parent.parent.parent.parent
+            / "config"
+            / "default_config.yaml",
+            Path.cwd() / "config" / "default_config.yaml",
+            Path.home() / ".ocrinvoice" / "config.yaml",
+        ]
+
+        found_paths = [p for p in possible_paths if p.exists()]
+        if found_paths:
+            config_path = found_paths[0]
+        else:
+            raise FileNotFoundError(
+                f"Config file not found at {config_path}. "
+                f"Tried the following locations:\n"
+                + "\n".join(f"  - {p}" for p in possible_paths)
+            )
 
     with open(config_path, "r") as f:
         return yaml.safe_load(f)

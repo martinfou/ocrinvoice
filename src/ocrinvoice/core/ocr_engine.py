@@ -5,13 +5,14 @@ from pathlib import Path
 import logging
 import os
 
+from PIL import Image
+
 # Conditional imports for optional dependencies
 try:
     import pytesseract
     from pdf2image import convert_from_path
     import pdfplumber
     from PyPDF2 import PdfReader
-    from PIL import Image
     import cv2
     import numpy as np
 

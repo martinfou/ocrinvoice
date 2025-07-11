@@ -2,9 +2,9 @@ import json
 import os
 from typing import Optional, Tuple, Dict, List
 
-# Import FuzzyMatcher from the main parser file
+# Import FuzzyMatcher from the utils module
 try:
-    from invoice_ocr_parser import FuzzyMatcher
+    from ocrinvoice.utils.fuzzy_matcher import FuzzyMatcher
 except ImportError:
     # Fallback if import fails - create a simple FuzzyMatcher
     class FuzzyMatcher:

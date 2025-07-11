@@ -71,19 +71,7 @@ class TextExtractor:
                 )
 
     def extract_text(self, pdf_path: Union[str, Path], max_retries: int = 3) -> str:
-        """Extract text from PDF using configured methods.
-
-        Args:
-            pdf_path: Path to the PDF file
-            max_retries: Maximum number of retry attempts
-
-        Returns:
-            Extracted text from the PDF
-
-        Raises:
-            FileNotFoundError: If the PDF file doesn't exist
-            Exception: If text extraction fails
-        """
+        """Extract text from PDF using configured methods, with retry logic."""
         pdf_path = Path(pdf_path)
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")
@@ -94,30 +82,34 @@ class TextExtractor:
 
         self.logger.info(f"Extracting text from PDF: {pdf_path}")
 
-        # Try each extraction method in order
+        # Try each extraction method in order, with retries
         for method in self.extraction_methods:
-            try:
-                if method == "pdfplumber":
-                    text = self._extract_with_pdfplumber(pdf_path)
-                elif method == "pypdf2":
-                    text = self._extract_with_pypdf2(pdf_path)
-                elif method == "fallback":
-                    text = self._extract_with_fallback(pdf_path)
-                else:
-                    self.logger.warning(f"Unknown extraction method: {method}")
+            for attempt in range(max_retries):
+                try:
+                    if method == "pdfplumber":
+                        text = self._extract_with_pdfplumber(pdf_path)
+                    elif method == "pypdf2":
+                        text = self._extract_with_pypdf2(pdf_path)
+                    elif method == "fallback":
+                        text = self._extract_with_fallback(pdf_path)
+                    else:
+                        self.logger.warning(f"Unknown extraction method: {method}")
+                        break
+
+                    if text.strip():
+                        cleaned_text = self._clean_text(text)
+                        if self._is_text_sufficient(cleaned_text):
+                            self.logger.info(
+                                f"Successfully extracted text using {method} from {pdf_path} (attempt {attempt+1})"
+                            )
+                            return cleaned_text
+                except Exception as e:
+                    self.logger.debug(
+                        f"{method} extraction failed on attempt {attempt+1}: {e}"
+                    )
                     continue
-
-                if text.strip():
-                    cleaned_text = self._clean_text(text)
-                    if self._is_text_sufficient(cleaned_text):
-                        self.logger.info(
-                            f"Successfully extracted text using {method} from {pdf_path}"
-                        )
-                        return cleaned_text
-
-            except Exception as e:
-                self.logger.debug(f"{method} extraction failed: {e}")
-                continue
+                # If text was empty or insufficient, try again (up to max_retries)
+            # After all retries for this method, move to next method
 
         # If no method worked, return empty string
         self.logger.warning(f"No text could be extracted from {pdf_path}")
@@ -132,26 +124,21 @@ class TextExtractor:
         Returns:
             Extracted text or empty string if failed
         """
-        try:
-            # Convert Path to string for pdfplumber
-            pdf_path_str = str(pdf_path)
-            with pdfplumber.open(pdf_path_str) as pdf:
-                text = ""
-                for page_num, page in enumerate(pdf.pages):
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
+        # Convert Path to string for pdfplumber
+        pdf_path_str = str(pdf_path)
+        with pdfplumber.open(pdf_path_str) as pdf:
+            text = ""
+            for page_num, page in enumerate(pdf.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
 
-                    if self.debug:
-                        self.logger.debug(
-                            f"Page {page_num + 1}: {len(page_text)} characters"
-                        )
+                if self.debug:
+                    self.logger.debug(
+                        f"Page {page_num + 1}: {len(page_text)} characters"
+                    )
 
-                return text.strip()
-
-        except Exception as e:
-            self.logger.debug(f"pdfplumber extraction failed: {e}")
-            return ""
+            return text.strip()
 
     def _extract_with_pypdf2(self, pdf_path: Path) -> str:
         """Extract text using PyPDF2.
@@ -162,28 +149,23 @@ class TextExtractor:
         Returns:
             Extracted text or empty string if failed
         """
-        try:
-            # Convert Path to string for PyPDF2
-            pdf_path_str = str(pdf_path)
-            with open(pdf_path_str, "rb") as file:
-                reader = PdfReader(file)
-                text = ""
+        # Convert Path to string for PyPDF2
+        pdf_path_str = str(pdf_path)
+        with open(pdf_path_str, "rb") as file:
+            reader = PdfReader(file)
+            text = ""
 
-                for page_num, page in enumerate(reader.pages):
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
+            for page_num, page in enumerate(reader.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
 
-                    if self.debug:
-                        self.logger.debug(
-                            f"Page {page_num + 1}: {len(page_text)} characters"
-                        )
+                if self.debug:
+                    self.logger.debug(
+                        f"Page {page_num + 1}: {len(page_text)} characters"
+                    )
 
-                return text.strip()
-
-        except Exception as e:
-            self.logger.debug(f"PyPDF2 extraction failed: {e}")
-            return ""
+            return text.strip()
 
     def _extract_with_fallback(self, pdf_path: Path) -> str:
         """Fallback text extraction method.
@@ -194,22 +176,17 @@ class TextExtractor:
         Returns:
             Extracted text or empty string if failed
         """
-        try:
-            # Try to convert PDF to images and extract text
-            images = convert_from_path(pdf_path)
-            text = ""
+        # Try to convert PDF to images and extract text
+        images = convert_from_path(pdf_path)
+        text = ""
 
-            for i, image in enumerate(images):
-                # This would require OCR, but for now just return empty
-                # In a real implementation, you'd use OCR here
-                if self.debug:
-                    self.logger.debug(f"Fallback method processed page {i + 1}")
+        for i, image in enumerate(images):
+            # This would require OCR, but for now just return empty
+            # In a real implementation, you'd use OCR here
+            if self.debug:
+                self.logger.debug(f"Fallback method processed page {i + 1}")
 
-            return text.strip()
-
-        except Exception as e:
-            self.logger.debug(f"Fallback extraction failed: {e}")
-            return ""
+        return text.strip()
 
     def _clean_text(self, text: str) -> str:
         """Clean and normalize extracted text.
@@ -227,7 +204,7 @@ class TextExtractor:
         cleaned = " ".join(text.split())
 
         # Remove only problematic OCR artifacts, preserve useful characters
-        cleaned = re.sub(r"[^\w\s.,$€£¥%\-/#:]", "", cleaned)
+        cleaned = re.sub(r"[^\w\s.,$€£¥%\-/#:!?@&*()]", "", cleaned)
 
         return cleaned.strip()
 

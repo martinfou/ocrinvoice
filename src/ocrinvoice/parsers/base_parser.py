@@ -198,13 +198,10 @@ class BaseParser(ABC):
         # Apply OCR corrections
         corrected_text = self.ocr_corrections.correct_text(text)
 
-        # Remove extra whitespace and normalize
+        # Just normalize whitespace - don't remove any characters
         normalized_text = " ".join(corrected_text.split())
 
-        # Remove common OCR artifacts
-        cleaned_text = re.sub(r"[^\w\s.,$€£¥%\-/]", "", normalized_text)
-
-        return cleaned_text.strip()
+        return normalized_text.strip()
 
     def extract_amount_with_context(
         self, text: str, context_keywords: List[str]
@@ -223,7 +220,7 @@ class BaseParser(ABC):
         for line in lines:
             line_lower = line.lower()
 
-            # Check if any context keyword is in the line
+            # Check if any context keyword is in the line (exact match)
             if any(keyword.lower() in line_lower for keyword in context_keywords):
                 # Extract amounts from this line
                 amounts = self.amount_normalizer.extract_amounts_from_text(line)

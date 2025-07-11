@@ -1,13 +1,14 @@
 {
     "official_names": [
-        "bmr",
-        "banque-td",
-        "taxes-scolaires",
-        "la-forfaiterie",
-        "hydro-québec",
-        "desjardins",
         "banque-scotia",
-        "gary-chartran"
+        "banque-td",
+        "bmr",
+        "desjardins",
+        "gary-chartran",
+        "hydro-québec",
+        "la-forfaiterie",
+        "pharmacie",
+        "taxes-scolaires"
     ],
     "exact_matches": {
         "bmr": "bmr",
@@ -19,7 +20,8 @@
         "banque-scotia": "banque-scotia",
         "gary-chartran": "gary-chartran",
         "garychartrand": "gary-chartran",
-        "scotia": "banque-scotia"
+        "scotia": "banque-scotia",
+        "pharmacie": "pharmacie"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",

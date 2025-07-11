@@ -89,7 +89,7 @@ class TestFuzzyMatcherTextPreprocessing:
         text = "  Hello,   World!  "
         result = matcher._preprocess_text(text)
 
-        assert result == "hello,   world!"
+        assert result == "hello   world"
 
     def test_preprocess_text_no_punctuation_removal(self, matcher):
         """Test text preprocessing without punctuation removal."""

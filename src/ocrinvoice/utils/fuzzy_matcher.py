@@ -78,6 +78,10 @@ class FuzzyMatcher:
         processed1 = self._preprocess_text(str1)
         processed2 = self._preprocess_text(str2)
 
+        # Check for exact match first
+        if processed1 == processed2:
+            return 1.0
+
         # Calculate similarity using multiple methods
         ratios = [
             SequenceMatcher(None, processed1, processed2).ratio(),
@@ -110,7 +114,7 @@ class FuzzyMatcher:
 
     def find_best_match(
         self, query: str, candidates: List[str]
-    ) -> Optional[Tuple[str, float]]:
+    ) -> Tuple[Optional[str], float]:
         """Find the best match for a query string among candidates.
 
         Args:
@@ -118,7 +122,7 @@ class FuzzyMatcher:
             candidates: List of candidate strings to match against
 
         Returns:
-            Tuple of (best_match, similarity_score) or None if no match above threshold
+            Tuple of (best_match, similarity_score) where best_match can be None
         """
         # Validate inputs
         if query is None:
@@ -131,7 +135,7 @@ class FuzzyMatcher:
             raise TypeError("Candidates must be a list")
 
         if not query or not candidates:
-            return None
+            return None, 0.0
 
         # Check for None values in candidates
         if any(c is None for c in candidates):
@@ -140,18 +144,33 @@ class FuzzyMatcher:
         # Filter out None values from candidates
         valid_candidates = [c for c in candidates if c is not None]
         if not valid_candidates:
-            return None
+            return None, 0.0
 
         # Create cache key for this specific query-candidates combination
         cache_key = (query, tuple(sorted(valid_candidates)))
 
         # Check cache first
         if cache_key in self.cache:
-            return self.cache[cache_key]
+            cached_result = self.cache[cache_key]
+            if cached_result is None:
+                return None, 0.0
+            return cached_result
 
         best_match = None
         best_score = 0.0
 
+        # First pass: look for exact matches
+        for candidate in valid_candidates:
+            if not isinstance(candidate, str):
+                raise TypeError("All candidates must be strings")
+            if candidate == query:
+                result = (candidate, 1.0)
+                # Cache the result
+                if len(self.cache) < self.cache_size:
+                    self.cache[cache_key] = result
+                return result
+
+        # Second pass: look for fuzzy matches
         for candidate in valid_candidates:
             if not isinstance(candidate, str):
                 raise TypeError("All candidates must be strings")
@@ -160,7 +179,7 @@ class FuzzyMatcher:
                 best_score = score
                 best_match = candidate
 
-        result = (best_match, best_score) if best_match else None
+        result = (best_match, best_score)
 
         # Cache the result (with size limit)
         if len(self.cache) < self.cache_size:
