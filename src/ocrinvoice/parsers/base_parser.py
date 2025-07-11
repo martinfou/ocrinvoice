@@ -344,7 +344,9 @@ class BaseParser(ABC):
 
         # Add metadata
         validated["parsed_at"] = datetime.now().isoformat()
-        validated["parser_type"] = self.__class__.__name__
+        # Only set parser_type if not already set by the specific parser
+        if "parser_type" not in validated:
+            validated["parser_type"] = self.__class__.__name__
 
         # Calculate confidence
         confidence = self.calculate_confidence(validated, validated.get("raw_text", ""))
@@ -443,14 +445,16 @@ class BaseParser(ABC):
                 reasons.append("unknown validation failure")
                 # Add detailed debug info for unknown failures
                 if self.debug:
-                    self.logger.debug(f"DEBUG: Unknown validation failure details:")
+                    self.logger.debug("DEBUG: Unknown validation failure details:")
                     self.logger.debug(f"  - Confidence: {confidence:.2f}")
                     self.logger.debug(f"  - Threshold: {self.confidence_threshold:.2f}")
                     self.logger.debug(f"  - Required fields: {required_fields}")
                     self.logger.debug(f"  - Actual fields: {list(result.keys())}")
                     for field in required_fields:
                         value = result.get(field)
-                        self.logger.debug(f"  - {field}: {repr(value)} (type: {type(value).__name__})")
+                        self.logger.debug(
+                            f"  - {field}: {repr(value)} (type: {type(value).__name__})"
+                        )
                     self.logger.debug(f"  - is_valid: {result.get('is_valid')}")
                     self.logger.debug(f"  - parser_type: {result.get('parser_type')}")
 
