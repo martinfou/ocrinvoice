@@ -1,25 +1,21 @@
 """
-Main Window for OCR Invoice Parser GUI
+OCR Main Window
 
-The primary application window for the OCR Invoice Parser GUI application.
-This is the foundation for Sprint 0 of the OCR GUI development plan.
+Main application window for the OCR Invoice Parser GUI.
 """
 
 import sys
 from typing import Optional
-
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QTabWidget,
-    QLabel,
-    QStatusBar,
-    QMessageBox,
-    QApplication,
+    QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget,
+    QPushButton, QFileDialog, QMessageBox, QLabel, QHBoxLayout,
+    QSplitter, QFrame, QComboBox, QLineEdit, QStatusBar, QCloseEvent
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
+from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtGui import QAction, QKeySequence
+
+from .widgets.pdf_preview import PDFPreviewWidget
+from .widgets.data_panel import DataPanelWidget
 
 
 class OCRMainWindow(QMainWindow):
@@ -68,45 +64,124 @@ class OCRMainWindow(QMainWindow):
         self._create_settings_tab()
 
     def _create_single_pdf_tab(self) -> None:
-        """Create the single PDF processing tab (placeholder for Sprint 1)."""
+        """Create the single PDF processing tab (Sprint 1)."""
         single_pdf_widget = QWidget()
         layout = QVBoxLayout(single_pdf_widget)
 
-        # Placeholder content
-        placeholder_label = QLabel("Single PDF Processing")
-        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        placeholder_label.setStyleSheet("font-size: 18px; color: #666; margin: 20px;")
-        layout.addWidget(placeholder_label)
-
-        info_label = QLabel(
-            "This tab will contain PDF selection, preview, and OCR processing "
-            "functionality."
+        # Create file selection area
+        file_layout = QHBoxLayout()
+        self.select_pdf_btn = QPushButton("Select PDF")
+        self.select_pdf_btn.clicked.connect(self._on_select_pdf)
+        file_layout.addWidget(self.select_pdf_btn)
+        
+        # Add drag and drop area
+        self.drop_area = QLabel("Drag and drop PDF files here")
+        self.drop_area.setStyleSheet(
+            "border: 2px dashed #ccc; padding: 20px; background: #f9f9f9;"
         )
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet("color: #888; margin: 10px;")
-        layout.addWidget(info_label)
+        self.drop_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        file_layout.addWidget(self.drop_area)
+
+        # Main content area: PDF preview and data panel side by side
+        content_layout = QHBoxLayout()
+        # PDF preview placeholder
+        self.pdf_preview = PDFPreviewWidget()
+        content_layout.addWidget(self.pdf_preview, 2)
+        # Data panel placeholder
+        self.data_panel = DataPanelWidget()
+        content_layout.addWidget(self.data_panel, 1)
+        layout.addLayout(content_layout)
 
         self.tab_widget.addTab(single_pdf_widget, "Single PDF")
 
     def _create_settings_tab(self) -> None:
-        """Create the settings tab (placeholder for Sprint 1)."""
+        """Create the settings tab with basic configuration options."""
         settings_widget = QWidget()
         layout = QVBoxLayout(settings_widget)
 
-        # Placeholder content
-        placeholder_label = QLabel("Settings")
-        placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        placeholder_label.setStyleSheet("font-size: 18px; color: #666; margin: 20px;")
-        layout.addWidget(placeholder_label)
+        # Settings title
+        title_label = QLabel("OCR Invoice Parser Settings")
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px;")
+        layout.addWidget(title_label)
 
-        info_label = QLabel(
-            "This tab will contain application settings "
-            "and configuration "
-            "options."
-        )
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet("color: #888; margin: 10px;")
-        layout.addWidget(info_label)
+        # OCR Settings Section
+        ocr_group = QFrame()
+        ocr_group.setFrameShape(QFrame.Shape.StyledPanel)
+        ocr_layout = QVBoxLayout(ocr_group)
+
+        ocr_title = QLabel("OCR Settings")
+        ocr_title.setStyleSheet("font-size: 14px; font-weight: bold;")
+        ocr_layout.addWidget(ocr_title)
+
+        # Language setting
+        lang_layout = QHBoxLayout()
+        lang_label = QLabel("OCR Language:")
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(["eng", "fra", "spa", "deu"])
+        self.lang_combo.setCurrentText("eng")
+        lang_layout.addWidget(lang_label)
+        lang_layout.addWidget(self.lang_combo)
+        lang_layout.addStretch()
+        ocr_layout.addLayout(lang_layout)
+
+        layout.addWidget(ocr_group)
+
+        # Output Settings Section
+        output_group = QFrame()
+        output_group.setFrameShape(QFrame.Shape.StyledPanel)
+        output_layout = QVBoxLayout(output_group)
+
+        output_title = QLabel("Output Settings")
+        output_title.setStyleSheet("font-size: 14px; font-weight: bold;")
+        output_layout.addWidget(output_title)
+
+        # Output directory setting
+        dir_layout = QHBoxLayout()
+        dir_label = QLabel("Output Directory:")
+        self.dir_edit = QLineEdit()
+        self.dir_edit.setPlaceholderText("Select output directory...")
+        dir_btn = QPushButton("Browse...")
+        dir_btn.clicked.connect(self._on_select_output_dir)
+        dir_layout.addWidget(dir_label)
+        dir_layout.addWidget(self.dir_edit)
+        dir_layout.addWidget(dir_btn)
+        output_layout.addLayout(dir_layout)
+
+        layout.addWidget(output_group)
+
+        # Business Settings Section
+        business_group = QFrame()
+        business_group.setFrameShape(QFrame.Shape.StyledPanel)
+        business_layout = QVBoxLayout(business_group)
+
+        business_title = QLabel("Business Settings")
+        business_title.setStyleSheet("font-size: 14px; font-weight: bold;")
+        business_layout.addWidget(business_title)
+
+        # Business alias file setting
+        alias_layout = QHBoxLayout()
+        alias_label = QLabel("Business Alias File:")
+        self.alias_edit = QLineEdit()
+        self.alias_edit.setPlaceholderText("Path to business alias file...")
+        alias_btn = QPushButton("Browse...")
+        alias_btn.clicked.connect(self._on_select_alias_file)
+        alias_layout.addWidget(alias_label)
+        alias_layout.addWidget(self.alias_edit)
+        alias_layout.addWidget(alias_btn)
+        business_layout.addLayout(alias_layout)
+
+        layout.addWidget(business_group)
+
+        # Save/Cancel buttons
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton("Save Settings")
+        save_btn.clicked.connect(self._on_save_settings)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self._on_cancel_settings)
+        button_layout.addStretch()
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
 
         self.tab_widget.addTab(settings_widget, "Settings")
 
@@ -148,13 +223,63 @@ class OCRMainWindow(QMainWindow):
         tab_name = self.tab_widget.tabText(index)
         self.status_bar.showMessage(f"Switched to {tab_name} tab")
 
+    def _on_select_pdf(self) -> None:
+        """Handle PDF file selection with error handling."""
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "Select PDF File", "", "PDF Files (*.pdf)"
+            )
+            if file_path:
+                # Load PDF in preview widget
+                if self.pdf_preview.load_pdf(file_path):
+                    self.status_bar.showMessage(f"Loaded PDF: {file_path}")
+                    self._show_success_message("PDF loaded successfully")
+                else:
+                    self._show_error_message("Failed to load PDF file")
+        except Exception as e:
+            self._show_error_message(f"Error selecting PDF file: {str(e)}")
+
+    def _show_error_message(self, message: str) -> None:
+        """Show error message to user."""
+        QMessageBox.critical(self, "Error", message)
+        self.status_bar.showMessage(f"Error: {message}")
+
+    def _show_success_message(self, message: str) -> None:
+        """Show success message to user."""
+        self.status_bar.showMessage(message)
+
+    def _on_select_output_dir(self) -> None:
+        """Handle output directory selection."""
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        if dir_path:
+            self.dir_edit.setText(dir_path)
+
+    def _on_select_alias_file(self) -> None:
+        """Handle business alias file selection."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select Business Alias File", "", "JSON Files (*.json)"
+        )
+        if file_path:
+            self.alias_edit.setText(file_path)
+
+    def _on_save_settings(self) -> None:
+        """Handle settings save."""
+        # TODO: Implement actual settings saving
+        self.status_bar.showMessage("Settings saved successfully")
+
+    def _on_cancel_settings(self) -> None:
+        """Handle settings cancel."""
+        # TODO: Reset settings to previous values
+        self.status_bar.showMessage("Settings changes cancelled")
+
     def _show_about(self) -> None:
         """Show the about dialog."""
         QMessageBox.about(
             self,
             "About OCR Invoice Parser",
             "OCR Invoice Parser GUI\n\n"
-            "A desktop application for extracting structured data from PDF invoices using OCR.\n\n"
+            "A desktop application for extracting structured data from PDF invoices "
+            "using OCR.\n\n"
             "Version: 1.0.0\n"
             "Development Phase: Sprint 0 - Foundation",
         )
