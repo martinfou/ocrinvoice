@@ -20,6 +20,7 @@ dependencies = [
     "pyyaml",
     "pytest",
     "pytest-cov",
+    "pytest-qt>=4.2.0",
     "PyQt6>=6.5.0"
 ]
 

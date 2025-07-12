@@ -1,6 +1,40 @@
-# Business Aliases GUI Manager
+# OCR Invoice Parser GUI Applications
 
-> **PyQt6 Desktop Application for Managing Business Name Aliases**
+> **PyQt6 Desktop Applications for OCR Invoice Processing and Business Management**
+
+This guide covers the two main GUI applications in the OCR Invoice Parser project:
+
+1. **OCR Invoice Parser GUI** - Main application for processing PDF invoices with OCR
+2. **Business Aliases GUI Manager** - Application for managing business name aliases
+
+## OCR Invoice Parser GUI
+
+The main OCR GUI application for processing PDF invoices and extracting structured data.
+
+### Current Development Status: Sprint 0 - Foundation
+
+The OCR GUI is currently in Sprint 0 of development, focusing on establishing the foundation:
+
+- ✅ Basic PyQt6 application structure
+- ✅ Navigation framework with tabs
+- ✅ Main window with menu bar and status bar
+- 🚧 Single PDF processing tab (placeholder)
+- 🚧 Settings tab (placeholder)
+- 🚧 Integration with existing OCR functionality
+
+### Running the OCR GUI
+
+```bash
+# Launch the OCR GUI (development version)
+python -m ocrinvoice.gui.ocr_main_window
+
+# Or from the project root
+python src/ocrinvoice/gui/ocr_main_window.py
+```
+
+---
+
+## Business Aliases GUI Manager
 
 A comprehensive desktop GUI application for managing business aliases used by the OCR invoice parser, providing an intuitive interface for alias management, import/export operations, and analytics.
 
