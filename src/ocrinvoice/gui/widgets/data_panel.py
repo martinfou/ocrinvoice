@@ -54,7 +54,7 @@ class DataPanelWidget(QWidget):
 
         self.data_table.setAlternatingRowColors(True)
         self.data_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        
+
         # Apply unified blue/gray theme to the table
         self.data_table.setStyleSheet(
             "QTableWidget { "

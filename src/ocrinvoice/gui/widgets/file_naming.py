@@ -179,7 +179,9 @@ class FileNamingWidget(QWidget):
         original_layout = QHBoxLayout()
         original_label = QLabel("Original:")
         self.original_filename_label = QLabel("No file selected")
-        self.original_filename_label.setStyleSheet("color: #2c3e50; font-style: italic;")
+        self.original_filename_label.setStyleSheet(
+            "color: #2c3e50; font-style: italic;"
+        )
         self.original_filename_label.setToolTip("Click to see full path")
         self.original_filename_label.mousePressEvent = self._show_full_path
         original_layout.addWidget(original_label)
@@ -400,7 +402,10 @@ class FileNamingWidget(QWidget):
         self.dry_run_cb.setChecked(file_config.get("rename_dry_run", False))
 
     def update_data(
-        self, extracted_data: Dict[str, Any], original_filename: str = "", full_file_path: str = ""
+        self,
+        extracted_data: Dict[str, Any],
+        original_filename: str = "",
+        full_file_path: str = "",
     ) -> None:
         """Update with extracted data, original filename, and full file path."""
         self.extracted_data = extracted_data
@@ -515,17 +520,23 @@ class FileNamingWidget(QWidget):
 
     def _show_new_full_path(self, event) -> None:
         """Show the full path of the new file."""
-        if self.full_file_path and self.new_filename_label.text() != "No preview available":
+        if (
+            self.full_file_path
+            and self.new_filename_label.text() != "No preview available"
+        ):
             from pathlib import Path
+
             file_path = Path(self.full_file_path)
             new_path = file_path.parent / self.new_filename_label.text()
-            QMessageBox.information(
-                self, "New File Path", f"Full path:\n{new_path}"
-            )
+            QMessageBox.information(self, "New File Path", f"Full path:\n{new_path}")
 
     def _rename_file(self) -> None:
         """Rename the current file."""
-        if not self.extracted_data or not self.original_filename or not self.full_file_path:
+        if (
+            not self.extracted_data
+            or not self.original_filename
+            or not self.full_file_path
+        ):
             QMessageBox.warning(
                 self, "Error", "No file or data available for renaming."
             )
@@ -537,7 +548,7 @@ class FileNamingWidget(QWidget):
 
         # Get the new filename
         new_filename = self.new_filename_label.text()
-        
+
         if new_filename == "No preview available":
             QMessageBox.warning(self, "Error", "No valid filename preview available.")
             return
@@ -549,66 +560,63 @@ class FileNamingWidget(QWidget):
         try:
             from pathlib import Path
             import shutil
-            
+
             # Get the original file path
             original_path = Path(self.full_file_path)
             new_path = original_path.parent / new_filename
-            
+
             # Show confirmation with full paths
             reply = QMessageBox.question(
                 self,
                 "Confirm Rename",
-                f"Rename file?\n\n"
-                f"From: {original_path}\n"
-                f"To: {new_path}",
+                f"Rename file?\n\n" f"From: {original_path}\n" f"To: {new_path}",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
-            
+
             if reply == QMessageBox.StandardButton.Yes:
                 # Create backup if enabled
                 if self.backup_original_cb.isChecked():
                     backup_path = original_path.parent / f"backup_{original_path.name}"
                     shutil.copy2(original_path, backup_path)
-                
+
                 # Perform the rename
                 if self.dry_run_cb.isChecked():
                     QMessageBox.information(
-                        self, "Dry Run", 
-                        f"DRY RUN - Would rename:\n{original_path}\n→\n{new_path}"
+                        self,
+                        "Dry Run",
+                        f"DRY RUN - Would rename:\n{original_path}\n→\n{new_path}",
                     )
                 else:
                     original_path.rename(new_path)
                     QMessageBox.information(
-                        self, "Success", 
+                        self,
+                        "Success",
                         f"File renamed successfully!\n\n"
                         f"From: {original_path}\n"
-                        f"To: {new_path}"
+                        f"To: {new_path}",
                     )
-                    
+
                     # Update the stored path
                     self.full_file_path = str(new_path)
                     self.original_filename = new_path.name
                     self.original_filename_label.setText(self.original_filename)
-                    
+
                     # Update status in main window
                     parent = self.parent()
                     while parent and not hasattr(parent, "status_bar"):
                         parent = parent.parent()
                     if parent and hasattr(parent, "status_bar"):
                         parent.status_bar.showMessage(f"✅ File renamed: {new_path}")
-                        
+
         except Exception as e:
-            QMessageBox.critical(
-                self, "Error", 
-                f"Failed to rename file:\n{str(e)}"
-            )
+            QMessageBox.critical(self, "Error", f"Failed to rename file:\n{str(e)}")
 
     def _check_file_conflict(self, new_filename: str) -> bool:
         """Check if a file conflict exists and handle it."""
         if not self.full_file_path:
             return True  # No path available, skip conflict check
-            
+
         from pathlib import Path
 
         # Get the actual directory from the full file path

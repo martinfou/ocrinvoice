@@ -146,7 +146,9 @@ class OCRMainWindow(QMainWindow):
         file_layout.addWidget(self.select_pdf_btn)
 
         # Add drag and drop area with unified blue/gray theme
-        self.drop_area = QLabel("📄 Drag and drop PDF files here\nor click 'Select PDF File' above")
+        self.drop_area = QLabel(
+            "📄 Drag and drop PDF files here\nor click 'Select PDF File' above"
+        )
         self.drop_area.setStyleSheet(
             "border: 3px dashed #3498db; padding: 20px; background: #ecf0f1; "
             "margin-top: 15px; border-radius: 8px; color: #2c3e50; "
@@ -411,11 +413,17 @@ class OCRMainWindow(QMainWindow):
         """Handle tab changes."""
         tab_name = self.tab_widget.tabText(index)
         if tab_name == "Single PDF":
-            self.status_bar.showMessage("📄 Single PDF Processing - Select a PDF file to extract data")
+            self.status_bar.showMessage(
+                "📄 Single PDF Processing - Select a PDF file to extract data"
+            )
         elif tab_name == "File Naming":
-            self.status_bar.showMessage("📝 File Naming - Configure templates and preview filenames")
+            self.status_bar.showMessage(
+                "📝 File Naming - Configure templates and preview filenames"
+            )
         elif tab_name == "Settings":
-            self.status_bar.showMessage("⚙️ Settings - Configure application preferences")
+            self.status_bar.showMessage(
+                "⚙️ Settings - Configure application preferences"
+            )
         else:
             self.status_bar.showMessage(f"Switched to {tab_name} tab")
 
@@ -487,8 +495,11 @@ class OCRMainWindow(QMainWindow):
         # Update file naming widget with extracted data
         if self.current_pdf_path:
             from pathlib import Path
+
             original_filename = Path(self.current_pdf_path).name
-            self.file_naming_widget.update_data(extracted_data, original_filename, self.current_pdf_path)
+            self.file_naming_widget.update_data(
+                extracted_data, original_filename, self.current_pdf_path
+            )
             # Update persistent filename label after data update
             new_filename = self.file_naming_widget.new_filename_label.text()
             self._update_filename_status_label(new_filename)
@@ -519,7 +530,7 @@ class OCRMainWindow(QMainWindow):
             status_msg = f"✅ OCR completed successfully! {company_display} - {total_display} (Confidence: {confidence:.1%})"
         else:
             status_msg = f"⚠️ OCR completed with low confidence. {company_display} - {total_display} (Confidence: {confidence:.1%})"
-        
+
         self.status_bar.showMessage(status_msg)
         self._show_success_message("OCR processing completed successfully")
 
@@ -577,23 +588,27 @@ class OCRMainWindow(QMainWindow):
     def _on_export_data(self) -> None:
         """Handle data export from menu."""
         if not self.extracted_data:
-            QMessageBox.information(self, "No Data", "No data to export. Please process a PDF first.")
+            QMessageBox.information(
+                self, "No Data", "No data to export. Please process a PDF first."
+            )
             return
-        
+
         # TODO: Implement actual export functionality
         self.status_bar.showMessage("Export functionality coming in future sprints")
 
     def _on_rename_from_data_panel(self) -> None:
         """Handle rename request from data panel."""
         if not self.extracted_data or not self.current_pdf_path:
-            QMessageBox.warning(self, "Error", "No file or data available for renaming.")
+            QMessageBox.warning(
+                self, "Error", "No file or data available for renaming."
+            )
             return
-        
+
         # Switch to File Naming tab and trigger rename
         self.tab_widget.setCurrentIndex(1)  # Switch to File Naming tab
-        
+
         # Trigger the rename in the file naming widget
-        if hasattr(self.file_naming_widget, '_rename_file'):
+        if hasattr(self.file_naming_widget, "_rename_file"):
             self.file_naming_widget._rename_file()
 
     def _show_keyboard_shortcuts(self) -> None:
@@ -620,12 +635,8 @@ PDF Preview (when focused):
   Ctrl+0          Reset zoom to 100%
   Ctrl+Wheel      Zoom with mouse wheel
         """
-        
-        QMessageBox.information(
-            self,
-            "Keyboard Shortcuts",
-            shortcuts_text
-        )
+
+        QMessageBox.information(self, "Keyboard Shortcuts", shortcuts_text)
 
     def _show_about(self) -> None:
         """Show the about dialog."""
