@@ -26,6 +26,7 @@ We are currently working on **Phase 1: Core Functionality (MVP)** of the Busines
 3. **Maintain CLI compatibility** - GUI should use same data formats as CLI
 4. **Focus on long-term maintainability** - clean code, proper error handling, comprehensive testing
 5. **User experience first** - intuitive interface, helpful error messages, keyboard shortcuts
+6. **Documentation standards** - User guides go in `docs/user_guide/`, architecture docs in `docs/architecture/`
 
 ## File Structure
 ```
@@ -40,6 +41,19 @@ src/ocrinvoice/
 ├── business/               # Business logic
 ├── parsers/                # Invoice parsing logic
 └── utils/                  # Shared utilities
+
+docs/
+├── architecture/           # Technical specifications and architecture docs
+│   ├── business_aliases_gui_spec.md
+│   ├── system_architecture.md
+│   └── README.md
+├── user_guide/             # User-facing documentation
+│   ├── getting_started.md
+│   ├── cli_reference.md
+│   ├── gui_guide.md        # Business Aliases GUI documentation
+│   ├── configuration.md
+│   └── troubleshooting.md
+└── developer/              # Developer documentation
 ```
 
 ## Code Standards
@@ -47,7 +61,10 @@ src/ocrinvoice/
 - **PyQt6**: Use modern PyQt6 patterns, proper signal/slot connections
 - **Error Handling**: Graceful degradation, user-friendly error messages
 - **Testing**: Unit tests for business logic, integration tests for GUI
-- **Documentation**: Clear docstrings, README updates
+- **Documentation**: Clear docstrings, proper documentation structure
+  - User guides: `docs/user_guide/` (e.g., `gui_guide.md`)
+  - Architecture specs: `docs/architecture/` (e.g., `business_aliases_gui_spec.md`)
+  - Developer docs: `docs/developer/`
 
 ## Commit Standards - CRITICAL REQUIREMENTS
 

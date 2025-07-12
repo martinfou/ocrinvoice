@@ -55,6 +55,9 @@ ocrinvoice batch invoices/ --rename --dry-run
 ocrinvoice aliases add "Hydro Quebec" "HYDRO-QUÉBEC"
 ocrinvoice aliases list
 
+# Launch GUI for alias management
+ocrinvoice gui
+
 # View configuration
 ocrinvoice config
 ```
@@ -64,6 +67,7 @@ ocrinvoice config
 ### For Users
 - **[Getting Started](docs/user_guide/getting_started.md)** - Complete installation and setup guide
 - **[CLI Reference](docs/user_guide/cli_reference.md)** - All commands and options
+- **[GUI Guide](docs/user_guide/gui_guide.md)** - Business Aliases GUI Manager
 - **[Configuration](docs/user_guide/configuration.md)** - System configuration guide
 - **[Troubleshooting](docs/user_guide/troubleshooting.md)** - Common issues and solutions
 
@@ -116,6 +120,11 @@ ocrinvoice/
 └── docs/                        # Documentation
     ├── README.md                # Documentation index
     ├── user_guide/              # End user documentation
+    │   ├── getting_started.md   # Installation and setup
+    │   ├── cli_reference.md     # Command line reference
+    │   ├── gui_guide.md         # Business Aliases GUI
+    │   ├── configuration.md     # Configuration guide
+    │   └── troubleshooting.md   # Common issues
     ├── architecture/            # Technical architecture
     └── developer/               # Developer resources
 ```
