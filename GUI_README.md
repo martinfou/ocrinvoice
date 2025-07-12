@@ -1,150 +1,260 @@
 # Business Aliases GUI Manager
 
-A PyQt6 desktop application for managing business name aliases used by the OCR invoice parser.
+> **PyQt6 Desktop Application for Managing Business Name Aliases**
+
+A comprehensive desktop GUI application for managing business aliases used by the OCR invoice parser, providing an intuitive interface for alias management, import/export operations, and analytics.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-1. **Install PyQt6** (required for the GUI):
+1. **Python 3.8+** installed on your system
+2. **Virtual Environment** (recommended)
+
+### Installation
+
+1. **Clone the repository** (if not already done):
    ```bash
-   pip3 install PyQt6
+   git clone <repository-url>
+   cd ocrinvoice
    ```
 
-   If you're on macOS with Homebrew Python and get permission errors:
+2. **Create and activate virtual environment**:
    ```bash
-   pip3 install --user PyQt6
-   ```
-
-2. **Alternative: Use a Virtual Environment**:
-   ```bash
+   # Create virtual environment
    python3 -m venv venv
+
+   # Activate virtual environment
+   # On macOS/Linux:
    source venv/bin/activate
-   pip install PyQt6
+   # On Windows:
+   venv\Scripts\activate
    ```
 
-## 🖥️ Running the GUI
+3. **Install dependencies**:
+   ```bash
+   pip install -e .
+   ```
 
-### Method 1: Direct GUI Launcher (Recommended)
+### Running the GUI
+
+#### Method 1: Using the main command (Recommended)
 ```bash
-python3 launch_gui.py
+# Launch the GUI
+ocrinvoice gui
 ```
 
-### Method 2: CLI Wrapper (Simulates ocrinvoice --gui)
+#### Method 2: Using Python module
 ```bash
-# Launch GUI directly
-python3 ocrinvoice_cli.py --gui
-
-# Or through aliases command
-python3 ocrinvoice_cli.py aliases --gui
+# From the project root directory
+python -m ocrinvoice gui
 ```
 
-### Method 3: One-liner
-```bash
-python3 -c "import sys; sys.path.insert(0, 'src'); from ocrinvoice.gui.main_window import main; main()"
+## 🎯 Features
+
+### Core Functionality
+- **Alias Management**: Add, edit, delete business name aliases
+- **Visual Interface**: Intuitive table-based interface
+- **Real-time Search**: Instant filtering and search capabilities
+- **Data Validation**: Built-in validation with helpful error messages
+- **CLI Integration**: Seamless integration with existing CLI functionality
+
+### User Interface
+- **Main Window**: Clean, professional interface with menu bar and toolbar
+- **Alias Table**: Sortable table with company names, official names, and metadata
+- **Add/Edit Forms**: Modal dialogs for managing individual aliases
+- **Status Bar**: Real-time information about data and operations
+- **Context Menus**: Right-click actions for quick operations
+
+### Data Management
+- **JSON Storage**: Uses same format as CLI for compatibility
+- **Auto-save**: Automatic saving of changes
+- **Error Handling**: Graceful error handling with user-friendly messages
+- **Backup Support**: Automatic backup creation before major operations
+
+## 🛠️ Development
+
+### Project Structure
+```
+src/ocrinvoice/
+├── cli/                    # Command line interface
+│   └── main.py            # Main CLI entry point with --gui support
+├── gui/                    # GUI components
+│   ├── main_window.py      # Main application window
+│   ├── alias_table.py      # Custom table widget
+│   ├── alias_form.py       # Add/edit forms
+│   └── dialogs/            # Modal dialogs
+├── business/               # Business logic
+│   └── business_alias_manager.py  # Alias management backend
+└── utils/                  # Shared utilities
 ```
 
-## 📋 Available Commands
+### Key Components
 
-### CLI Commands
+#### Main Window (`gui/main_window.py`)
+- **QMainWindow**-based application window
+- **Menu Bar**: File, Edit, Tools, View, Help menus
+- **Toolbar**: Quick access buttons for common actions
+- **Status Bar**: Shows alias count and operation status
+- **Central Widget**: Alias table with search functionality
+
+#### Alias Table (`gui/alias_table.py`)
+- **QTableWidget** with custom sorting and filtering
+- **Context Menus**: Right-click actions for quick operations
+- **Keyboard Navigation**: Full keyboard support
+- **Selection Management**: Multi-select capabilities
+
+#### Alias Form (`gui/alias_form.py`)
+- **Modal Dialog** for adding/editing aliases
+- **Real-time Validation**: Immediate feedback on input errors
+- **Preview Functionality**: Shows how alias will work
+- **Auto-complete**: Suggests existing official names
+
+### CLI Integration
+
+The GUI is fully integrated with the existing CLI system:
+
 ```bash
-# Show help
-python3 ocrinvoice_cli.py --help
-
-# Show aliases help
-python3 ocrinvoice_cli.py aliases --help
-
 # Launch GUI
-python3 ocrinvoice_cli.py --gui
+ocrinvoice gui
 
-# Launch GUI through aliases
-python3 ocrinvoice_cli.py aliases --gui
+# Launch GUI with debug output
+ocrinvoice gui --debug
+
+# Launch GUI with verbose output
+ocrinvoice gui --verbose
 ```
 
-## 🎯 GUI Features
+## 🔧 Troubleshooting
 
-The Business Aliases GUI Manager provides:
+### Common Issues
 
-- **📋 Alias Table**: View all business aliases in a sortable table
-- **➕ Add Aliases**: Add new company name mappings
-- **✏️ Edit Aliases**: Modify existing aliases
-- **🗑️ Delete Aliases**: Remove aliases with confirmation
-- **🔍 Search**: Find aliases quickly (Week 2)
-- **📊 Statistics**: View alias usage statistics
-- **📥 Import/Export**: Import/export alias data (Week 2)
+#### 1. "No module named 'PIL'" Error
+```bash
+# Install Pillow (PIL)
+pip install Pillow
+```
 
-## 🏗️ Development Status
+#### 2. "No module named 'PyQt6'" Error
+```bash
+# Install PyQt6
+pip install PyQt6
+```
 
-### ✅ Week 1: Foundation (COMPLETED)
+#### 3. Import Errors
+```bash
+# Make sure you're in the virtual environment
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate     # Windows
+
+# Reinstall the package
+pip install -e .
+```
+
+#### 4. GUI Not Starting
+```bash
+# Check if the package is properly installed
+python -c "import ocrinvoice.gui.main_window; print('GUI module found')"
+
+# Try running with debug output
+ocrinvoice gui --debug
+```
+
+### Debug Mode
+
+Run the GUI with debug output to see detailed information:
+
+```bash
+ocrinvoice gui --debug
+```
+
+This will show:
+- Module loading information
+- Configuration details
+- Error details if any issues occur
+
+## 📋 Development Status
+
+### ✅ Completed (Phase 1 - MVP)
 - [x] Project structure setup
 - [x] Basic PyQt6 application skeleton
-- [x] Main window layout
-- [x] Basic table widget
-- [x] Add/edit form
-- [x] Basic CRUD operations
-- [x] CLI integration
+- [x] Main window layout with menu bar and toolbar
+- [x] Alias table widget with sorting and filtering
+- [x] Add/edit alias forms with validation
+- [x] Basic CRUD operations (Create, Read, Update, Delete)
+- [x] Real-time search functionality
+- [x] Status bar with alias count
+- [x] CLI integration with `--gui` flag
+- [x] Error handling and user feedback
+- [x] Data validation and preview functionality
+- [x] Context menus and keyboard shortcuts
+- [x] Auto-save functionality
 
-### 🔄 Week 2: Data Management (NEXT)
-- [ ] Enhanced search functionality
-- [ ] Import/export dialogs
-- [ ] Data validation improvements
-- [ ] Error handling enhancements
-
-### 📋 Week 3: User Interface (PLANNED)
-- [ ] Advanced filtering
+### 🚧 In Progress
+- [ ] Import/export functionality
+- [ ] Advanced filtering options
 - [ ] Bulk operations
-- [ ] Keyboard shortcuts
-- [ ] Context menus
+- [ ] Statistics and analytics
 
-### 🎨 Week 4: Integration (PLANNED)
-- [ ] CLI integration completion
-- [ ] Configuration management
-- [ ] Comprehensive testing
-- [ ] Documentation
+### 📋 Planned (Phase 2)
+- [ ] CSV/Excel import/export
+- [ ] Advanced search and filtering
+- [ ] Bulk alias operations
+- [ ] Usage statistics dashboard
+- [ ] Theme support
+- [ ] User preferences
 
-## 🐛 Troubleshooting
+### 🔮 Future (Phase 3)
+- [ ] Performance optimization
+- [ ] Accessibility features
+- [ ] Plugin system
+- [ ] Cloud sync capabilities
+- [ ] Advanced analytics
 
-### Import Errors
-If you get import errors:
-1. Make sure PyQt6 is installed: `pip3 install PyQt6`
-2. On macOS, try: `pip3 install --user PyQt6`
-3. Use a virtual environment for isolation
+## 🧪 Testing
 
-### GUI Not Appearing
-1. Check if the process is running in the background
-2. Look for error messages in the terminal
-3. Make sure you have a display server running (X11 on Linux, etc.)
+### Running Tests
+```bash
+# Run all tests
+pytest
 
-### Permission Errors
-1. Make sure the launcher scripts are executable: `chmod +x *.py`
-2. Use `python3` instead of `python` if needed
+# Run GUI-specific tests
+pytest tests/test_gui/
 
-## 📁 File Structure
-
-```
-src/ocrinvoice/gui/
-├── __init__.py              # Package initialization
-├── main_window.py           # Main application window
-├── alias_table.py           # Custom table widget
-├── alias_form.py            # Add/edit form widget
-├── dialogs/                 # Modal dialogs (Week 2)
-└── utils/                   # Utility functions (Week 2)
+# Run with coverage
+pytest --cov=src/ocrinvoice/gui
 ```
 
-## 🔗 Integration
+### GUI Testing
+The GUI includes automated tests using `pytest-qt`:
 
-The GUI integrates seamlessly with the existing CLI functionality:
-- Uses the same `BusinessAliasManager` for data operations
-- Maintains compatibility with existing alias files
-- Follows the same data formats and validation rules
+```bash
+# Install test dependencies
+pip install pytest-qt
 
-## 📝 Next Steps
+# Run GUI tests
+pytest tests/test_gui/ -v
+```
 
-1. **Test the GUI**: Run `python3 launch_gui.py` and explore the interface
-2. **Add Aliases**: Use the "➕ Add" button to create new aliases
-3. **View Statistics**: Click "📊 Statistics" to see alias information
-4. **Continue Development**: Move to Week 2 for enhanced features
+## 📚 Documentation
+
+- **Technical Specification**: `docs/architecture/business_aliases_gui_spec.md`
+- **API Documentation**: Generated from docstrings
+- **User Guide**: This README file
+
+## 🤝 Contributing
+
+1. **Follow the specification** in `docs/architecture/business_aliases_gui_spec.md`
+2. **Maintain CLI compatibility** - GUI should use same data formats
+3. **Write tests** for new functionality
+4. **Follow code standards** - black, flake8, mypy
+5. **Update documentation** when adding features
+
+## 📄 License
+
+This project is part of the OCR Invoice Parser system. See the main project license for details.
 
 ---
 
-**Ready to manage your business aliases with a beautiful GUI!** 🎉
+**Ready to manage your business aliases with ease!** 🎉

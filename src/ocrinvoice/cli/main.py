@@ -45,8 +45,7 @@ def setup_logging(verbose: bool = False, debug: bool = False) -> None:
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--debug", is_flag=True, help="Enable debug output")
 @click.option("--config", "-c", help="Path to configuration file")
-@click.option("--gui", is_flag=True, help="Launch the GUI for managing aliases")
-def cli(verbose: bool, debug: bool, config: Optional[str], gui: bool):
+def cli(verbose: bool, debug: bool, config: Optional[str]):
     """
     Invoice OCR Parser - Extract structured data from PDF invoices using OCR.
 
@@ -64,20 +63,6 @@ def cli(verbose: bool, debug: bool, config: Optional[str], gui: bool):
             sys.exit(1)
 
     logger.debug("CLI initialized with verbose=%s, debug=%s", verbose, debug)
-
-    # Handle GUI launch
-    if gui:
-        try:
-            from ocrinvoice.gui.main_window import main
-
-            main()
-        except ImportError as e:
-            click.echo(f"Error: GUI not available - {e}", err=True)
-            click.echo("Make sure PyQt6 is installed: pip install PyQt6", err=True)
-            sys.exit(1)
-        except Exception as e:
-            click.echo(f"Error launching GUI: {e}", err=True)
-            sys.exit(1)
 
 
 @cli.command()
@@ -439,23 +424,25 @@ def config(config: Optional[Path]):
         sys.exit(1)
 
 
+@cli.command()
+def gui():
+    """Launch the GUI for managing business aliases"""
+    try:
+        from ocrinvoice.gui.main_window import main
+
+        main()
+    except ImportError as e:
+        click.echo(f"Error: GUI not available - {e}", err=True)
+        click.echo("Make sure PyQt6 is installed: pip install PyQt6", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error launching GUI: {e}", err=True)
+        sys.exit(1)
+
+
 @cli.group()
-@click.option("--gui", is_flag=True, help="Launch the GUI for managing aliases")
-def aliases(gui: bool):
+def aliases():
     """Manage business name aliases (business_aliases.json)"""
-    if gui:
-        try:
-            from ocrinvoice.gui.main_window import main
-
-            main()
-        except ImportError as e:
-            click.echo(f"Error: GUI not available - {e}", err=True)
-            click.echo("Make sure PyQt6 is installed: pip install PyQt6", err=True)
-            sys.exit(1)
-        except Exception as e:
-            click.echo(f"Error launching GUI: {e}", err=True)
-            sys.exit(1)
-
     if BusinessAliasManager is None:
         click.echo(
             "Error: BusinessAliasManager not available. Make sure business_alias_manager.py is in your project.",  # noqa: E501

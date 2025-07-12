@@ -49,8 +49,31 @@ src/ocrinvoice/
 - **Testing**: Unit tests for business logic, integration tests for GUI
 - **Documentation**: Clear docstrings, README updates
 
-## Commit Standards
-- **ALWAYS ask for review** before committing - never commit without user approval
+## Commit Standards - CRITICAL REQUIREMENTS
+
+### ⚠️ MANDATORY COMMIT REVIEW PROCESS ⚠️
+
+**NEVER, EVER commit without explicit user review and approval of the commit message.**
+
+**REQUIRED WORKFLOW:**
+1. **ALWAYS** show the complete commit message to the user first
+2. **ALWAYS** ask for review and approval: "Please review this commit message and approve if correct"
+3. **NEVER** run `git commit` without user saying "approved" or "commit" after seeing the message
+4. **NEVER** assume approval from phrases like "commit" or "go ahead" - explicit review is required
+5. **ALWAYS** wait for user confirmation before executing any commit command
+
+**EXAMPLES OF WHAT NOT TO DO:**
+- ❌ User says "commit" → immediately run git commit
+- ❌ User says "it works fine commit" → immediately run git commit
+- ❌ User says "go ahead" → immediately run git commit
+- ❌ Any variation without showing the message first
+
+**EXAMPLES OF WHAT TO DO:**
+- ✅ Show full commit message → "Please review this commit message and approve if correct"
+- ✅ Wait for user to say "approved" or "looks good" → then commit
+- ✅ If user says "commit" → show message first, then ask for approval
+
+### Commit Message Requirements
 - **Detailed commit messages** with comprehensive information about changes
 - **Use conventional commit format**: `type(scope): description`
 - **Include context** about why changes were made
@@ -84,6 +107,7 @@ feat(gui): implement main window with basic table widget
 - Test basic functionality with pytest-qt
 
 ```
+
 ## Important Notes
 - Always consider the user experience
 - Maintain backward compatibility with CLI
@@ -93,3 +117,5 @@ feat(gui): implement main window with basic table widget
 - Always run the test suite after each modification.
 - When working with a spec document, do a check mark beside the tasks each time you complete a task.
 - **NEVER commit without user review of commit message**
+- **NEVER assume approval - always ask explicitly**
+- **ALWAYS show the commit message first, then ask for approval**
