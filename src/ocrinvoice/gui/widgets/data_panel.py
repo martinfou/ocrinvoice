@@ -15,12 +15,15 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QPushButton,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 
 class DataPanelWidget(QWidget):
     """Widget for displaying and editing extracted invoice data."""
+
+    # Signal emitted when rename is requested
+    rename_requested = pyqtSignal()
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -30,9 +33,12 @@ class DataPanelWidget(QWidget):
         """Set up the user interface."""
         layout = QVBoxLayout(self)
 
-        # Title
-        title = QLabel("Extracted Data")
-        title.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 10px;")
+        # Title with unified blue/gray theme
+        title = QLabel("📄 Extracted Data")
+        title.setStyleSheet(
+            "font-size: 16px; font-weight: bold; margin-bottom: 15px; "
+            "color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;"
+        )
         layout.addWidget(title)
 
         # Data table
@@ -40,7 +46,7 @@ class DataPanelWidget(QWidget):
         self.data_table.setColumnCount(3)
         self.data_table.setHorizontalHeaderLabels(["Field", "Value", "Confidence"])
 
-        # Set table properties
+        # Set table properties with better styling
         header = self.data_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
@@ -48,21 +54,73 @@ class DataPanelWidget(QWidget):
 
         self.data_table.setAlternatingRowColors(True)
         self.data_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        
+        # Apply unified blue/gray theme to the table
+        self.data_table.setStyleSheet(
+            "QTableWidget { "
+            "background-color: white; "
+            "gridline-color: #ecf0f1; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "}"
+            "QTableWidget::item { "
+            "padding: 8px; "
+            "border-bottom: 1px solid #ecf0f1; "
+            "}"
+            "QTableWidget::item:selected { "
+            "background-color: #3498db; "
+            "color: white; "
+            "}"
+            "QHeaderView::section { "
+            "background-color: #34495e; "
+            "color: white; "
+            "padding: 8px; "
+            "border: none; "
+            "font-weight: bold; "
+            "}"
+        )
 
         layout.addWidget(self.data_table)
 
-        # Action buttons
+        # Action buttons with unified blue/gray theme
         button_layout = QHBoxLayout()
 
-        self.export_btn = QPushButton("Export Data")
+        self.export_btn = QPushButton("💾 Export Data")
         self.export_btn.setEnabled(False)
+        self.export_btn.setToolTip("Export extracted data to JSON/CSV format")
         self.export_btn.clicked.connect(self._export_data)
+        self.export_btn.setStyleSheet(
+            "QPushButton { background-color: #3498db; color: white; border: none; "
+            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #2980b9; }"
+            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
+        )
         button_layout.addWidget(self.export_btn)
 
-        self.clear_btn = QPushButton("Clear Data")
+        self.clear_btn = QPushButton("🗑️ Clear Data")
         self.clear_btn.setEnabled(False)
+        self.clear_btn.setToolTip("Clear all extracted data")
         self.clear_btn.clicked.connect(self.clear_data)
+        self.clear_btn.setStyleSheet(
+            "QPushButton { background-color: #e74c3c; color: white; border: none; "
+            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #c0392b; }"
+            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
+        )
         button_layout.addWidget(self.clear_btn)
+
+        # Add rename button
+        self.rename_btn = QPushButton("📝 Rename File")
+        self.rename_btn.setEnabled(False)
+        self.rename_btn.setToolTip("Rename the current file using the template")
+        self.rename_btn.clicked.connect(self._on_rename_requested)
+        self.rename_btn.setStyleSheet(
+            "QPushButton { background-color: #5dade2; color: white; border: none; "
+            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #3498db; }"
+            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
+        )
+        button_layout.addWidget(self.rename_btn)
 
         button_layout.addStretch()
         layout.addLayout(button_layout)
@@ -162,14 +220,20 @@ class DataPanelWidget(QWidget):
         # Enable buttons
         self.export_btn.setEnabled(True)
         self.clear_btn.setEnabled(True)
+        self.rename_btn.setEnabled(True)
 
     def clear_data(self) -> None:
         """Clear the displayed data."""
         self._show_placeholder()
         self.export_btn.setEnabled(False)
         self.clear_btn.setEnabled(False)
+        self.rename_btn.setEnabled(False)
 
     def _export_data(self) -> None:
         """Export the current data (placeholder for now)."""
         # TODO: Implement export functionality
         pass
+
+    def _on_rename_requested(self) -> None:
+        """Handle rename button click."""
+        self.rename_requested.emit()

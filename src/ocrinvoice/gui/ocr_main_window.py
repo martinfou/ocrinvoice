@@ -133,30 +133,51 @@ class OCRMainWindow(QMainWindow):
         # Create file selection area
         file_layout = QVBoxLayout()
 
-        # Select PDF button
-        self.select_pdf_btn = QPushButton("Select PDF")
+        # Select PDF button with unified blue/gray theme
+        self.select_pdf_btn = QPushButton("📁 Select PDF File")
+        self.select_pdf_btn.setToolTip("Choose a PDF invoice to process")
         self.select_pdf_btn.clicked.connect(self._on_select_pdf)
+        self.select_pdf_btn.setStyleSheet(
+            "QPushButton { background-color: #3498db; color: white; border: none; "
+            "padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #2980b9; }"
+            "QPushButton:pressed { background-color: #21618c; }"
+        )
         file_layout.addWidget(self.select_pdf_btn)
 
-        # Add drag and drop area under the button
-        self.drop_area = QLabel("Drag and drop PDF files here")
+        # Add drag and drop area with unified blue/gray theme
+        self.drop_area = QLabel("📄 Drag and drop PDF files here\nor click 'Select PDF File' above")
         self.drop_area.setStyleSheet(
-            (
-                "border: 2px dashed #ccc; padding: 5px; background: #f9f9f9; "
-                "margin-top: 10px;"
-            )
+            "border: 3px dashed #3498db; padding: 20px; background: #ecf0f1; "
+            "margin-top: 15px; border-radius: 8px; color: #2c3e50; "
+            "font-size: 13px; font-weight: bold;"
         )
         self.drop_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.drop_area.setFixedHeight(40)  # Set fixed height to 25% of original size
+        self.drop_area.setFixedHeight(80)
+        self.drop_area.setWordWrap(True)
         file_layout.addWidget(self.drop_area)
 
         layout.addLayout(file_layout)
 
-        # Add OCR progress bar
+        # Add OCR progress bar with unified blue/gray theme
         self.ocr_progress = QProgressBar()
         self.ocr_progress.setVisible(False)
         self.ocr_progress.setRange(0, 0)  # Indeterminate progress
-        self.ocr_progress.setFormat("Processing PDF with OCR...")
+        self.ocr_progress.setFormat("🔄 Processing PDF with OCR...")
+        self.ocr_progress.setStyleSheet(
+            "QProgressBar { "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 8px; "
+            "text-align: center; "
+            "font-weight: bold; "
+            "color: #2c3e50; "
+            "background-color: #ecf0f1; "
+            "}"
+            "QProgressBar::chunk { "
+            "background-color: #3498db; "
+            "border-radius: 6px; "
+            "}"
+        )
         layout.addWidget(self.ocr_progress)
 
         # Main content area: PDF preview and data panel side by side
@@ -168,6 +189,7 @@ class OCRMainWindow(QMainWindow):
 
         # Data Panel (right side)
         self.data_panel = DataPanelWidget()
+        self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
         content_splitter.addWidget(self.data_panel)
 
         # Set initial splitter sizes (60% PDF, 40% data)
@@ -282,11 +304,29 @@ class OCRMainWindow(QMainWindow):
         self.tab_widget.addTab(settings_widget, "Settings")
 
     def _setup_menu_bar(self) -> None:
-        """Set up the menu bar with basic menu items."""
+        """Set up the menu bar with enhanced menu items and keyboard shortcuts."""
         menubar = self.menuBar()
 
         # File menu
         file_menu = menubar.addMenu("&File")
+
+        # Open PDF action
+        open_action = QAction("&Open PDF...", self)
+        open_action.setShortcut(QKeySequence.StandardKey.Open)
+        open_action.setStatusTip("Open a PDF file for OCR processing")
+        open_action.triggered.connect(self._on_select_pdf)
+        file_menu.addAction(open_action)
+
+        file_menu.addSeparator()
+
+        # Export action
+        export_action = QAction("&Export Data...", self)
+        export_action.setShortcut(QKeySequence("Ctrl+E"))
+        export_action.setStatusTip("Export extracted data to file")
+        export_action.triggered.connect(self._on_export_data)
+        file_menu.addAction(export_action)
+
+        file_menu.addSeparator()
 
         # Exit action
         exit_action = QAction("E&xit", self)
@@ -295,8 +335,39 @@ class OCRMainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
+        # View menu
+        view_menu = menubar.addMenu("&View")
+
+        # Tab navigation actions
+        single_pdf_action = QAction("&Single PDF", self)
+        single_pdf_action.setShortcut(QKeySequence("Ctrl+1"))
+        single_pdf_action.setStatusTip("Switch to Single PDF processing tab")
+        single_pdf_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(0))
+        view_menu.addAction(single_pdf_action)
+
+        file_naming_action = QAction("&File Naming", self)
+        file_naming_action.setShortcut(QKeySequence("Ctrl+2"))
+        file_naming_action.setStatusTip("Switch to File Naming configuration tab")
+        file_naming_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(1))
+        view_menu.addAction(file_naming_action)
+
+        settings_action = QAction("&Settings", self)
+        settings_action.setShortcut(QKeySequence("Ctrl+3"))
+        settings_action.setStatusTip("Switch to Settings tab")
+        settings_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
+        view_menu.addAction(settings_action)
+
         # Help menu
         help_menu = menubar.addMenu("&Help")
+
+        # Keyboard shortcuts help
+        shortcuts_action = QAction("&Keyboard Shortcuts", self)
+        shortcuts_action.setShortcut(QKeySequence("F1"))
+        shortcuts_action.setStatusTip("Show keyboard shortcuts help")
+        shortcuts_action.triggered.connect(self._show_keyboard_shortcuts)
+        help_menu.addAction(shortcuts_action)
+
+        help_menu.addSeparator()
 
         # About action
         about_action = QAction("&About", self)
@@ -308,7 +379,29 @@ class OCRMainWindow(QMainWindow):
         """Set up the status bar for user feedback."""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("Ready")
+        self.status_bar.setStyleSheet(
+            "QStatusBar { "
+            "background-color: #34495e; "
+            "color: white; "
+            "font-weight: bold; "
+            "padding: 5px; "
+            "}"
+        )
+        self.status_bar.showMessage("✅ Ready - Select a PDF file to begin")
+        # Add persistent new filename label
+        self.filename_status_label = QLabel()
+        self.filename_status_label.setStyleSheet(
+            "color: #5dade2; font-weight: bold; padding-left: 20px;"
+        )
+        self.status_bar.addPermanentWidget(self.filename_status_label)
+        self._update_filename_status_label("")
+
+    def _update_filename_status_label(self, new_filename: str) -> None:
+        """Update the persistent filename label in the status bar."""
+        if new_filename:
+            self.filename_status_label.setText(f"New filename: {new_filename}")
+        else:
+            self.filename_status_label.setText("")
 
     def _setup_connections(self) -> None:
         """Set up signal connections."""
@@ -317,7 +410,14 @@ class OCRMainWindow(QMainWindow):
     def _on_tab_changed(self, index: int) -> None:
         """Handle tab changes."""
         tab_name = self.tab_widget.tabText(index)
-        self.status_bar.showMessage(f"Switched to {tab_name} tab")
+        if tab_name == "Single PDF":
+            self.status_bar.showMessage("📄 Single PDF Processing - Select a PDF file to extract data")
+        elif tab_name == "File Naming":
+            self.status_bar.showMessage("📝 File Naming - Configure templates and preview filenames")
+        elif tab_name == "Settings":
+            self.status_bar.showMessage("⚙️ Settings - Configure application preferences")
+        else:
+            self.status_bar.showMessage(f"Switched to {tab_name} tab")
 
     def _on_select_pdf(self) -> None:
         """Handle PDF file selection with OCR processing."""
@@ -364,7 +464,7 @@ class OCRMainWindow(QMainWindow):
     def _on_ocr_started(self) -> None:
         """Handle OCR processing started."""
         self.ocr_progress.setVisible(True)
-        self.status_bar.showMessage("Processing PDF with OCR...")
+        self.status_bar.showMessage("🔄 Processing PDF with OCR - Please wait...")
         self.select_pdf_btn.setEnabled(False)
 
     def _on_ocr_finished(self, extracted_data: Dict[str, Any]) -> None:
@@ -387,13 +487,16 @@ class OCRMainWindow(QMainWindow):
         # Update file naming widget with extracted data
         if self.current_pdf_path:
             from pathlib import Path
-
             original_filename = Path(self.current_pdf_path).name
-            self.file_naming_widget.update_data(extracted_data, original_filename)
+            self.file_naming_widget.update_data(extracted_data, original_filename, self.current_pdf_path)
+            # Update persistent filename label after data update
+            new_filename = self.file_naming_widget.new_filename_label.text()
+            self._update_filename_status_label(new_filename)
 
-        # Show success message
+        # Show success message with confidence indicator
         company = extracted_data.get("company", "Unknown")
         total = extracted_data.get("total", "Unknown")
+        confidence = extracted_data.get("confidence", 0)
 
         # Improve company name display
         if company and company != "Unknown":
@@ -402,14 +505,29 @@ class OCRMainWindow(QMainWindow):
         else:
             company_display = "Unknown Company"
 
-        self.status_bar.showMessage(f"OCR completed: {company_display} - ${total}")
+        # Format total amount
+        if total and total != "Unknown":
+            if isinstance(total, (int, float)):
+                total_display = f"${total:.2f}"
+            else:
+                total_display = str(total)
+        else:
+            total_display = "Unknown"
+
+        # Show status with confidence indicator
+        if confidence and confidence > 0.7:
+            status_msg = f"✅ OCR completed successfully! {company_display} - {total_display} (Confidence: {confidence:.1%})"
+        else:
+            status_msg = f"⚠️ OCR completed with low confidence. {company_display} - {total_display} (Confidence: {confidence:.1%})"
+        
+        self.status_bar.showMessage(status_msg)
         self._show_success_message("OCR processing completed successfully")
 
     def _on_ocr_error(self, error_message: str) -> None:
         """Handle OCR processing error."""
         self.ocr_progress.setVisible(False)
         self.select_pdf_btn.setEnabled(True)
-        self.status_bar.showMessage(f"OCR Error: {error_message}")
+        self.status_bar.showMessage(f"❌ OCR Error: {error_message}")
         self._show_error_message(f"OCR processing failed: {error_message}")
 
     def _show_error_message(self, message: str) -> None:
@@ -451,7 +569,63 @@ class OCRMainWindow(QMainWindow):
         if "file_management" not in self.config:
             self.config["file_management"] = {}
         self.config["file_management"]["rename_format"] = template
+        # Update persistent filename label
+        new_filename = self.file_naming_widget.new_filename_label.text()
+        self._update_filename_status_label(new_filename)
         self.status_bar.showMessage("File naming template updated")
+
+    def _on_export_data(self) -> None:
+        """Handle data export from menu."""
+        if not self.extracted_data:
+            QMessageBox.information(self, "No Data", "No data to export. Please process a PDF first.")
+            return
+        
+        # TODO: Implement actual export functionality
+        self.status_bar.showMessage("Export functionality coming in future sprints")
+
+    def _on_rename_from_data_panel(self) -> None:
+        """Handle rename request from data panel."""
+        if not self.extracted_data or not self.current_pdf_path:
+            QMessageBox.warning(self, "Error", "No file or data available for renaming.")
+            return
+        
+        # Switch to File Naming tab and trigger rename
+        self.tab_widget.setCurrentIndex(1)  # Switch to File Naming tab
+        
+        # Trigger the rename in the file naming widget
+        if hasattr(self.file_naming_widget, '_rename_file'):
+            self.file_naming_widget._rename_file()
+
+    def _show_keyboard_shortcuts(self) -> None:
+        """Show keyboard shortcuts help dialog."""
+        shortcuts_text = """
+Keyboard Shortcuts:
+
+File Operations:
+  Ctrl+O          Open PDF file
+  Ctrl+E          Export data
+  Ctrl+Q          Quit application
+
+Navigation:
+  Ctrl+1          Switch to Single PDF tab
+  Ctrl+2          Switch to File Naming tab
+  Ctrl+3          Switch to Settings tab
+
+Help:
+  F1              Show this help dialog
+
+PDF Preview (when focused):
+  Ctrl++          Zoom in
+  Ctrl+-          Zoom out
+  Ctrl+0          Reset zoom to 100%
+  Ctrl+Wheel      Zoom with mouse wheel
+        """
+        
+        QMessageBox.information(
+            self,
+            "Keyboard Shortcuts",
+            shortcuts_text
+        )
 
     def _show_about(self) -> None:
         """Show the about dialog."""
@@ -462,7 +636,7 @@ class OCRMainWindow(QMainWindow):
             "A desktop application for extracting structured data from PDF invoices "
             "using OCR.\n\n"
             "Version: 1.0.0\n"
-            "Development Phase: Sprint 0 - Foundation",
+            "Development Phase: Sprint 4 - MVP Polish & Testing",
         )
 
     def closeEvent(self, event: Optional[QCloseEvent]) -> None:
