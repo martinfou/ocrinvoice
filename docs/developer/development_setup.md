@@ -2,7 +2,7 @@
 
 > **Complete guide for setting up the OCR Invoice Parser development environment**
 
-This guide covers setting up the development environment for the OCR Invoice Parser project, including both CLI and GUI components.
+This guide covers setting up the development environment for the OCR Invoice Parser project, including both CLI and GUI components. **The MVP is now complete with all core features fully functional.**
 
 ## 🚀 Quick Setup
 
@@ -65,7 +65,7 @@ Download from: https://github.com/UB-Mannheim/tesseract/wiki
 # Test CLI
 ocrinvoice --help
 
-# Test GUI
+# Test GUI (MVP Complete)
 python -m src.ocrinvoice.gui.ocr_main_window
 
 # Test imports
@@ -84,12 +84,12 @@ ocrinvoice/
 │   │   ├── main.py              # CLI entry point
 │   │   ├── commands/            # Command implementations
 │   │   └── utils.py             # CLI utilities
-│   ├── gui/                     # GUI components (Sprint 3 ✅)
+│   ├── gui/                     # GUI components (Sprint 4 ✅ COMPLETED)
 │   │   ├── ocr_main_window.py   # Main GUI window
 │   │   ├── widgets/             # GUI widgets
 │   │   │   ├── pdf_preview.py   # PDF preview widget
 │   │   │   ├── data_panel.py    # Data display widget
-│   │   │   └── file_naming.py   # File naming widget (NEW)
+│   │   │   └── file_naming.py   # File naming widget (MVP Complete)
 │   │   └── dialogs/             # Modal dialogs
 │   ├── core/                    # Core OCR functionality
 │   │   ├── ocr_engine.py        # OCR engine
@@ -114,9 +114,9 @@ ocrinvoice/
 
 ### Key Development Files
 
-#### GUI Development (Sprint 3 Completed ✅)
-- **`src/ocrinvoice/gui/ocr_main_window.py`**: Main application window
-- **`src/ocrinvoice/gui/widgets/file_naming.py`**: File naming system (NEW)
+#### GUI Development (Sprint 4 ✅ COMPLETED)
+- **`src/ocrinvoice/gui/ocr_main_window.py`**: Main application window with complete MVP
+- **`src/ocrinvoice/gui/widgets/file_naming.py`**: File naming system (MVP Complete)
 - **`src/ocrinvoice/gui/widgets/pdf_preview.py`**: PDF preview widget
 - **`src/ocrinvoice/gui/widgets/data_panel.py`**: Data display widget
 
@@ -140,7 +140,7 @@ pytest --cov=src/ocrinvoice
 # Run specific test categories
 pytest tests/unit/                    # Unit tests
 pytest tests/integration/             # Integration tests
-pytest tests/test_gui/                # GUI tests
+pytest tests/test_gui/                # GUI tests (MVP Complete)
 
 # Run GUI tests specifically
 pytest tests/test_gui/ -v
@@ -149,7 +149,7 @@ pytest tests/test_gui/ -v
 pytest -v
 ```
 
-### GUI Testing
+### GUI Testing (Sprint 4 ✅ COMPLETED)
 
 The project includes comprehensive GUI testing using `pytest-qt`:
 
@@ -162,6 +162,7 @@ pytest tests/test_gui/ -v
 
 # Run specific GUI test
 pytest tests/test_gui/test_ocr_main_window.py -v
+pytest tests/test_gui/test_file_naming.py -v
 ```
 
 ### Test Structure
@@ -174,9 +175,9 @@ tests/
 │   ├── test_business/              # Business logic tests
 │   └── test_utils/                 # Utility tests
 ├── integration/                    # Integration tests
-├── test_gui/                       # GUI tests (Sprint 3 ✅)
+├── test_gui/                       # GUI tests (Sprint 4 ✅ COMPLETED)
 │   ├── test_ocr_main_window.py     # Main window tests
-│   ├── test_file_naming.py         # File naming tests (NEW)
+│   ├── test_file_naming.py         # File naming tests (MVP Complete)
 │   └── test_widgets/               # Widget tests
 └── conftest.py                     # Test configuration
 ```
@@ -197,45 +198,234 @@ flake8 src/ tests/
 
 # Type checking
 mypy src/
-
-# Run all quality checks
-pre-commit run --all-files
 ```
 
-### Pre-commit Hooks
+### Pre-commit Configuration
 
 The project uses pre-commit hooks for code quality:
 
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+```
+
+## 🎨 GUI Development (Sprint 4 ✅ COMPLETED)
+
+### GUI Architecture
+
+The GUI is built with PyQt6 and follows modern design patterns:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    GUI Development Stack                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌──────────────┐ │
+│  │   PyQt6         │    │   Custom        │    │   Testing    │ │
+│  │   Framework     │    │   Widgets       │    │   Framework  │ │
+│  │                 │    │                 │    │              │ │
+│  │ • QMainWindow   │    │ • FileNaming    │    │ • pytest-qt  │ │
+│  │ • QTabWidget    │    │ • DataPanel     │    │ • QTest      │ │
+│  │ • QTableWidget  │    │ • PDFPreview    │    │ • Mocking    │ │
+│  │ • QProgressBar  │    │ • Custom        │    │ • Coverage   │ │
+│  └─────────────────┘    └─────────────────┘    └──────────────┘ │
+│           │                       │                       │     │
+│           └───────────────────────┼───────────────────────┘     │
+│                                   │                             │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Design Patterns                          │ │
+│  │                                                             │ │
+│  │ • Model-View-Controller    • Observer Pattern              │ │
+│  │ • Signal/Slot Architecture • Factory Pattern               │ │
+│  │ • Background Threading     • Strategy Pattern              │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key GUI Components
+
+#### 1. Main Window (`ocr_main_window.py`)
+- **Tab Management**: Single PDF, File Naming, Settings tabs
+- **Status Bar**: Persistent filename display and status messages
+- **Menu Bar**: Application menu and keyboard shortcuts
+- **Theme**: Consistent blue/gray color scheme
+
+#### 2. File Naming Widget (`file_naming.py`)
+- **Template Builder**: Visual template creation interface
+- **Live Preview**: Real-time filename preview with validation
+- **Conflict Resolution**: Smart handling of duplicate filenames
+- **Backup Options**: Configurable backup settings
+
+#### 3. Data Panel (`data_panel.py`)
+- **Table Display**: Clean table-based data presentation
+- **Confidence Indicators**: Visual confidence scoring
+- **Export Functions**: JSON/CSV export capabilities
+- **Validation**: Real-time data validation
+
+#### 4. PDF Preview (`pdf_preview.py`)
+- **Image Display**: PDF page rendering
+- **Zoom/Pan**: Interactive PDF navigation
+- **Page Navigation**: Multi-page PDF support
+- **Thumbnails**: Page thumbnail display
+
+### GUI Development Workflow
+
+#### 1. Widget Development
+```python
+# Example: Creating a custom widget
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtCore import pyqtSignal
+
+class CustomWidget(QWidget):
+    # Define signals for communication
+    data_changed = pyqtSignal(dict)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setup_ui()
+        self.connect_signals()
+
+    def setup_ui(self):
+        # Create UI components
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+    def connect_signals(self):
+        # Connect signals to slots
+        pass
+```
+
+#### 2. Signal/Slot Architecture
+```python
+# Example: Signal/slot connections
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setup_ui()
+        self.connect_signals()
+
+    def connect_signals(self):
+        # Connect widget signals to main window slots
+        self.file_naming_widget.rename_requested.connect(self.handle_rename)
+        self.data_panel.export_requested.connect(self.handle_export)
+```
+
+#### 3. Background Processing
+```python
+# Example: Background OCR processing
+from PyQt6.QtCore import QThread, pyqtSignal
+
+class OCRThread(QThread):
+    finished = pyqtSignal(dict)
+    error = pyqtSignal(str)
+
+    def __init__(self, pdf_path):
+        super().__init__()
+        self.pdf_path = pdf_path
+
+    def run(self):
+        try:
+            # Perform OCR processing
+            result = self.process_pdf()
+            self.finished.emit(result)
+        except Exception as e:
+            self.error.emit(str(e))
+```
+
+### GUI Testing (Sprint 4 ✅ COMPLETED)
+
+#### Test Structure
+```python
+# Example: GUI test
+import pytest
+from PyQt6.QtWidgets import QApplication
+from src.ocrinvoice.gui.ocr_main_window import OCRMainWindow
+
+@pytest.fixture
+def app():
+    return QApplication([])
+
+@pytest.fixture
+def main_window(app):
+    window = OCRMainWindow()
+    yield window
+    window.close()
+
+def test_main_window_creation(main_window):
+    assert main_window is not None
+    assert main_window.windowTitle() == "OCR Invoice Parser"
+
+def test_file_naming_widget(main_window):
+    # Test file naming functionality
+    file_naming = main_window.file_naming_widget
+    assert file_naming is not None
+```
+
+#### Running GUI Tests
 ```bash
-# Install pre-commit
-pip install pre-commit
+# Run all GUI tests
+pytest tests/test_gui/ -v
 
-# Install hooks
-pre-commit install
+# Run specific GUI test file
+pytest tests/test_gui/test_file_naming.py -v
 
-# Run manually
-pre-commit run --all-files
+# Run with coverage
+pytest tests/test_gui/ --cov=src/ocrinvoice/gui
 ```
 
-### IDE Configuration
+## 🔄 Integration Development
 
-#### VS Code
-Create `.vscode/settings.json`:
-```json
-{
-    "python.defaultInterpreterPath": "./venv/bin/python",
-    "python.testing.pytestEnabled": true,
-    "python.testing.pytestArgs": ["tests"],
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.formatting.provider": "black"
-}
+### CLI-GUI Integration
+
+The GUI maintains full compatibility with the CLI:
+
+```python
+# Example: Using CLI components in GUI
+from src.ocrinvoice.parsers.invoice_parser import InvoiceParser
+from src.ocrinvoice.business.business_mapping_manager import BusinessMappingManager
+
+class GUIProcessor:
+    def __init__(self):
+        # Use same components as CLI
+        self.parser = InvoiceParser()
+        self.business_manager = BusinessMappingManager()
+
+    def process_pdf(self, pdf_path):
+        # Same processing logic as CLI
+        result = self.parser.parse(pdf_path)
+        return result
 ```
 
-#### PyCharm
-- Set project interpreter to virtual environment
-- Configure pytest as test runner
-- Enable code inspection
+### Data Format Compatibility
+
+```python
+# Example: Shared data formats
+import json
+
+def save_results(data, output_path):
+    # Same format as CLI
+    with open(output_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def load_results(input_path):
+    # Same format as CLI
+    with open(input_path, 'r') as f:
+        return json.load(f)
+```
 
 ## 🚀 Development Workflow
 
@@ -246,241 +436,100 @@ Create `.vscode/settings.json`:
 git checkout -b feature/new-feature
 
 # Make changes
-# ... edit files ...
+# Test changes
+pytest tests/test_gui/ -v
 
-# Run tests
-pytest
-
-# Run quality checks
+# Run code quality checks
 pre-commit run --all-files
 
 # Commit changes
 git add .
-git commit -m "feat: add new feature"
+git commit -m "feat(gui): add new feature"
 ```
 
-### 2. GUI Development
-
-For GUI development, use the interactive development approach:
+### 2. Testing Workflow
 
 ```bash
-# Launch GUI for testing
-python -m src.ocrinvoice.gui.ocr_main_window
-
-# In another terminal, run tests
-pytest tests/test_gui/ -v
-```
-
-### 3. Sprint Development
-
-The project follows sprint-based development:
-
-```bash
-# Create sprint branch
-git checkout -b sprint-4-new-features
-
-# Develop features
-# ... implement features ...
-
-# Update documentation
-# ... update docs ...
-
-# Test thoroughly
+# Run all tests
 pytest
-python -m src.ocrinvoice.gui.ocr_main_window
 
-# Commit with detailed message
-git commit -m "feat(sprint-4): implement new features
+# Run GUI tests specifically
+pytest tests/test_gui/ -v
 
-- Add feature A with tests
-- Update documentation
-- Fix bug in component B
-- Test with real PDF files"
+# Run with coverage
+pytest --cov=src/ocrinvoice --cov-report=html
+
+# Check code quality
+black src/ tests/
+flake8 src/ tests/
+mypy src/
 ```
 
-## 🔍 Debugging
-
-### CLI Debugging
+### 3. Documentation Updates
 
 ```bash
-# Run with debug output
-ocrinvoice parse invoice.pdf --debug --verbose
+# Update user documentation
+# Edit docs/user_guide/gui_guide.md
 
-# Run with logging
-python -c "
-import logging
-logging.basicConfig(level=logging.DEBUG)
-from src.ocrinvoice.cli.commands.parse import parse_command
-result = parse_command('invoice.pdf')
-print(result)
-"
+# Update developer documentation
+# Edit docs/developer/development_setup.md
+
+# Update architecture documentation
+# Edit docs/architecture/system_architecture.md
 ```
 
-### GUI Debugging
+## 🎯 MVP Development Status
 
-```bash
-# Run GUI with debug output
-python -m src.ocrinvoice.gui.ocr_main_window --debug
+### Completed Features (Sprint 4 ✅ COMPLETED)
 
-# Test specific widgets
-python -c "
-from src.ocrinvoice.gui.widgets.file_naming import FileNamingWidget
-widget = FileNamingWidget()
-print('File naming widget created successfully')
-"
-```
+#### Core Functionality
+- ✅ **OCR Processing**: Background threading with progress indicators
+- ✅ **Business Alias Integration**: Seamless integration with existing CLI system
+- ✅ **Data Display**: Clean table-based display with confidence indicators
+- ✅ **File Naming System**: Complete template builder with live preview
+- ✅ **File Management**: Actual file renaming with backup and conflict resolution
 
-### Common Debugging Scenarios
+#### User Experience
+- ✅ **Consistent Theme**: Uniform blue/gray color scheme
+- ✅ **Persistent Filename**: Current filename displayed in status bar
+- ✅ **Keyboard Shortcuts**: Quick access to common functions
+- ✅ **Tooltips**: Helpful information on hover
+- ✅ **Error Handling**: User-friendly error messages and validation
 
-#### OCR Issues
-```bash
-# Test OCR engine directly
-python -c "
-from src.ocrinvoice.core.ocr_engine import OCREngine
-engine = OCREngine()
-print('OCR engine initialized')
-"
-```
-
-#### GUI Issues
-```bash
-# Test GUI components
-python -c "
-from PyQt6.QtWidgets import QApplication
-import sys
-from src.ocrinvoice.gui.widgets.file_naming import FileNamingWidget
-
-app = QApplication(sys.argv)
-widget = FileNamingWidget()
-widget.show()
-print('GUI widget displayed successfully')
-"
-```
-
-## 📚 Documentation
-
-### Building Documentation
-
-```bash
-# Install documentation tools
-pip install sphinx sphinx-rtd-theme
-
-# Build documentation
-cd docs
-make html
-
-# View documentation
-open _build/html/index.html
-```
-
-### Documentation Structure
-
-```
-docs/
-├── README.md                      # Main documentation index
-├── user_guide/                    # User documentation
-│   ├── getting_started.md         # Installation guide
-│   ├── cli_reference.md           # CLI documentation
-│   ├── gui_guide.md               # GUI documentation (Sprint 3 ✅)
-│   ├── configuration.md           # Configuration guide
-│   └── troubleshooting.md         # Troubleshooting guide
-├── architecture/                  # Technical documentation
-│   ├── system_architecture.md     # System design
-│   ├── ocr_gui_development_plan.md # Development plan (Sprint 3 ✅)
-│   └── technical_deep_dive.md     # Implementation details
-└── developer/                     # Developer documentation
-    ├── development_setup.md       # This file
-    ├── contributing.md            # Contributing guidelines
-    ├── testing.md                 # Testing guide
-    └── api_reference.md           # API documentation
-```
-
-## 🎯 Sprint 3 Development Notes
-
-### Completed Features (Sprint 3 ✅)
-
-#### File Naming System
-- **Template Builder**: Visual interface for creating naming patterns
-- **Live Preview**: Real-time filename preview with validation
-- **Conflict Resolution**: Smart handling of duplicate filenames
-- **Backup Options**: Configurable backup settings
-- **Validation**: Real-time template and filename validation
-
-#### GUI Integration
-- **Background Processing**: Non-blocking OCR with progress indicators
-- **Error Handling**: Comprehensive error handling with user feedback
-- **Data Compatibility**: GUI reads/writes same formats as CLI
-- **Settings Integration**: Shared settings between CLI and GUI
+#### Integration
+- ✅ **CLI Compatibility**: Full compatibility with existing CLI functionality
+- ✅ **Data Formats**: Same JSON/CSV formats as CLI
+- ✅ **Configuration**: Shared settings between CLI and GUI
+- ✅ **Testing**: Comprehensive test suite with GUI testing
 
 ### Development Guidelines
 
-#### GUI Development
-- Use PyQt6 for all GUI components
-- Implement background threading for long operations
-- Provide real-time feedback and progress indicators
-- Maintain compatibility with CLI data formats
-- Follow the established widget patterns
+#### Code Standards
+- **Python**: Follow PEP 8, use type hints
+- **PyQt6**: Use modern PyQt6 patterns, proper signal/slot connections
+- **Error Handling**: Graceful degradation, user-friendly error messages
+- **Testing**: Unit tests for business logic, integration tests for GUI
+- **Documentation**: Clear docstrings, proper documentation structure
 
-#### File Management
-- Use existing `FileManager` from CLI
-- Implement validation for all user inputs
-- Provide clear error messages and recovery options
-- Support both single file and batch operations
-- Maintain backup and conflict resolution features
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### Import Errors
-```bash
-# Check virtual environment
-which python
-# Should point to venv/bin/python
-
-# Reinstall package
-pip install -e . --force-reinstall
-```
-
-#### GUI Not Starting
-```bash
-# Check PyQt6 installation
-python -c "from PyQt6.QtWidgets import QApplication; print('PyQt6 OK')"
-
-# Check GUI imports
-python -c "from src.ocrinvoice.gui.ocr_main_window import OCRMainWindow; print('GUI imports OK')"
-```
-
-#### OCR Issues
-```bash
-# Check Tesseract installation
-tesseract --version
-
-# Test OCR functionality
-python -c "
-from src.ocrinvoice.core.ocr_engine import OCREngine
-engine = OCREngine()
-print('OCR engine OK')
-"
-```
-
-#### Test Failures
-```bash
-# Run tests with verbose output
-pytest -v --tb=short
-
-# Run specific failing test
-pytest tests/test_specific.py::test_function -v -s
-```
-
-### Getting Help
-
-- **Check Documentation**: Review relevant documentation files
-- **Run Tests**: Ensure all tests pass
-- **Check Logs**: Review error messages and debug output
-- **Git Issues**: Check for known issues in the repository
-- **Community**: Reach out to the development team
+#### GUI Development Best Practices
+- **Responsive Design**: Interface adapts to different window sizes
+- **Background Processing**: Never block the UI thread
+- **Error Recovery**: Graceful handling of all error conditions
+- **User Feedback**: Clear status messages and progress indicators
+- **Accessibility**: Consider accessibility features in design
 
 ---
 
-**Ready to develop?** Set up your environment and start contributing to the OCR Invoice Parser project! 🚀
+## 📚 Additional Resources
+
+### Documentation
+- [GUI User Guide](../user_guide/gui_guide.md) - Complete GUI usage guide
+- [System Architecture](../architecture/system_architecture.md) - Technical architecture
+- [Development Plan](../architecture/ocr_gui_development_plan.md) - Development roadmap
+
+### External Resources
+- [PyQt6 Documentation](https://doc.qt.io/qtforpython/) - PyQt6 reference
+- [pytest-qt Documentation](https://pytest-qt.readthedocs.io/) - GUI testing guide
+- [Qt Design Patterns](https://doc.qt.io/qt-6/design-patterns.html) - Qt design patterns
+
+This development setup provides everything needed to work with the OCR Invoice Parser project, including the complete MVP GUI application with comprehensive testing and documentation.

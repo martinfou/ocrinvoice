@@ -2,7 +2,7 @@
 
 > **Complete guide to using the OCR Invoice Parser desktop application**
 
-The OCR Invoice Parser now includes a powerful desktop GUI application that provides an intuitive interface for processing PDF invoices with advanced file management capabilities.
+The OCR Invoice Parser now includes a powerful desktop GUI application that provides an intuitive interface for processing PDF invoices with advanced file management capabilities. **All MVP features are now complete and fully functional.**
 
 ## 🚀 Quick Start
 
@@ -14,7 +14,7 @@ python -m src.ocrinvoice.gui.ocr_main_window
 ```
 
 The application will open with three main tabs:
-- **Single PDF**: Process individual PDF invoices
+- **Single PDF**: Process individual PDF invoices with integrated rename functionality
 - **File Naming**: Manage file naming templates and preview
 - **Settings**: Configure application settings
 
@@ -26,6 +26,7 @@ The application will open with three main tabs:
 2. **Processing**: The application will automatically start OCR processing
 3. **Progress**: Watch the progress bar during processing
 4. **Results**: View extracted data in the data panel
+5. **Filename Display**: The current filename is displayed persistently in the status bar
 
 ### Data Review
 
@@ -38,12 +39,21 @@ The extracted data is displayed in an editable table showing:
 - **Confidence**: Overall extraction confidence
 - **Validation Status**: Whether the extraction is valid
 
-### Data Export
+### Data Export and File Management
 
 - **Export Data**: Click to save extracted data in JSON/CSV format
 - **Clear Data**: Reset the data panel for new processing
+- **Rename File**: **NEW** - Directly rename the current file using the File Naming system
 
-## 🏷️ File Naming System (Sprint 3)
+### Quick Rename Feature
+
+The **Rename File** button on the Single PDF tab provides instant access to file renaming:
+1. **Click Rename**: Automatically switches to File Naming tab
+2. **Configure Template**: Set up your naming pattern
+3. **Preview**: See the new filename in real-time
+4. **Apply**: Rename the file with backup and conflict resolution
+
+## 🏷️ File Naming System (Sprint 3 ✅ COMPLETED)
 
 The File Naming tab provides comprehensive file management capabilities with custom templates and live preview.
 
@@ -107,10 +117,30 @@ When a file with the same name already exists:
 - Click "Rename File" to apply the naming template
 - The system will check for conflicts and handle them appropriately
 - Success/failure messages are displayed
+- **Full Path Display**: Shows complete file path in dialogs and status messages
 
 #### Open Folder
 - Click "Open Folder" to open the directory containing the file
 - Works on macOS, Windows, and Linux
+
+## 🎨 User Interface (Sprint 4 ✅ COMPLETED)
+
+### Visual Design
+- **Consistent Theme**: Uniform blue/gray color scheme throughout the application
+- **Professional Look**: Clean, modern interface with proper spacing and typography
+- **Visual Feedback**: Clear indicators for all user actions and system states
+
+### Enhanced User Experience
+- **Persistent Filename Display**: Current filename shown in status bar at all times
+- **Keyboard Shortcuts**: Quick access to common functions
+- **Tooltips**: Helpful information on hover for all interactive elements
+- **Status Indicators**: Real-time feedback on processing and file operations
+- **Progress Visualization**: Clear progress bars and status messages
+
+### Responsive Design
+- **Adaptive Layout**: Interface adjusts to different window sizes
+- **Drag and Drop**: Intuitive file selection with visual feedback
+- **Error Handling**: User-friendly error messages with actionable guidance
 
 ## ⚙️ Settings Configuration
 
@@ -147,14 +177,16 @@ Comprehensive error handling includes:
 - **OCR Processing Errors**: Detailed error information
 - **Template Validation**: Real-time feedback on template issues
 - **File Operation Errors**: Graceful handling of file system errors
+- **Integration Errors**: Clear messages for CLI compatibility issues
 
 ### Integration with CLI
 
 The GUI maintains full compatibility with the CLI:
 - **Same Data Formats**: GUI reads/writes same JSON/CSV formats
 - **Shared Configuration**: Settings are compatible between CLI and GUI
-- **Business Aliases**: Uses same alias system as CLI
+- **Business Alias System**: Uses same alias system as CLI
 - **File Management**: Same naming patterns and options
+- **Workflow Integration**: Seamless switching between CLI and GUI
 
 ## 📋 Workflow Examples
 
@@ -163,22 +195,24 @@ The GUI maintains full compatibility with the CLI:
 1. **Launch GUI**: `python -m src.ocrinvoice.gui.ocr_main_window`
 2. **Load PDF**: Drag and drop invoice.pdf
 3. **Review Data**: Check extracted information
-4. **Configure Naming**: Set template to `{company}_{date}.pdf`
-5. **Rename File**: Apply naming with conflict resolution
-6. **Export Data**: Save results as JSON
+4. **Quick Rename**: Click "Rename File" button on Single PDF tab
+5. **Configure Template**: Set template to `{company}_{date}.pdf`
+6. **Apply Rename**: Execute rename with conflict resolution
+7. **Export Data**: Save results as JSON
 
-### Example 2: Custom Template
+### Example 2: Custom Template with Advanced Features
 
 1. **Create Template**: `{documentType}_{company}_{total}_{invoice_number}.pdf`
 2. **Set Document Type**: Choose "facture"
 3. **Live Preview**: See `facture_HYDRO-QUÉBEC_137.50_INV-001.pdf`
 4. **Enable Backup**: Check backup option
 5. **Rename**: Apply with backup creation
+6. **Open Folder**: Access renamed file immediately
 
 ### Example 3: Batch Preparation
 
 1. **Configure Template**: Set up naming pattern for batch processing
-2. **Test with Single File**: Verify template works correctly
+2. **Test with Single File**: Use GUI to verify template works correctly
 3. **Save Settings**: Store configuration for batch use
 4. **Use CLI for Batch**: Apply same settings to batch processing
 
@@ -215,12 +249,18 @@ python --version
 - Check file permissions in target directory
 - Verify template generates valid filenames
 
+**Rename button not working**
+- Ensure a PDF is loaded in Single PDF tab
+- Check that file exists and is accessible
+- Verify template is valid before renaming
+
 ### Getting Help
 
 - **Status Bar**: Check for error messages and status updates
 - **Error Dialogs**: Read detailed error information
 - **Validation Feedback**: Review template validation messages
 - **Logs**: Check console output for debugging information
+- **Filename Display**: Current file path shown in status bar
 
 ## 🎯 Best Practices
 
@@ -241,6 +281,12 @@ python --version
 - **Batch Processing**: Use CLI for large numbers of files
 - **Memory Management**: Close large PDFs when done
 - **Regular Updates**: Keep application and dependencies updated
+
+### Workflow Optimization
+- **Quick Rename**: Use the rename button on Single PDF tab for immediate access
+- **Template Reuse**: Save common templates for repeated use
+- **Integration**: Combine GUI and CLI for optimal workflow
+- **Validation**: Always preview templates before applying
 
 ## 🔄 Integration with CLI
 
@@ -265,6 +311,14 @@ ocrinvoice parse invoice.pdf --rename
 # Export from GUI, import to CLI
 ```
 
+### File Management Compatibility
+- **Same Naming Patterns**: GUI and CLI use identical template formats
+- **Shared Settings**: Configuration is compatible between interfaces
+- **Backup Systems**: Both interfaces support backup and restore
+- **Conflict Resolution**: Consistent handling across CLI and GUI
+
 ---
 
-**Ready to get started?** Launch the GUI with `python -m src.ocrinvoice.gui.ocr_main_window` and begin processing your invoices with the powerful file management system! 🚀
+**Ready to get started?** Launch the GUI with `python -m src.ocrinvoice.gui.ocr_main_window` and begin processing your invoices with the complete MVP file management system! 🚀
+
+**MVP Status**: ✅ **COMPLETE** - All features working and tested with comprehensive error handling and user experience polish.

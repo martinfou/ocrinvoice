@@ -15,24 +15,24 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 **For end users** - Complete usage instructions
 - [Getting Started](./user_guide/getting_started.md) - Installation and first steps
 - [CLI Reference](./user_guide/cli_reference.md) - Complete command reference with file renaming features
-- [GUI Guide](./user_guide/gui_guide.md) - **NEW**: PyQt6 GUI application for OCR processing
+- [GUI Guide](./user_guide/gui_guide.md) - **COMPLETE**: PyQt6 GUI application with full MVP features
 - [Configuration](./user_guide/configuration.md) - System configuration options including rename settings
 - [Troubleshooting](./user_guide/troubleshooting.md) - Common issues and solutions including file renaming problems
 
 ### 🏗️ [Architecture Documentation](./architecture/)
 **For technical stakeholders** - System design and analysis
-- [System Architecture](./architecture/system_architecture.md) - High-level system design
-- [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) - **NEW**: Complete GUI development roadmap
-- [Sprint 2 Achievements](./architecture/sprint_2_achievements.md) - **NEW**: Detailed Sprint 2 completion report
+- [System Architecture](./architecture/system_architecture.md) - High-level system design with GUI integration
+- [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) - **COMPLETE**: Full GUI development roadmap with Sprint 4 completed
+- [Sprint 2 Achievements](./architecture/sprint_2_achievements.md) - Detailed Sprint 2 completion report
 - [Feature Analysis](./architecture/feature_analysis.md) - Business and technical feature analysis
 - [Technical Deep Dive](./architecture/technical_deep_dive.md) - Detailed implementation analysis
 - [Code Cleaning Analysis](./architecture/code_cleaning_analysis.md) - Text processing and normalization
 
 ### 🔧 [Developer Resources](./developer/)
 **For developers** - Development and contribution guides
-- [Development Setup](./developer/development_setup.md) - Setting up development environment
+- [Development Setup](./developer/development_setup.md) - Setting up development environment with GUI support
 - [Contributing Guidelines](./developer/contributing.md) - How to contribute to the project
-- [Testing Guide](./developer/testing.md) - Running tests and quality assurance
+- [Testing Guide](./developer/testing.md) - Running tests and quality assurance including GUI tests
 - [API Reference](./developer/api_reference.md) - Internal API documentation including FileManager utility
 
 ## 🎯 Quick Navigation by User Type
@@ -45,8 +45,8 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 
 ### For GUI Users
 1. Read the [GUI Guide](./user_guide/gui_guide.md) for complete instructions
-2. Review [Sprint 2 Achievements](./architecture/sprint_2_achievements.md) for current features
-3. Check [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) for roadmap
+2. Review [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) for current features
+3. Check [System Architecture](./architecture/system_architecture.md) for technical overview
 
 ### For End Users
 1. Read the complete [User Guide](./user_guide/) section
@@ -77,18 +77,18 @@ docs/
 ├── user_guide/                  # End user documentation
 │   ├── getting_started.md       # Installation and first steps
 │   ├── cli_reference.md         # Complete CLI documentation
-│   ├── gui_guide.md             # **NEW**: PyQt6 GUI application guide
+│   ├── gui_guide.md             # **COMPLETE**: PyQt6 GUI application guide
 │   ├── configuration.md         # Configuration options
 │   └── troubleshooting.md       # Common issues and solutions
 ├── architecture/                # Technical architecture documentation
-│   ├── system_architecture.md   # High-level system design
-│   ├── ocr_gui_development_plan.md # **NEW**: Complete GUI development roadmap
-│   ├── sprint_2_achievements.md # **NEW**: Sprint 2 completion report
+│   ├── system_architecture.md   # High-level system design with GUI
+│   ├── ocr_gui_development_plan.md # **COMPLETE**: Full GUI development roadmap
+│   ├── sprint_2_achievements.md # Sprint 2 completion report
 │   ├── feature_analysis.md      # Feature analysis and business value
 │   ├── technical_deep_dive.md   # Detailed technical implementation
 │   └── code_cleaning_analysis.md # Text processing and normalization
 └── developer/                   # Developer resources
-    ├── development_setup.md     # Development environment setup
+    ├── development_setup.md     # Development environment setup with GUI
     ├── contributing.md          # Contribution guidelines
     ├── testing.md               # Testing and quality assurance
     └── api_reference.md         # Internal API documentation
@@ -139,20 +139,33 @@ docs/
 
 ## 🚀 Current Project Status
 
-### GUI Development - Sprint 2 ✅ **COMPLETED**
-The PyQt6 GUI application has completed Sprint 2 with full OCR integration:
+### GUI Development - Sprint 4 ✅ **COMPLETED**
+The PyQt6 GUI application has completed Sprint 4 with full MVP polish and testing:
 
 - ✅ **OCR Processing**: Background threading with progress indicators
 - ✅ **Business Alias Integration**: Seamless integration with existing CLI system
 - ✅ **Data Display**: Clean table-based display with confidence indicators
-- ✅ **User Interface**: Compact design with drag-and-drop functionality
+- ✅ **File Naming System**: Complete template builder with live preview and validation
+- ✅ **File Management**: Actual file renaming with backup and conflict resolution
+- ✅ **UI/UX Polish**: Consistent blue/gray theme, keyboard shortcuts, tooltips
 - ✅ **Error Handling**: Comprehensive error handling and user feedback
+- ✅ **Testing**: Full test suite with GUI testing using pytest-qt
+- ✅ **Integration**: Seamless compatibility with CLI functionality
 
-**Ready for Sprint 3**: File management and naming features
+**MVP Status**: ✅ **COMPLETE** - All MVP features working and tested
 
 ### Available Interfaces
 - **CLI**: Full-featured command-line interface
-- **GUI**: PyQt6 desktop application (Sprint 2 completed)
+- **GUI**: PyQt6 desktop application with complete MVP functionality
+
+### Key Features
+- **Single PDF Processing**: Drag-and-drop interface with OCR extraction
+- **File Naming Templates**: Custom templates with live preview and validation
+- **Business Alias Integration**: Uses existing CLI alias system
+- **Data Export**: JSON/CSV export capabilities
+- **Settings Management**: Shared configuration with CLI
+- **Error Handling**: User-friendly error messages and validation
+- **Cross-Platform**: Works on macOS, Windows, and Linux
 
 ## 📊 Documentation Metrics
 

@@ -4,7 +4,7 @@
 
 ## 🏗️ System Overview
 
-The OCR Invoice Parser is a comprehensive system for extracting structured data from PDF invoices using advanced OCR techniques. The system consists of both command-line interface (CLI) and desktop graphical user interface (GUI) components, providing flexibility for different use cases.
+The OCR Invoice Parser is a comprehensive system for extracting structured data from PDF invoices using advanced OCR techniques. The system consists of both command-line interface (CLI) and desktop graphical user interface (GUI) components, providing flexibility for different use cases. **The MVP is now complete with all core features fully functional.**
 
 ## 🎯 Architecture Goals
 
@@ -24,7 +24,7 @@ The OCR Invoice Parser is a comprehensive system for extracting structured data 
 │                                                                 │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌──────────────┐ │
 │  │   CLI Interface │    │   GUI Interface │    │   Core OCR   │ │
-│  │                 │    │                 │    │   Engine     │ │
+│  │                 │    │   (MVP Complete)│    │   Engine     │ │
 │  │ • Parse Command │    │ • Main Window   │    │              │ │
 │  │ • Batch Command │    │ • File Naming   │    │ • Tesseract  │ │
 │  │ • Alias Mgmt    │    │ • Data Display  │    │ • Image Proc │ │
@@ -116,7 +116,7 @@ Shared utilities and helper functions.
 - **Amount Normalizer**: Currency and amount processing
 - **Fuzzy Matcher**: String similarity matching
 
-## 🖥️ GUI Architecture (Sprint 3 Completed ✅)
+## 🖥️ GUI Architecture (Sprint 4 ✅ COMPLETED)
 
 ### GUI Components
 
@@ -131,7 +131,9 @@ Shared utilities and helper functions.
 │  │ • Tab Manager   │    │ • Template      │    │ • OCR Config │ │
 │  │ • Menu Bar      │    │   Builder       │    │ • Output Dir │ │
 │  │ • Status Bar    │    │ • Live Preview  │    │ • Alias File │ │
-│  └─────────────────┘    │ • Validation    │    └──────────────┘ │
+│  │ • Filename      │    │ • Validation    │    └──────────────┘ │
+│  │   Display       │    │ • Conflict      │             │       │
+│  └─────────────────┘    │   Resolution    │             │       │
 │           │             └─────────────────┘             │       │
 │           │                       │                     │       │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌──────────────┐ │
@@ -141,12 +143,13 @@ Shared utilities and helper functions.
 │  │ • File Selection│    │   Data Table    │    │ • Zoom/Pan   │ │
 │  │ • OCR Progress  │    │ • Confidence    │    │ • Page Nav   │ │
 │  │ • Drag & Drop   │    │   Indicators    │    │ • Thumbnails │ │
-│  └─────────────────┘    │ • Export        │    └──────────────┘ │
-│                         └─────────────────┘                     │
+│  │ • Rename Button │    │ • Export        │    └──────────────┘ │
+│  │   (NEW)         │    │ • Clear         │                     │
+│  └─────────────────┘    └─────────────────┘                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Key GUI Features (Sprint 3)
+### Key GUI Features (Sprint 4 ✅ COMPLETED)
 
 #### 1. File Naming System
 - **Template Builder**: Visual interface for creating naming patterns
@@ -154,18 +157,28 @@ Shared utilities and helper functions.
 - **Conflict Resolution**: Smart handling of duplicate filenames
 - **Backup Options**: Configurable backup settings
 - **Validation**: Real-time template and filename validation
+- **Full Path Display**: Complete file paths in dialogs and status
 
 #### 2. Single PDF Processing
 - **File Selection**: Drag-and-drop or browse for PDF files
 - **OCR Processing**: Background processing with progress indicators
 - **Data Display**: Clean table-based display of extracted data
 - **Export Capabilities**: Save results in JSON/CSV format
+- **Quick Rename**: Direct access to file renaming from Single PDF tab
+- **Persistent Filename**: Current filename displayed in status bar
 
 #### 3. Settings Management
 - **OCR Configuration**: Language and processing settings
 - **Output Settings**: Default directories and file locations
 - **Business Settings**: Alias file configuration
 - **Integration**: Shared settings with CLI
+
+#### 4. User Experience Enhancements
+- **Consistent Theme**: Uniform blue/gray color scheme
+- **Keyboard Shortcuts**: Quick access to common functions
+- **Tooltips**: Helpful information on hover
+- **Status Indicators**: Real-time feedback on all operations
+- **Error Handling**: User-friendly error messages and validation
 
 ### GUI Technical Implementation
 
@@ -180,6 +193,12 @@ Shared utilities and helper functions.
 - **Observer Pattern**: Real-time updates between components
 - **Factory Pattern**: Widget creation and management
 - **Strategy Pattern**: Configurable parsing and validation
+
+#### Integration Architecture
+- **Shared Business Logic**: Uses same core modules as CLI
+- **Data Format Compatibility**: Reads/writes same JSON/CSV formats
+- **Configuration Sharing**: Settings compatible between CLI and GUI
+- **File Management**: Same naming patterns and backup systems
 
 ## 🔄 Integration Architecture
 
@@ -198,94 +217,142 @@ The system maintains full compatibility between CLI and GUI:
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-### Data Flow
+### Data Flow Integration
 
-1. **Configuration**: Shared JSON configuration files
-2. **Business Aliases**: Same alias system for both interfaces
-3. **File Management**: Compatible naming templates and options
-4. **Data Formats**: Identical JSON/CSV output formats
-5. **Validation**: Shared validation rules and error handling
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   File Input    │───►│   OCR Engine    │───►│   Parser Layer  │
+│                 │    │                 │    │                 │
+│ • PDF Selection │    │ • Image Proc    │    │ • Data Extract  │
+│ • Drag & Drop   │    │ • Text Extract  │    │ • Validation    │
+│ • Batch Files   │    │ • Background    │    │ • Confidence    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                                ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Business      │◄───│   Data Display  │◄───│   File Naming   │
+│   Logic         │    │                 │    │                 │
+│                 │    │ • Table View    │    │ • Template      │
+│ • Alias Match   │    │ • Confidence    │    │ • Preview       │
+│ • Validation    │    │ • Export        │    │ • Rename        │
+│ • Quality Score │    │ • Clear         │    │ • Backup        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## 🧪 Testing Architecture
+
+### Test Coverage
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Test Suite                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌──────────────┐ │
+│  │   Unit Tests    │    │ Integration     │    │   GUI Tests  │ │
+│  │                 │    │   Tests         │    │              │ │
+│  │ • Core Logic    │    │ • End-to-End    │    │ • Widgets    │ │
+│  │ • Parsers       │    │ • CLI-GUI       │    │ • Dialogs    │ │
+│  │ • Business      │    │ • File Ops      │    │ • User Flow  │ │
+│  │ • Utilities     │    │ • Data Format   │    │ • Error      │ │
+│  └─────────────────┘    └─────────────────┘    └──────────────┘ │
+│           │                       │                       │     │
+│           └───────────────────────┼───────────────────────┘     │
+│                                   │                             │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Quality Assurance                        │ │
+│  │                                                             │ │
+│  │ • Code Coverage    • Performance Tests    • User Testing   │ │
+│  │ • Linting          • Memory Profiling     • Accessibility  │ │
+│  │ • Type Checking    • Cross-Platform      • Error Handling  │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Testing Technologies
+- **pytest**: Core testing framework
+- **pytest-qt**: GUI testing with PyQt6
+- **pytest-cov**: Code coverage reporting
+- **pytest-mock**: Mocking and test isolation
 
 ## 📊 Performance Architecture
 
 ### Processing Pipeline
 
 ```
-PDF Input → Image Processing → OCR Extraction → Text Parsing → Data Validation → Output
-     │              │                │              │              │            │
-     ▼              ▼                ▼              ▼              ▼            ▼
-File Manager → Image Processor → OCR Engine → Parser Layer → Validation → Export
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Input Stage   │───►│ Processing      │───►│   Output Stage  │
+│                 │    │   Stage         │    │                 │
+│ • File Load     │    │ • OCR Engine    │    │ • Data Display  │
+│ • Validation    │    │ • Parser        │    │ • File Rename   │
+│ • Preprocessing │    │ • Business      │    │ • Export        │
+│                 │    │   Logic         │    │ • Backup        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Background    │    │   Threading     │    │   User          │
+│   Tasks         │    │   Management    │    │   Feedback      │
+│                 │    │                 │    │                 │
+│ • Image Proc    │    │ • OCR Thread    │    │ • Progress Bar  │
+│ • File I/O      │    │ • UI Thread     │    │ • Status Msgs   │
+│ • Data Export   │    │ • Signal/Slot   │    │ • Error Dialogs │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-### Optimization Strategies
+### Performance Optimizations
+- **Background Processing**: OCR runs in separate thread
+- **Memory Management**: Efficient image processing and cleanup
+- **Caching**: Template and configuration caching
+- **Lazy Loading**: Load components on demand
 
-1. **Background Processing**: Non-blocking OCR in GUI
-2. **Caching**: Template and configuration caching
-3. **Batch Processing**: Optimized for multiple files
-4. **Memory Management**: Efficient image and data handling
-5. **Error Recovery**: Graceful handling of processing failures
+## 🔒 Security Architecture
 
-## 🔒 Security & Reliability
+### Data Protection
+- **File Permissions**: Proper file access controls
+- **Input Validation**: Comprehensive input sanitization
+- **Error Handling**: Secure error messages without data leakage
+- **Backup Security**: Safe backup file handling
 
-### Error Handling
-- **Graceful Degradation**: Continue processing on partial failures
-- **User Feedback**: Clear error messages and status updates
-- **Logging**: Comprehensive logging for debugging
-- **Validation**: Input validation and sanitization
+### Integration Security
+- **Configuration Validation**: Secure configuration loading
+- **Business Logic Isolation**: Protected business rule processing
+- **File Operation Safety**: Safe file system operations
 
-### Data Integrity
-- **Backup Systems**: Automatic backup before file operations
-- **Validation**: Multi-layer data validation
-- **Confidence Scoring**: Quality assessment of extracted data
-- **Conflict Resolution**: Smart handling of file conflicts
+## 🚀 Deployment Architecture
 
-## 🚀 Scalability Considerations
+### Distribution
+- **Cross-Platform**: macOS, Windows, Linux support
+- **Dependency Management**: pip-based package management
+- **Virtual Environment**: Isolated Python environments
+- **Configuration Management**: Environment-specific settings
 
-### Horizontal Scaling
-- **Batch Processing**: Efficient handling of large file volumes
-- **Parallel Processing**: Multi-threaded OCR processing
-- **Resource Management**: Memory and CPU optimization
-
-### Vertical Scaling
-- **Modular Architecture**: Easy to add new parsers and features
-- **Plugin System**: Extensible architecture for custom functionality
-- **Configuration**: Flexible configuration for different environments
-
-## 🔮 Future Architecture
-
-### Planned Enhancements
-- **Batch Processing GUI**: Visual interface for batch operations
-- **Search & Filter**: Advanced PDF search capabilities
-- **Cloud Integration**: Remote processing and storage
-- **API Layer**: RESTful API for external integrations
-- **Plugin System**: Third-party extension support
-
-### Technology Evolution
-- **AI/ML Integration**: Enhanced OCR accuracy with machine learning
-- **Cloud Processing**: Distributed OCR processing
-- **Real-time Collaboration**: Multi-user editing and sharing
-- **Mobile Support**: Mobile application for field use
-
-## 📋 Development Guidelines
-
-### Code Organization
-- **Separation of Concerns**: Clear boundaries between layers
-- **Dependency Injection**: Loose coupling between components
-- **Interface Design**: Well-defined APIs between modules
-- **Error Handling**: Consistent error handling patterns
-
-### Testing Strategy
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: Cross-component testing
-- **GUI Tests**: Automated UI testing with pytest-qt
-- **Performance Tests**: Load and stress testing
-
-### Documentation Standards
-- **API Documentation**: Comprehensive docstrings
-- **Architecture Documentation**: System design documentation
-- **User Guides**: End-user documentation
-- **Developer Guides**: Technical implementation guides
+### Development Workflow
+- **Version Control**: Git-based development
+- **CI/CD Pipeline**: Automated testing and quality checks
+- **Documentation**: Comprehensive user and developer guides
+- **Release Management**: Semantic versioning and changelog
 
 ---
 
-**Architecture Summary**: The OCR Invoice Parser system provides a robust, scalable, and user-friendly solution for PDF invoice processing, with seamless integration between CLI and GUI interfaces, comprehensive error handling, and extensible architecture for future enhancements.
+## 📈 Future Architecture Considerations
+
+### Scalability
+- **Batch Processing**: Enhanced batch processing capabilities
+- **Cloud Integration**: Potential cloud-based OCR services
+- **API Development**: RESTful API for external integrations
+- **Plugin System**: Extensible plugin architecture
+
+### Performance Enhancements
+- **GPU Acceleration**: GPU-based image processing
+- **Parallel Processing**: Multi-core OCR processing
+- **Caching Layer**: Intelligent result caching
+- **Optimization**: Profile-driven performance improvements
+
+### User Experience
+- **Advanced UI**: Enhanced user interface components
+- **Accessibility**: Improved accessibility features
+- **Internationalization**: Multi-language support
+- **Customization**: User-configurable interface
+
+This architecture provides a solid foundation for the OCR Invoice Parser system, with the MVP now complete and ready for future enhancements and scaling.
