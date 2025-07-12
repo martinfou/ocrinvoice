@@ -1,0 +1,95 @@
+# OCR Invoice Parser - Cursor Rules
+
+## Project Overview
+This is an OCR invoice parser project that extracts structured data from PDF invoices. The project includes both CLI and GUI components, with a focus on business alias management for improving parsing accuracy.
+
+## Current Development Phase
+We are currently working on **Phase 1: Core Functionality (MVP)** of the Business Aliases GUI Manager. This is a PyQt6 desktop application for managing business name aliases used by the OCR invoice parser.
+
+## Key Goals
+- Create an intuitive GUI for managing business aliases
+- Improve alias accuracy through visual feedback and validation
+- Support bulk operations for enterprise users
+- Maintain data integrity and provide backup/recovery
+- Integrate seamlessly with existing CLI functionality
+
+## Technical Stack
+- **Backend**: Python 3.8+ with OCR capabilities (pytesseract, pdf2image, opencv)
+- **GUI**: PyQt6 for desktop application
+- **Data**: JSON-based alias storage with CLI compatibility
+- **Testing**: pytest with pytest-qt for GUI testing
+- **Code Quality**: black, flake8, mypy for linting and type checking
+
+## Development Approach
+1. **Always fix pre-commit hook issues** before committing (flake8, mypy, black)
+2. **Follow the specification** in `docs/architecture/business_aliases_gui_spec.md`
+3. **Maintain CLI compatibility** - GUI should use same data formats as CLI
+4. **Focus on long-term maintainability** - clean code, proper error handling, comprehensive testing
+5. **User experience first** - intuitive interface, helpful error messages, keyboard shortcuts
+
+## File Structure
+```
+src/ocrinvoice/
+├── cli/                    # Command line interface
+├── gui/                    # GUI components (being developed)
+│   ├── main_window.py      # Main application window
+│   ├── alias_table.py      # Custom table widget
+│   ├── alias_form.py       # Add/edit forms
+│   ├── dialogs/            # Modal dialogs
+│   └── utils/              # GUI utilities
+├── business/               # Business logic
+├── parsers/                # Invoice parsing logic
+└── utils/                  # Shared utilities
+```
+
+## Code Standards
+- **Python**: Follow PEP 8, use type hints
+- **PyQt6**: Use modern PyQt6 patterns, proper signal/slot connections
+- **Error Handling**: Graceful degradation, user-friendly error messages
+- **Testing**: Unit tests for business logic, integration tests for GUI
+- **Documentation**: Clear docstrings, README updates
+
+## Commit Standards
+- **ALWAYS ask for review** before committing - never commit without user approval
+- **Detailed commit messages** with comprehensive information about changes
+- **Use conventional commit format**: `type(scope): description`
+- **Include context** about why changes were made
+- **List all major changes** in bullet points
+- **Reference related issues** or specifications when applicable
+- **Explain impact** on existing functionality
+- **Mention testing** performed or needed
+
+### Commit Message Template
+```
+type(scope): detailed description of changes
+
+- List all major changes made
+- Explain why changes were necessary
+- Reference any related issues or specs
+- Mention impact on existing functionality
+- Note any testing performed
+- Include any breaking changes or migrations needed
+
+Example:
+feat(gui): implement main window with basic table widget
+
+- Create MainWindow class with PyQt6 QMainWindow
+- Add AliasTable widget with QTableWidget
+- Implement basic CRUD operations for aliases
+- Add toolbar with add/edit/delete actions
+- Integrate with existing BusinessAliasManager
+- Add status bar with alias count display
+- Follow specification from business_aliases_gui_spec.md
+- Maintain CLI compatibility for data formats
+- Test basic functionality with pytest-qt
+
+```
+## Important Notes
+- Always consider the user experience
+- Maintain backward compatibility with CLI
+- Follow the detailed specification in the docs
+- Focus on clean, maintainable code
+- Test thoroughly before committing
+- Always run the test suite after each modification.
+- When working with a spec document, do a check mark beside the tasks each time you complete a task.
+- **NEVER commit without user review of commit message**
