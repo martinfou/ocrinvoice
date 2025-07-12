@@ -5,43 +5,103 @@ Main application window for the OCR Invoice Parser GUI.
 """
 
 import sys
-from typing import Optional
+from typing import Optional, Dict, Any
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget,
-    QPushButton, QFileDialog, QMessageBox, QLabel, QHBoxLayout,
-    QSplitter, QFrame, QComboBox, QLineEdit, QStatusBar, QCloseEvent
+    QApplication,
+    QMainWindow,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+    QPushButton,
+    QFileDialog,
+    QMessageBox,
+    QLabel,
+    QHBoxLayout,
+    QSplitter,
+    QFrame,
+    QComboBox,
+    QLineEdit,
+    QStatusBar,
+    QProgressBar,
 )
-from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
 
 from .widgets.pdf_preview import PDFPreviewWidget
 from .widgets.data_panel import DataPanelWidget
 
+# Import OCR parsing functionality
+from ..parsers.invoice_parser import InvoiceParser
+from ..config import get_config
+
+
+class OCRProcessingThread(QThread):
+    """Background thread for OCR processing to avoid blocking the GUI."""
+
+    # Signals to communicate with the main thread
+    processing_started = pyqtSignal()
+    processing_finished = pyqtSignal(dict)  # Emits extracted data
+    processing_error = pyqtSignal(str)  # Emits error message
+
+    def __init__(self, pdf_path: str, config: Dict[str, Any]):
+        super().__init__()
+        self.pdf_path = pdf_path
+        self.config = config
+
+    def run(self) -> None:
+        """Run OCR processing in background thread."""
+        try:
+            self.processing_started.emit()
+
+            # Initialize parser with config
+            parser = InvoiceParser(self.config)
+
+            # Parse the PDF
+            result = parser.parse(self.pdf_path)
+
+            # Debug: Check if "rona" is in the raw text
+            raw_text = result.get("raw_text", "")
+            print(f"[DEBUG] Raw text contains 'rona': {'rona' in raw_text.lower()}")
+            print(f"[DEBUG] Raw text contains 'RONA': {'RONA' in raw_text}")
+            print(f"[DEBUG] Raw text sample (first 500 chars): {raw_text[:500]}")
+
+            # Emit the result
+            self.processing_finished.emit(result)
+
+        except Exception as e:
+            self.processing_error.emit(str(e))
+
 
 class OCRMainWindow(QMainWindow):
-    """
-    Main application window for the OCR Invoice Parser GUI.
+    """Main application window for the OCR Invoice Parser GUI."""
 
-    Provides the foundation for the OCR GUI application with:
-    - Basic navigation framework using tabs
-    - Status bar for user feedback
-    - Menu system for application actions
-    - Integration points for future OCR functionality
-    """
-
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        # Window setup
-        self.setWindowTitle("OCR Invoice Parser")
-        self.setMinimumSize(1000, 700)
-        self.resize(1200, 800)
+        # Load configuration
+        self.config = get_config()
 
-        # Initialize UI components
+        # Initialize OCR parser
+        self.ocr_parser = InvoiceParser(self.config)
+
+        # OCR processing thread
+        self.ocr_thread: Optional[OCRProcessingThread] = None
+
+        # Current PDF path
+        self.current_pdf_path: Optional[str] = None
+
+        # Extracted data
+        self.extracted_data: Optional[Dict[str, Any]] = None
+
+        # Set up the UI
         self._setup_ui()
         self._setup_menu_bar()
         self._setup_status_bar()
         self._setup_connections()
+
+        # Set window properties
+        self.setWindowTitle("OCR Invoice Parser")
+        self.setGeometry(100, 100, 1200, 800)
 
     def _setup_ui(self) -> None:
         """Set up the main user interface components."""
@@ -64,33 +124,54 @@ class OCRMainWindow(QMainWindow):
         self._create_settings_tab()
 
     def _create_single_pdf_tab(self) -> None:
-        """Create the single PDF processing tab (Sprint 1)."""
+        """Create the Single PDF processing tab."""
         single_pdf_widget = QWidget()
         layout = QVBoxLayout(single_pdf_widget)
 
         # Create file selection area
-        file_layout = QHBoxLayout()
+        file_layout = QVBoxLayout()
+
+        # Select PDF button
         self.select_pdf_btn = QPushButton("Select PDF")
         self.select_pdf_btn.clicked.connect(self._on_select_pdf)
         file_layout.addWidget(self.select_pdf_btn)
-        
-        # Add drag and drop area
+
+        # Add drag and drop area under the button
         self.drop_area = QLabel("Drag and drop PDF files here")
         self.drop_area.setStyleSheet(
-            "border: 2px dashed #ccc; padding: 20px; background: #f9f9f9;"
+            (
+                "border: 2px dashed #ccc; padding: 5px; background: #f9f9f9; "
+                "margin-top: 10px;"
+            )
         )
         self.drop_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.drop_area.setFixedHeight(40)  # Set fixed height to 25% of original size
         file_layout.addWidget(self.drop_area)
 
+        layout.addLayout(file_layout)
+
+        # Add OCR progress bar
+        self.ocr_progress = QProgressBar()
+        self.ocr_progress.setVisible(False)
+        self.ocr_progress.setRange(0, 0)  # Indeterminate progress
+        self.ocr_progress.setFormat("Processing PDF with OCR...")
+        layout.addWidget(self.ocr_progress)
+
         # Main content area: PDF preview and data panel side by side
-        content_layout = QHBoxLayout()
-        # PDF preview placeholder
+        content_splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # PDF Preview (left side)
         self.pdf_preview = PDFPreviewWidget()
-        content_layout.addWidget(self.pdf_preview, 2)
-        # Data panel placeholder
+        content_splitter.addWidget(self.pdf_preview)
+
+        # Data Panel (right side)
         self.data_panel = DataPanelWidget()
-        content_layout.addWidget(self.data_panel, 1)
-        layout.addLayout(content_layout)
+        content_splitter.addWidget(self.data_panel)
+
+        # Set initial splitter sizes (60% PDF, 40% data)
+        content_splitter.setSizes([600, 400])
+
+        layout.addWidget(content_splitter)
 
         self.tab_widget.addTab(single_pdf_widget, "Single PDF")
 
@@ -224,20 +305,90 @@ class OCRMainWindow(QMainWindow):
         self.status_bar.showMessage(f"Switched to {tab_name} tab")
 
     def _on_select_pdf(self) -> None:
-        """Handle PDF file selection with error handling."""
+        """Handle PDF file selection with OCR processing."""
         try:
             file_path, _ = QFileDialog.getOpenFileName(
                 self, "Select PDF File", "", "PDF Files (*.pdf)"
             )
             if file_path:
-                # Load PDF in preview widget
-                if self.pdf_preview.load_pdf(file_path):
-                    self.status_bar.showMessage(f"Loaded PDF: {file_path}")
-                    self._show_success_message("PDF loaded successfully")
-                else:
-                    self._show_error_message("Failed to load PDF file")
+                self._load_and_process_pdf(file_path)
         except Exception as e:
             self._show_error_message(f"Error selecting PDF file: {str(e)}")
+
+    def _load_and_process_pdf(self, pdf_path: str) -> None:
+        """Load PDF and start OCR processing."""
+        try:
+            # Load PDF in preview widget
+            if self.pdf_preview.load_pdf(pdf_path):
+                self.current_pdf_path = pdf_path
+                self.status_bar.showMessage(f"Loaded PDF: {pdf_path}")
+                self._show_success_message("PDF loaded successfully")
+
+                # Start OCR processing
+                self._start_ocr_processing(pdf_path)
+            else:
+                self._show_error_message("Failed to load PDF file")
+        except Exception as e:
+            self._show_error_message(f"Error loading PDF: {str(e)}")
+
+    def _start_ocr_processing(self, pdf_path: str) -> None:
+        """Start OCR processing in background thread."""
+        # Stop any existing OCR thread
+        if self.ocr_thread and self.ocr_thread.isRunning():
+            self.ocr_thread.terminate()
+            self.ocr_thread.wait()
+
+        # Create and start new OCR thread
+        self.ocr_thread = OCRProcessingThread(pdf_path, self.config)
+        self.ocr_thread.processing_started.connect(self._on_ocr_started)
+        self.ocr_thread.processing_finished.connect(self._on_ocr_finished)
+        self.ocr_thread.processing_error.connect(self._on_ocr_error)
+
+        self.ocr_thread.start()
+
+    def _on_ocr_started(self) -> None:
+        """Handle OCR processing started."""
+        self.ocr_progress.setVisible(True)
+        self.status_bar.showMessage("Processing PDF with OCR...")
+        self.select_pdf_btn.setEnabled(False)
+
+    def _on_ocr_finished(self, extracted_data: Dict[str, Any]) -> None:
+        """Handle OCR processing finished successfully."""
+        self.ocr_progress.setVisible(False)
+        self.select_pdf_btn.setEnabled(True)
+
+        # Store extracted data
+        self.extracted_data = extracted_data
+
+        # Debug: Print extracted data
+        print(f"[DEBUG] Extracted data: {extracted_data}")
+        print(f"[DEBUG] Company field: {extracted_data.get('company', 'NOT_FOUND')}")
+        print(f"[DEBUG] Company field type: {type(extracted_data.get('company'))}")
+        print(f"[DEBUG] All fields: {list(extracted_data.keys())}")
+
+        # Update data panel
+        self.data_panel.update_data(extracted_data)
+
+        # Show success message
+        company = extracted_data.get("company", "Unknown")
+        total = extracted_data.get("total", "Unknown")
+
+        # Improve company name display
+        if company and company != "Unknown":
+            # Capitalize company name for better display
+            company_display = company.title()
+        else:
+            company_display = "Unknown Company"
+
+        self.status_bar.showMessage(f"OCR completed: {company_display} - ${total}")
+        self._show_success_message("OCR processing completed successfully")
+
+    def _on_ocr_error(self, error_message: str) -> None:
+        """Handle OCR processing error."""
+        self.ocr_progress.setVisible(False)
+        self.select_pdf_btn.setEnabled(True)
+        self.status_bar.showMessage(f"OCR Error: {error_message}")
+        self._show_error_message(f"OCR processing failed: {error_message}")
 
     def _show_error_message(self, message: str) -> None:
         """Show error message to user."""

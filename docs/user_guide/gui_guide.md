@@ -11,26 +11,67 @@ This guide covers the two main GUI applications in the OCR Invoice Parser projec
 
 The main OCR GUI application for processing PDF invoices and extracting structured data.
 
-### Current Development Status: Sprint 0 - Foundation
+### Current Development Status: Sprint 2 - OCR Integration ✅ **COMPLETED**
 
-The OCR GUI is currently in Sprint 0 of development, focusing on establishing the foundation:
+The OCR GUI has completed Sprint 2 and now provides full OCR functionality:
 
 - ✅ Basic PyQt6 application structure
 - ✅ Navigation framework with tabs
 - ✅ Main window with menu bar and status bar
-- 🚧 Single PDF processing tab (placeholder)
-- 🚧 Settings tab (placeholder)
-- 🚧 Integration with existing OCR functionality
+- ✅ Single PDF processing tab with full OCR integration
+- ✅ Settings tab with configuration options
+- ✅ Integration with existing OCR functionality
+- ✅ Background OCR processing with progress indicators
+- ✅ Business alias system integration
+- ✅ Data extraction and display
+- ✅ Compact drag-and-drop interface
+- ✅ Error handling and user feedback
+
+### Key Features Available
+
+#### PDF Processing
+- **File Selection**: Browse or drag-and-drop PDF files
+- **PDF Preview**: View PDF with zoom and pan capabilities
+- **OCR Processing**: Background processing with progress bar
+- **Data Extraction**: Extract company, total, date, invoice number
+- **Business Alias Integration**: Automatic company name matching
+
+#### Data Display
+- **Extracted Data Panel**: Clean table display of extracted fields
+- **Confidence Indicators**: Shows confidence levels for each field
+- **Editable Fields**: Modify extracted data if needed
+- **Export Capabilities**: Export data functionality (ready for implementation)
+
+#### User Interface
+- **Compact Design**: Optimized layout with reduced drag-and-drop area
+- **Responsive Layout**: Splitter-based PDF preview and data panel
+- **Progress Feedback**: Real-time progress indicators
+- **Error Handling**: User-friendly error messages
+- **Settings Integration**: OCR language and configuration options
 
 ### Running the OCR GUI
 
 ```bash
-# Launch the OCR GUI (development version)
+# Launch the OCR GUI (fully functional)
 python -m ocrinvoice.gui.ocr_main_window
 
 # Or from the project root
 python src/ocrinvoice/gui/ocr_main_window.py
 ```
+
+### Using the OCR GUI
+
+1. **Launch the application** using the command above
+2. **Select a PDF invoice** using the "Select PDF" button or drag-and-drop
+3. **Wait for OCR processing** - progress bar will show processing status
+4. **Review extracted data** in the right panel
+5. **Edit data if needed** - fields are editable
+6. **Export data** using the "Export Data" button (when implemented)
+
+### Supported File Types
+- **PDF invoices** (single page or multi-page)
+- **Standard invoice formats** (tested with Rona, Gagnon examples)
+- **Various OCR qualities** (handles both high and low confidence extractions)
 
 ---
 

@@ -4,6 +4,8 @@
 
 The Invoice OCR Parser is a **modular, enterprise-grade document processing system** designed to extract structured data from PDF invoices using advanced OCR techniques. The system employs a **layered architecture** with clear separation of concerns, enabling scalability, maintainability, and extensibility.
 
+**As of Sprint 2 (July 2025), the system includes a fully integrated PyQt6 GUI application for interactive invoice processing, business alias management, and real-time OCR extraction.**
+
 ## 1. High-Level System Architecture
 
 ### 1.1 Architectural Overview
@@ -12,6 +14,7 @@ The Invoice OCR Parser is a **modular, enterprise-grade document processing syst
 graph TB
     subgraph "Presentation Layer"
         CLI[CLI Interface<br/>Command Line Tools]
+        GUI[PyQt6 GUI Application<br/>Desktop OCR/Business Alias Manager]
         API[Future API Layer<br/>REST/GraphQL]
     end
 
@@ -40,6 +43,7 @@ graph TB
     end
 
     CLI --> ParserEngine
+    GUI --> ParserEngine
     API --> ParserEngine
 
     ParserEngine --> TextExtractor
@@ -83,6 +87,59 @@ graph TB
 - **Multiple Output Formats**: JSON, CSV, XML
 - **Verbose/Debug Modes**: Detailed logging and error reporting
 - **Help System**: Comprehensive command documentation
+
+#### GUI Application (`src/ocrinvoice/gui/`)
+- **Purpose**: Desktop application for interactive PDF invoice processing, business alias management, and real-time OCR extraction
+- **Components**:
+  - `ocr_main_window.py`: Main application window and tab navigation
+  - `widgets/`: PDF preview, data panel, progress bar, etc.
+  - `tabs/`: Single PDF processing, settings, (future: batch, search)
+  - `dialogs/`: Error dialogs, confirmation dialogs
+  - `utils/`: GUI-specific utilities and OCR integration helpers
+
+**Key Features**:
+- **Single PDF Processing**: Select, preview, and process PDF invoices
+- **Drag-and-Drop**: User-friendly file selection
+- **PDF Preview**: Real-time rendering with zoom/pan
+- **Background OCR**: Non-blocking processing with progress bar
+- **Data Panel**: Table-based display of extracted fields with confidence indicators
+- **Business Alias Integration**: Automatic company name matching using shared logic
+- **Editable Fields**: User can review and edit extracted data
+- **Settings Panel**: Configure OCR language and options
+- **Error Handling**: User-friendly error dialogs and status bar
+- **Export**: (Planned) Export extracted data to JSON/CSV
+
+**Integration Points**:
+- **Imports and uses**: `InvoiceParser`, `BusinessMappingManager`, and shared config from CLI/business modules
+- **Maintains**: Data format compatibility with CLI
+- **Shares**: Alias files, config, and output formats
+
+**Architecture**:
+```
+OCRMainWindow
+├── OCRProcessingThread (Background OCR)
+├── PDFPreviewWidget (PDF Display)
+├── DataPanelWidget (Extracted Data)
+└── Settings Integration
+```
+
+**Data Flow**:
+1. File Selection (button or drag-and-drop)
+2. PDF Preview (left panel)
+3. OCR Processing (background thread)
+4. Data Extraction (InvoiceParser, BusinessMappingManager)
+5. Data Display (right panel, editable)
+6. Export/Save (future)
+
+**Sprint 2 Achievements**:
+- Full OCR integration with background threading
+- Business alias system integration (shared with CLI)
+- Data display and validation with confidence indicators
+- Responsive, user-friendly interface
+- Error handling and progress feedback
+- Successfully tested with real invoices (Rona, Gagnon)
+
+---
 
 ### 2.2 Application Layer
 
