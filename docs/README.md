@@ -15,12 +15,15 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 **For end users** - Complete usage instructions
 - [Getting Started](./user_guide/getting_started.md) - Installation and first steps
 - [CLI Reference](./user_guide/cli_reference.md) - Complete command reference with file renaming features
+- [GUI Guide](./user_guide/gui_guide.md) - **NEW**: PyQt6 GUI application for OCR processing
 - [Configuration](./user_guide/configuration.md) - System configuration options including rename settings
 - [Troubleshooting](./user_guide/troubleshooting.md) - Common issues and solutions including file renaming problems
 
 ### 🏗️ [Architecture Documentation](./architecture/)
 **For technical stakeholders** - System design and analysis
 - [System Architecture](./architecture/system_architecture.md) - High-level system design
+- [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) - **NEW**: Complete GUI development roadmap
+- [Sprint 2 Achievements](./architecture/sprint_2_achievements.md) - **NEW**: Detailed Sprint 2 completion report
 - [Feature Analysis](./architecture/feature_analysis.md) - Business and technical feature analysis
 - [Technical Deep Dive](./architecture/technical_deep_dive.md) - Detailed implementation analysis
 - [Code Cleaning Analysis](./architecture/code_cleaning_analysis.md) - Text processing and normalization
@@ -37,7 +40,13 @@ Welcome to the comprehensive documentation for the Invoice OCR Parser. This docu
 ### For New Users
 1. Start with [Getting Started](./user_guide/getting_started.md)
 2. Review [CLI Reference](./user_guide/cli_reference.md) for commands
-3. Check [Troubleshooting](./user_guide/troubleshooting.md) if you encounter issues
+3. Try the [GUI Application](./user_guide/gui_guide.md) for visual OCR processing
+4. Check [Troubleshooting](./user_guide/troubleshooting.md) if you encounter issues
+
+### For GUI Users
+1. Read the [GUI Guide](./user_guide/gui_guide.md) for complete instructions
+2. Review [Sprint 2 Achievements](./architecture/sprint_2_achievements.md) for current features
+3. Check [OCR GUI Development Plan](./architecture/ocr_gui_development_plan.md) for roadmap
 
 ### For End Users
 1. Read the complete [User Guide](./user_guide/) section
@@ -68,10 +77,13 @@ docs/
 ├── user_guide/                  # End user documentation
 │   ├── getting_started.md       # Installation and first steps
 │   ├── cli_reference.md         # Complete CLI documentation
+│   ├── gui_guide.md             # **NEW**: PyQt6 GUI application guide
 │   ├── configuration.md         # Configuration options
 │   └── troubleshooting.md       # Common issues and solutions
 ├── architecture/                # Technical architecture documentation
 │   ├── system_architecture.md   # High-level system design
+│   ├── ocr_gui_development_plan.md # **NEW**: Complete GUI development roadmap
+│   ├── sprint_2_achievements.md # **NEW**: Sprint 2 completion report
 │   ├── feature_analysis.md      # Feature analysis and business value
 │   ├── technical_deep_dive.md   # Detailed technical implementation
 │   └── code_cleaning_analysis.md # Text processing and normalization
@@ -125,11 +137,28 @@ docs/
 3. **Link Validation**: Ensure all links are working
 4. **Format Check**: Verify markdown formatting is correct
 
+## 🚀 Current Project Status
+
+### GUI Development - Sprint 2 ✅ **COMPLETED**
+The PyQt6 GUI application has completed Sprint 2 with full OCR integration:
+
+- ✅ **OCR Processing**: Background threading with progress indicators
+- ✅ **Business Alias Integration**: Seamless integration with existing CLI system
+- ✅ **Data Display**: Clean table-based display with confidence indicators
+- ✅ **User Interface**: Compact design with drag-and-drop functionality
+- ✅ **Error Handling**: Comprehensive error handling and user feedback
+
+**Ready for Sprint 3**: File management and naming features
+
+### Available Interfaces
+- **CLI**: Full-featured command-line interface
+- **GUI**: PyQt6 desktop application (Sprint 2 completed)
+
 ## 📊 Documentation Metrics
 
 ### Current Coverage
-- **User Documentation**: Complete with guides for all major features
-- **Architecture Documentation**: Comprehensive technical analysis
+- **User Documentation**: Complete with guides for all major features including GUI
+- **Architecture Documentation**: Comprehensive technical analysis with GUI development plan
 - **Developer Resources**: Development setup and contribution guidelines
 - **API Documentation**: Internal API reference (in development)
 
