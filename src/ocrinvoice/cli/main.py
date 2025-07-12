@@ -539,7 +539,9 @@ def add_mapping(mapping: str, official_name: str, match_type: str):
 
         # Check if mapping already exists
         if mapping in manager.config.get(match_type, {}):
-            click.echo(f"⚠️  Warning: Mapping '{mapping}' already exists in {match_type}")
+            click.echo(
+                f"⚠️  Warning: Mapping '{mapping}' already exists in {match_type}"
+            )
             if not click.confirm("Do you want to overwrite it?"):
                 return
 

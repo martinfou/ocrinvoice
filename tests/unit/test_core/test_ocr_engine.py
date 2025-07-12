@@ -131,7 +131,9 @@ class TestOCREnginePDFTextExtraction:
         with patch.object(engine, "_extract_text_with_ocr") as mock_ocr:
             mock_ocr.return_value = "OCR extracted text"
 
-            with patch.object(engine, "_extract_text_with_pdfplumber") as mock_pdfplumber:
+            with patch.object(
+                engine, "_extract_text_with_pdfplumber"
+            ) as mock_pdfplumber:
                 mock_pdfplumber.return_value = ""
 
                 with patch.object(engine, "_extract_text_with_pypdf2") as mock_pypdf2:
@@ -153,7 +155,9 @@ class TestOCREnginePDFTextExtraction:
         with patch.object(engine, "_extract_text_with_ocr") as mock_ocr:
             mock_ocr.return_value = ""  # OCR returns empty text
 
-            with patch.object(engine, "_extract_text_with_pdfplumber") as mock_pdfplumber:
+            with patch.object(
+                engine, "_extract_text_with_pdfplumber"
+            ) as mock_pdfplumber:
                 mock_pdfplumber.return_value = "PDFPlumber extracted text"
 
                 with patch.object(engine, "_extract_text_with_pypdf2") as mock_pypdf2:

@@ -29,6 +29,7 @@ from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
 
 from .widgets.pdf_preview import PDFPreviewWidget
 from .widgets.data_panel import DataPanelWidget
+from .widgets.file_naming import FileNamingWidget
 
 # Import OCR parsing functionality
 from ..parsers.invoice_parser import InvoiceParser
@@ -119,8 +120,9 @@ class OCRMainWindow(QMainWindow):
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.North)
         main_layout.addWidget(self.tab_widget)
 
-        # Create placeholder tabs for Sprint 0
+        # Create tabs
         self._create_single_pdf_tab()
+        self._create_file_naming_tab()
         self._create_settings_tab()
 
     def _create_single_pdf_tab(self) -> None:
@@ -174,6 +176,19 @@ class OCRMainWindow(QMainWindow):
         layout.addWidget(content_splitter)
 
         self.tab_widget.addTab(single_pdf_widget, "Single PDF")
+
+    def _create_file_naming_tab(self) -> None:
+        """Create the File Naming tab."""
+        # Create file naming widget
+        self.file_naming_widget = FileNamingWidget()
+
+        # Update with current config
+        self.file_naming_widget.update_config(self.config)
+
+        # Connect template changes to config updates
+        self.file_naming_widget.template_changed.connect(self._on_template_changed)
+
+        self.tab_widget.addTab(self.file_naming_widget, "File Naming")
 
     def _create_settings_tab(self) -> None:
         """Create the settings tab with basic configuration options."""
@@ -369,6 +384,13 @@ class OCRMainWindow(QMainWindow):
         # Update data panel
         self.data_panel.update_data(extracted_data)
 
+        # Update file naming widget with extracted data
+        if self.current_pdf_path:
+            from pathlib import Path
+
+            original_filename = Path(self.current_pdf_path).name
+            self.file_naming_widget.update_data(extracted_data, original_filename)
+
         # Show success message
         company = extracted_data.get("company", "Unknown")
         total = extracted_data.get("total", "Unknown")
@@ -422,6 +444,14 @@ class OCRMainWindow(QMainWindow):
         """Handle settings cancel."""
         # TODO: Reset settings to previous values
         self.status_bar.showMessage("Settings changes cancelled")
+
+    def _on_template_changed(self, template: str) -> None:
+        """Handle file naming template changes."""
+        # Update config with new template
+        if "file_management" not in self.config:
+            self.config["file_management"] = {}
+        self.config["file_management"]["rename_format"] = template
+        self.status_bar.showMessage("File naming template updated")
 
     def _show_about(self) -> None:
         """Show the about dialog."""

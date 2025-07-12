@@ -1,402 +1,486 @@
 # Development Setup Guide
 
-This guide will help you set up a development environment for the Invoice OCR Parser project.
+> **Complete guide for setting up the OCR Invoice Parser development environment**
 
-## Prerequisites
+This guide covers setting up the development environment for the OCR Invoice Parser project, including both CLI and GUI components.
 
-Before you begin, ensure you have:
+## 🚀 Quick Setup
 
-- **Python 3.8+** installed
-- **Git** installed
-- **Tesseract OCR** installed (see installation instructions below)
-- Basic familiarity with Python development tools
+### Prerequisites
 
-## Environment Setup
+- **Python 3.8+** (3.9+ recommended)
+- **Git** for version control
+- **Tesseract OCR** (required for OCR functionality)
+- **Virtual Environment** (recommended)
 
-### Step 1: Clone the Repository
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd ocrinvoice
-
-# Verify you're on the main branch
-git checkout main
 ```
 
-### Step 2: Create Virtual Environment
+### 2. Create Virtual Environment
 
 ```bash
 # Create virtual environment
-python -m venv venv
+python3 -m venv venv
 
 # Activate virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Verify Python version
-python --version  # Should be 3.8+
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
 ```
 
-### Step 3: Install Dependencies
+### 3. Install Dependencies
 
 ```bash
 # Install the package in development mode
-pip install -e ".[dev]"
+pip install -e .
 
-# Verify installation
-python -c "import ocrinvoice; print('Installation successful!')"
+# Install development dependencies
+pip install -r requirements-dev.txt
 ```
 
-### Step 4: Install Tesseract OCR
+### 4. Install Tesseract OCR
 
-**macOS:**
+#### macOS
 ```bash
 brew install tesseract
 ```
 
-**Ubuntu/Debian:**
+#### Ubuntu/Debian
 ```bash
 sudo apt-get update
 sudo apt-get install tesseract-ocr
-sudo apt-get install tesseract-ocr-fra  # For French language support
 ```
 
-**Windows:**
-1. Download the installer from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
-2. Run the installer
-3. Add Tesseract to your PATH environment variable
+#### Windows
+Download from: https://github.com/UB-Mannheim/tesseract/wiki
 
-**Verify Installation:**
-```bash
-tesseract --version
-```
-
-### Step 5: Install Pre-commit Hooks
+### 5. Verify Installation
 
 ```bash
-# Install pre-commit hooks
-pre-commit install
+# Test CLI
+ocrinvoice --help
 
-# Verify installation
-pre-commit --version
+# Test GUI
+python -m src.ocrinvoice.gui.ocr_main_window
+
+# Test imports
+python -c "from src.ocrinvoice.parsers.invoice_parser import InvoiceParser; print('✓ Core imports work')"
+python -c "from src.ocrinvoice.gui.widgets.file_naming import FileNamingWidget; print('✓ GUI imports work')"
 ```
 
-## Development Tools
+## 🛠️ Development Environment
 
-### Code Quality Tools
-
-The project uses several tools to maintain code quality:
-
-- **Black**: Code formatting
-- **Flake8**: Linting and style checking
-- **MyPy**: Type checking
-- **Pre-commit**: Git hooks for automated checks
-
-### Running Quality Checks
-
-```bash
-# Format code with Black
-black src/ tests/
-
-# Check code style with Flake8
-flake8 src/ tests/
-
-# Type checking with MyPy
-mypy src/
-
-# Run all checks via pre-commit
-pre-commit run --all-files
-```
-
-### Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run tests with coverage
-pytest --cov=src/ocrinvoice
-
-# Run specific test file
-pytest tests/unit/test_parsers/test_invoice_parser.py
-
-# Run tests with verbose output
-pytest -v
-
-# Run tests and generate coverage report
-pytest --cov=src/ocrinvoice --cov-report=html
-```
-
-## Project Structure
+### Project Structure
 
 ```
 ocrinvoice/
 ├── src/ocrinvoice/              # Main package
 │   ├── cli/                     # Command line interface
 │   │   ├── main.py              # CLI entry point
-│   │   ├── commands/            # Individual commands
+│   │   ├── commands/            # Command implementations
 │   │   └── utils.py             # CLI utilities
-│   ├── core/                    # Core functionality
-│   │   ├── image_processor.py   # Image preprocessing
-│   │   ├── ocr_engine.py        # OCR engine interface
+│   ├── gui/                     # GUI components (Sprint 3 ✅)
+│   │   ├── ocr_main_window.py   # Main GUI window
+│   │   ├── widgets/             # GUI widgets
+│   │   │   ├── pdf_preview.py   # PDF preview widget
+│   │   │   ├── data_panel.py    # Data display widget
+│   │   │   └── file_naming.py   # File naming widget (NEW)
+│   │   └── dialogs/             # Modal dialogs
+│   ├── core/                    # Core OCR functionality
+│   │   ├── ocr_engine.py        # OCR engine
+│   │   ├── image_processor.py   # Image processing
 │   │   └── text_extractor.py    # Text extraction
 │   ├── parsers/                 # Document parsers
-│   │   ├── base_parser.py       # Abstract base parser
-│   │   ├── invoice_parser.py    # Invoice-specific parser
+│   │   ├── base_parser.py       # Base parser class
+│   │   ├── invoice_parser.py    # Invoice parser
 │   │   └── credit_card_parser.py # Credit card parser
-│   ├── utils/                   # Utilities
-│   │   ├── fuzzy_matcher.py     # Fuzzy matching
-│   │   └── amount_normalizer.py # Amount processing
 │   ├── business/                # Business logic
-│   │   └── business_alias_manager.py # Alias management
+│   │   └── business_mapping_manager.py # Alias management
+│   ├── utils/                   # Utilities
+│   │   ├── file_manager.py      # File operations
+│   │   ├── fuzzy_matcher.py     # String matching
+│   │   └── amount_normalizer.py # Amount processing
 │   └── config.py                # Configuration management
 ├── config/                      # Configuration files
 ├── tests/                       # Test suite
 ├── docs/                        # Documentation
-└── scripts/                     # Development scripts
+└── requirements-dev.txt         # Development dependencies
 ```
 
-## Development Workflow
+### Key Development Files
+
+#### GUI Development (Sprint 3 Completed ✅)
+- **`src/ocrinvoice/gui/ocr_main_window.py`**: Main application window
+- **`src/ocrinvoice/gui/widgets/file_naming.py`**: File naming system (NEW)
+- **`src/ocrinvoice/gui/widgets/pdf_preview.py`**: PDF preview widget
+- **`src/ocrinvoice/gui/widgets/data_panel.py`**: Data display widget
+
+#### Core Development
+- **`src/ocrinvoice/parsers/invoice_parser.py`**: Main parsing logic
+- **`src/ocrinvoice/core/ocr_engine.py`**: OCR processing
+- **`src/ocrinvoice/business/business_mapping_manager.py`**: Business logic
+- **`src/ocrinvoice/utils/file_manager.py`**: File operations
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/ocrinvoice
+
+# Run specific test categories
+pytest tests/unit/                    # Unit tests
+pytest tests/integration/             # Integration tests
+pytest tests/test_gui/                # GUI tests
+
+# Run GUI tests specifically
+pytest tests/test_gui/ -v
+
+# Run with verbose output
+pytest -v
+```
+
+### GUI Testing
+
+The project includes comprehensive GUI testing using `pytest-qt`:
+
+```bash
+# Install GUI testing dependencies
+pip install pytest-qt
+
+# Run GUI tests
+pytest tests/test_gui/ -v
+
+# Run specific GUI test
+pytest tests/test_gui/test_ocr_main_window.py -v
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/                           # Unit tests
+│   ├── test_core/                  # Core functionality tests
+│   ├── test_parsers/               # Parser tests
+│   ├── test_business/              # Business logic tests
+│   └── test_utils/                 # Utility tests
+├── integration/                    # Integration tests
+├── test_gui/                       # GUI tests (Sprint 3 ✅)
+│   ├── test_ocr_main_window.py     # Main window tests
+│   ├── test_file_naming.py         # File naming tests (NEW)
+│   └── test_widgets/               # Widget tests
+└── conftest.py                     # Test configuration
+```
+
+## 🔧 Development Tools
+
+### Code Quality
+
+```bash
+# Run pre-commit hooks
+pre-commit run --all-files
+
+# Format code
+black src/ tests/
+
+# Lint code
+flake8 src/ tests/
+
+# Type checking
+mypy src/
+
+# Run all quality checks
+pre-commit run --all-files
+```
+
+### Pre-commit Hooks
+
+The project uses pre-commit hooks for code quality:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+### IDE Configuration
+
+#### VS Code
+Create `.vscode/settings.json`:
+```json
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"],
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "black"
+}
+```
+
+#### PyCharm
+- Set project interpreter to virtual environment
+- Configure pytest as test runner
+- Enable code inspection
+
+## 🚀 Development Workflow
 
 ### 1. Feature Development
 
 ```bash
-# Create a new feature branch
-git checkout -b feature/your-feature-name
+# Create feature branch
+git checkout -b feature/new-feature
 
-# Make your changes
+# Make changes
 # ... edit files ...
 
-# Run tests to ensure nothing is broken
+# Run tests
 pytest
 
 # Run quality checks
 pre-commit run --all-files
 
-# Commit your changes
+# Commit changes
 git add .
-git commit -m "Add feature: description of changes"
+git commit -m "feat: add new feature"
 ```
 
-### 2. Bug Fixes
+### 2. GUI Development
+
+For GUI development, use the interactive development approach:
 
 ```bash
-# Create a bug fix branch
-git checkout -b fix/description-of-bug
+# Launch GUI for testing
+python -m src.ocrinvoice.gui.ocr_main_window
 
-# Make your changes
-# ... edit files ...
+# In another terminal, run tests
+pytest tests/test_gui/ -v
+```
 
-# Add tests for the bug fix
-# ... add test cases ...
+### 3. Sprint Development
 
-# Run tests
+The project follows sprint-based development:
+
+```bash
+# Create sprint branch
+git checkout -b sprint-4-new-features
+
+# Develop features
+# ... implement features ...
+
+# Update documentation
+# ... update docs ...
+
+# Test thoroughly
 pytest
+python -m src.ocrinvoice.gui.ocr_main_window
 
-# Commit your changes
-git add .
-git commit -m "Fix: description of bug fix"
+# Commit with detailed message
+git commit -m "feat(sprint-4): implement new features
+
+- Add feature A with tests
+- Update documentation
+- Fix bug in component B
+- Test with real PDF files"
 ```
 
-### 3. Testing Your Changes
+## 🔍 Debugging
+
+### CLI Debugging
 
 ```bash
-# Test the CLI commands
-ocrinvoice --help
-ocrinvoice parse --help
+# Run with debug output
+ocrinvoice parse invoice.pdf --debug --verbose
 
-# Test with sample data
-ocrinvoice parse tests/fixtures/sample_invoice.pdf
-
-# Test batch processing
-ocrinvoice batch tests/fixtures/ --output test_results.csv
-```
-
-## Configuration
-
-### Development Configuration
-
-Create a development configuration file:
-
-```bash
-# Create user config directory
-mkdir -p ~/.ocrinvoice
-
-# Create development config
-cat > ~/.ocrinvoice/config.yaml << EOF
-# Development settings
-debug: true
-log_level: DEBUG
-
-# OCR settings
-ocr:
-  tesseract_path: /usr/local/bin/tesseract
-  language: eng+fra
-  dpi: 300
-
-# Parser settings
-parser:
-  confidence_threshold: 0.7
-  max_retries: 3
-
-# Business settings
-business:
-  alias_file: config/business_aliases.json
-EOF
-```
-
-### Environment Variables
-
-You can also use environment variables for configuration:
-
-```bash
-# Development environment variables
-export OCRINVOICE_DEBUG="true"
-export OCRINVOICE_LOG_LEVEL="DEBUG"
-export OCRINVOICE_OCR_TESSERACT_PATH="/usr/local/bin/tesseract"
-export OCRINVOICE_PARSER_CONFIDENCE_THRESHOLD="0.7"
-```
-
-## Debugging
-
-### Enable Debug Mode
-
-```bash
-# Set debug environment variable
-export OCRINVOICE_DEBUG="true"
-
-# Or use the debug flag
-ocrinvoice parse invoice.pdf --debug
-```
-
-### Logging
-
-The project uses Python's logging module. Configure logging in your development environment:
-
-```python
+# Run with logging
+python -c "
 import logging
-
-# Set up logging for development
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.DEBUG)
+from src.ocrinvoice.cli.commands.parse import parse_command
+result = parse_command('invoice.pdf')
+print(result)
+"
 ```
 
-### Using a Debugger
-
-You can use Python's built-in debugger or external tools like VS Code's debugger:
-
-```python
-# Add breakpoints in your code
-import pdb; pdb.set_trace()
-
-# Or use the newer breakpoint() function (Python 3.7+)
-breakpoint()
-```
-
-## Common Development Tasks
-
-### Adding a New Parser
-
-1. Create a new parser class in `src/ocrinvoice/parsers/`
-2. Inherit from `BaseParser`
-3. Implement required abstract methods
-4. Add tests in `tests/unit/test_parsers/`
-5. Update documentation
-
-### Adding a New CLI Command
-
-1. Create a new command file in `src/ocrinvoice/cli/commands/`
-2. Implement the command logic
-3. Register the command in `src/ocrinvoice/cli/main.py`
-4. Add tests in `tests/unit/test_cli/`
-5. Update CLI documentation
-
-### Modifying Configuration
-
-1. Update `src/ocrinvoice/config.py` for new configuration options
-2. Update `config/default_config.yaml` for default values
-3. Add environment variable support if needed
-4. Update configuration documentation
-5. Add tests for configuration changes
-
-## Performance Profiling
-
-### Profiling Code Performance
+### GUI Debugging
 
 ```bash
-# Install profiling tools
-pip install cProfile
+# Run GUI with debug output
+python -m src.ocrinvoice.gui.ocr_main_window --debug
 
-# Profile a specific function
-python -m cProfile -o profile.stats -m ocrinvoice.cli.main parse invoice.pdf
-
-# Analyze profile results
-python -c "import pstats; p = pstats.Stats('profile.stats'); p.sort_stats('cumulative').print_stats(10)"
+# Test specific widgets
+python -c "
+from src.ocrinvoice.gui.widgets.file_naming import FileNamingWidget
+widget = FileNamingWidget()
+print('File naming widget created successfully')
+"
 ```
 
-### Memory Profiling
+### Common Debugging Scenarios
+
+#### OCR Issues
+```bash
+# Test OCR engine directly
+python -c "
+from src.ocrinvoice.core.ocr_engine import OCREngine
+engine = OCREngine()
+print('OCR engine initialized')
+"
+```
+
+#### GUI Issues
+```bash
+# Test GUI components
+python -c "
+from PyQt6.QtWidgets import QApplication
+import sys
+from src.ocrinvoice.gui.widgets.file_naming import FileNamingWidget
+
+app = QApplication(sys.argv)
+widget = FileNamingWidget()
+widget.show()
+print('GUI widget displayed successfully')
+"
+```
+
+## 📚 Documentation
+
+### Building Documentation
 
 ```bash
-# Install memory profiler
-pip install memory-profiler
+# Install documentation tools
+pip install sphinx sphinx-rtd-theme
 
-# Profile memory usage
-python -m memory_profiler your_script.py
+# Build documentation
+cd docs
+make html
+
+# View documentation
+open _build/html/index.html
 ```
 
-## Troubleshooting
+### Documentation Structure
+
+```
+docs/
+├── README.md                      # Main documentation index
+├── user_guide/                    # User documentation
+│   ├── getting_started.md         # Installation guide
+│   ├── cli_reference.md           # CLI documentation
+│   ├── gui_guide.md               # GUI documentation (Sprint 3 ✅)
+│   ├── configuration.md           # Configuration guide
+│   └── troubleshooting.md         # Troubleshooting guide
+├── architecture/                  # Technical documentation
+│   ├── system_architecture.md     # System design
+│   ├── ocr_gui_development_plan.md # Development plan (Sprint 3 ✅)
+│   └── technical_deep_dive.md     # Implementation details
+└── developer/                     # Developer documentation
+    ├── development_setup.md       # This file
+    ├── contributing.md            # Contributing guidelines
+    ├── testing.md                 # Testing guide
+    └── api_reference.md           # API documentation
+```
+
+## 🎯 Sprint 3 Development Notes
+
+### Completed Features (Sprint 3 ✅)
+
+#### File Naming System
+- **Template Builder**: Visual interface for creating naming patterns
+- **Live Preview**: Real-time filename preview with validation
+- **Conflict Resolution**: Smart handling of duplicate filenames
+- **Backup Options**: Configurable backup settings
+- **Validation**: Real-time template and filename validation
+
+#### GUI Integration
+- **Background Processing**: Non-blocking OCR with progress indicators
+- **Error Handling**: Comprehensive error handling with user feedback
+- **Data Compatibility**: GUI reads/writes same formats as CLI
+- **Settings Integration**: Shared settings between CLI and GUI
+
+### Development Guidelines
+
+#### GUI Development
+- Use PyQt6 for all GUI components
+- Implement background threading for long operations
+- Provide real-time feedback and progress indicators
+- Maintain compatibility with CLI data formats
+- Follow the established widget patterns
+
+#### File Management
+- Use existing `FileManager` from CLI
+- Implement validation for all user inputs
+- Provide clear error messages and recovery options
+- Support both single file and batch operations
+- Maintain backup and conflict resolution features
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-**Import Errors:**
+#### Import Errors
 ```bash
-# Ensure you're in the virtual environment
-source venv/bin/activate
+# Check virtual environment
+which python
+# Should point to venv/bin/python
 
-# Reinstall the package
-pip install -e .
+# Reinstall package
+pip install -e . --force-reinstall
 ```
 
-**Test Failures:**
+#### GUI Not Starting
 ```bash
-# Check if Tesseract is installed
+# Check PyQt6 installation
+python -c "from PyQt6.QtWidgets import QApplication; print('PyQt6 OK')"
+
+# Check GUI imports
+python -c "from src.ocrinvoice.gui.ocr_main_window import OCRMainWindow; print('GUI imports OK')"
+```
+
+#### OCR Issues
+```bash
+# Check Tesseract installation
 tesseract --version
 
-# Run tests with verbose output
-pytest -v
-
-# Check test configuration
-pytest --collect-only
+# Test OCR functionality
+python -c "
+from src.ocrinvoice.core.ocr_engine import OCREngine
+engine = OCREngine()
+print('OCR engine OK')
+"
 ```
 
-**Pre-commit Hook Failures:**
+#### Test Failures
 ```bash
-# Run pre-commit manually
-pre-commit run --all-files
+# Run tests with verbose output
+pytest -v --tb=short
 
-# Skip pre-commit for a commit (not recommended)
-git commit --no-verify -m "Your message"
+# Run specific failing test
+pytest tests/test_specific.py::test_function -v -s
 ```
 
 ### Getting Help
 
-- Check the [Troubleshooting Guide](../user_guide/troubleshooting.md)
-- Review the [Architecture Documentation](../architecture/)
-- Look at existing tests for examples
-- Open an issue on GitHub
-
-## Next Steps
-
-Once your development environment is set up:
-
-1. **Read the Architecture Documentation**: Understand the system design
-2. **Review the Test Suite**: Learn how to write tests
-3. **Check the Contributing Guidelines**: Understand contribution standards
-4. **Start with Small Changes**: Begin with documentation or test improvements
-5. **Join the Community**: Participate in discussions and code reviews
+- **Check Documentation**: Review relevant documentation files
+- **Run Tests**: Ensure all tests pass
+- **Check Logs**: Review error messages and debug output
+- **Git Issues**: Check for known issues in the repository
+- **Community**: Reach out to the development team
 
 ---
 
-*For more information, see the [Contributing Guidelines](./contributing.md) and [API Reference](./api_reference.md).*
+**Ready to develop?** Set up your environment and start contributing to the OCR Invoice Parser project! 🚀

@@ -3,7 +3,7 @@
 ## 1. Main Screen (Hub)
 
 ### Navigation Layout
-- **Navigation Tabs/Sidebar:**  
+- **Navigation Tabs/Sidebar:**
   - Home (Dashboard)
   - Single PDF OCR
   - Batch PDF OCR
@@ -42,7 +42,7 @@
 
 ### Layout
 - **Left:** PDF preview (with zoom, page navigation)
-- **Right:**  
+- **Right:**
   - Project Name input (used in file naming)
   - Document Type dropdown
   - Extracted fields (company, date, total, invoice #, etc.) with:
@@ -320,4 +320,4 @@
 | Search PDFs            |            |     ✓      |     ✓       |           |
 | Alias Manager          |     ✓      |     ✓      |             |     ✓     |
 
-(*): Only for files needing confirmation 
+(*): Only for files needing confirmation

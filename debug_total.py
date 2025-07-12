@@ -3,7 +3,8 @@
 import sys
 import os
 import re
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from ocrinvoice.parsers.invoice_parser import InvoiceParser
 
@@ -50,15 +51,16 @@ Dernier jour pour remplir le sondage:
 le 20 Juil, 2025
 *X82009025441 6%"""
 
+
 def test_total_extraction():
     parser = InvoiceParser()
-    
+
     print("Testing total extraction with RONA invoice text (OCR version)...")
     print("=" * 60)
-    
+
     # Test the new OCR correction method
     lines = [line.strip() for line in rona_text.split("\n")]
-    
+
     print("Looking for total lines:")
     for i, line in enumerate(lines):
         line_lower = line.lower()
@@ -67,15 +69,15 @@ def test_total_extraction():
             amounts = parser._extract_amounts_with_ocr_correction(line)
             print(f"  Extracted amounts: {amounts}")
             # Debug regex match
-            pattern = r'[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})'
+            pattern = r"[\$€£¥]?\s*(\d{1,3}(?:,\d{3})*)\s*[٠٫٬\.]\s*(\d{2})"
             matches = re.findall(pattern, line)
             print(f"  Regex matches for pattern: {matches}")
-    
+
     print("\n" + "=" * 60)
     print("Testing full extract_total method:")
     total = parser.extract_total(rona_text)
     print(f"Extracted total: {total}")
-    
+
     # Debug: Show all amounts found in the text
     print("\n" + "=" * 60)
     print("All amounts found in text:")
@@ -85,9 +87,9 @@ def test_total_extraction():
         if amounts:
             print(f"Line {i}: '{line}' -> {amounts}")
             all_amounts.extend(amounts)
-    
+
     print(f"\nAll unique amounts: {list(set(all_amounts))}")
-    
+
     # Debug: Show what happens in the $1000-$2000 range logic
     print("\n" + "=" * 60)
     print("Debugging $1000-$2000 range logic:")
@@ -106,13 +108,13 @@ def test_total_extraction():
                 float_amounts.append(value)
         except (ValueError, TypeError):
             continue
-    
+
     print(f"All amounts in 10-10000 range: {float_amounts}")
     in_range = [v for v in float_amounts if 1000 <= v <= 2000]
     print(f"Amounts in 1000-2000 range: {in_range}")
     if in_range:
         print(f"Max in range: {max(in_range)}")
-    
+
     # Debug the problematic line specifically
     print("\n" + "=" * 60)
     print("Debugging problematic line '1 1076.93 1,076.43':")
@@ -120,7 +122,7 @@ def test_total_extraction():
     amounts = parser._extract_amounts_with_ocr_correction(problematic_line)
     print(f"Line: '{problematic_line}'")
     print(f"Extracted amounts: {amounts}")
-    
+
     # Test each amount conversion
     for amount_str in amounts:
         try:
@@ -136,5 +138,6 @@ def test_total_extraction():
         except (ValueError, TypeError) as e:
             print(f"  '{amount_str}' -> ERROR: {e}")
 
+
 if __name__ == "__main__":
-    test_total_extraction() 
+    test_total_extraction()

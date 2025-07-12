@@ -80,7 +80,9 @@ class OCREngine:
             self.logger.error(f"Tesseract not found: {e}")
             self.logger.error("Please install Tesseract and ensure it's in your PATH")
 
-    def extract_text_from_pdf(self, pdf_path: Union[str, Path], force_ocr: bool = False) -> str:
+    def extract_text_from_pdf(
+        self, pdf_path: Union[str, Path], force_ocr: bool = False
+    ) -> str:
         """Extract text from PDF using OCR by default with text extraction as fallback.
 
         Args:
@@ -103,11 +105,13 @@ class OCREngine:
         # Always try OCR first for better consistency
         self.logger.info(f"Using OCR for PDF: {pdf_path}")
         ocr_text = self._extract_text_with_ocr(pdf_path)
-        
+
         # If OCR fails or returns empty text, try text extraction methods as fallback
         if not ocr_text.strip():
-            self.logger.warning(f"OCR returned empty text, trying text extraction methods: {pdf_path}")
-            
+            self.logger.warning(
+                f"OCR returned empty text, trying text extraction methods: {pdf_path}"
+            )
+
             # Try pdfplumber as fallback
             text = self._extract_text_with_pdfplumber(pdf_path)
             if text.strip():

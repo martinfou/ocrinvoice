@@ -7,11 +7,24 @@ Displays PDF files in the GUI using pdf2image for rendering.
 import os
 from typing import Optional
 from PyQt6.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QScrollArea, QHBoxLayout, 
-    QPushButton, QSlider, QFrame
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QScrollArea,
+    QHBoxLayout,
+    QPushButton,
+    QSlider,
+    QFrame,
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QPixmap, QImage, QKeySequence, QShortcut, QWheelEvent, QResizeEvent
+from PyQt6.QtGui import (
+    QPixmap,
+    QImage,
+    QKeySequence,
+    QShortcut,
+    QWheelEvent,
+    QResizeEvent,
+)
 from pdf2image import convert_from_path
 
 

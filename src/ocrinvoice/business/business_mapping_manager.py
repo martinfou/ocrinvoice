@@ -65,7 +65,9 @@ class BusinessMappingManager:
             # From current working directory
             Path.cwd() / "config" / "business_mappings.json",
             # From project root (when running from source)
-            Path(__file__).parent.parent.parent.parent / "config" / "business_mappings.json",
+            Path(__file__).parent.parent.parent.parent
+            / "config"
+            / "business_mappings.json",
             # From installed package
             Path(__file__).parent.parent.parent / "config" / "business_mappings.json",
             # From user's home directory
