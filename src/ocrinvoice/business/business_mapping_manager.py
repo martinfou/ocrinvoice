@@ -21,22 +21,22 @@ except ImportError:
             return None
 
 
-class BusinessAliasManager:
+class BusinessMappingManager:
     """
-    Manages business name aliases and mappings for invoice OCR extraction.
+    Manages business name mappings for invoice OCR extraction.
     Supports exact matches, partial matches, and fuzzy matching with indicators.
     All outputs resolve to one of the official business names.
     """
 
-    def __init__(self, alias_file: Optional[str] = None):
+    def __init__(self, mapping_file: Optional[str] = None):
         """
-        Initialize the BusinessAliasManager with an alias configuration file.
+        Initialize the BusinessMappingManager with a mapping configuration file.
 
         Args:
-            alias_file: Path to the JSON configuration file containing business aliases.
+            mapping_file: Path to the JSON configuration file containing business mappings.
                        If None, will try to find the file using the same logic as the config system.
         """
-        self.alias_file = self._resolve_alias_file_path(alias_file)
+        self.mapping_file = self._resolve_mapping_file_path(mapping_file)
         self.config = self._load_config()
 
         # Load official business names
@@ -44,34 +44,32 @@ class BusinessAliasManager:
         if not self.official_names:
             print("Warning: No official business names defined in configuration.")
 
-        # Validate that all alias mappings resolve to an official name
-        self._validate_alias_mappings()
+        # Validate that all mappings resolve to an official name
+        self._validate_mappings()
 
-    def _resolve_alias_file_path(self, alias_file: Optional[str]) -> str:
+    def _resolve_mapping_file_path(self, mapping_file: Optional[str]) -> str:
         """
-        Resolve the alias file path using the same logic as the config system.
+        Resolve the mapping file path using the same logic as the config system.
 
         Args:
-            alias_file: Explicit path to alias file, or None to auto-detect
+            mapping_file: Explicit path to mapping file, or None to auto-detect
 
         Returns:
-            Resolved path to the alias file
+            Resolved path to the mapping file
         """
-        if alias_file:
-            return alias_file
+        if mapping_file:
+            return mapping_file
 
         # Try multiple locations in order of preference
         possible_paths = [
             # From current working directory
-            Path.cwd() / "config" / "business_aliases.json",
+            Path.cwd() / "config" / "business_mappings.json",
             # From project root (when running from source)
-            Path(__file__).parent.parent.parent.parent
-            / "config"
-            / "business_aliases.json",
+            Path(__file__).parent.parent.parent.parent / "config" / "business_mappings.json",
             # From installed package
-            Path(__file__).parent.parent.parent / "config" / "business_aliases.json",
+            Path(__file__).parent.parent.parent / "config" / "business_mappings.json",
             # From user's home directory
-            Path.home() / ".ocrinvoice" / "business_aliases.json",
+            Path.home() / ".ocrinvoice" / "business_mappings.json",
         ]
 
         for path in possible_paths:
@@ -82,8 +80,8 @@ class BusinessAliasManager:
         return str(possible_paths[0])
 
     def _load_config(self) -> Dict:
-        """Load the business alias configuration from JSON file."""
-        if not os.path.exists(self.alias_file):
+        """Load the business mapping configuration from JSON file."""
+        if not os.path.exists(self.mapping_file):
             # Return default empty config if file doesn't exist
             return {
                 "official_names": [],
@@ -99,10 +97,10 @@ class BusinessAliasManager:
             }
 
         try:
-            with open(self.alias_file, "r", encoding="utf-8") as f:
+            with open(self.mapping_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError) as e:
-            print(f"Warning: Could not load alias file {self.alias_file}: {e}")
+            print(f"Warning: Could not load mapping file {self.mapping_file}: {e}")
             # Return default config instead of recursive call
             return {
                 "official_names": [],
@@ -117,18 +115,18 @@ class BusinessAliasManager:
                 },
             }
 
-    def _validate_alias_mappings(self):
-        """Validate that all alias mappings resolve to an official business name."""
+    def _validate_mappings(self):
+        """Validate that all mappings resolve to an official business name."""
 
         def check_name(name):
             if name not in self.official_names:
-                print(f"Warning: Alias mapping '{name}' is not in official_names list.")
+                print(f"Warning: Mapping '{name}' is not in official_names list.")
 
         # Check exact_matches
-        for alias, business_name in self.config.get("exact_matches", {}).items():
+        for mapping, business_name in self.config.get("exact_matches", {}).items():
             check_name(business_name)
         # Check partial_matches
-        for alias, business_name in self.config.get("partial_matches", {}).items():
+        for mapping, business_name in self.config.get("partial_matches", {}).items():
             check_name(business_name)
         # Check fuzzy_candidates
         for business_name in self.config.get("fuzzy_candidates", []):
@@ -165,40 +163,48 @@ class BusinessAliasManager:
 
         # Normalize text to lowercase for case-insensitive comparison
         text_normalized = text.lower().strip()
-        print(f"[DEBUG] BusinessAliasManager: Searching for business matches in text")
-        print(f"[DEBUG] BusinessAliasManager: Text sample (first 200 chars): {text_normalized[:200]}")
+        print("[DEBUG] BusinessMappingManager: Searching for business matches in text")
+        print(
+            f"[DEBUG] BusinessMappingManager: Text sample (first 200 chars): {text_normalized[:200]}"
+        )
 
         # 1. Exact matches (highest priority)
         exact_match = self._find_exact_match(text_normalized)
         if exact_match:
             business_name, match_type, confidence = exact_match
-            print(f"[DEBUG] BusinessAliasManager: Found exact match: '{business_name}'")
+            print(
+                f"[DEBUG] BusinessMappingManager: Found exact match: '{business_name}'"
+            )
             return (business_name, match_type, confidence)
 
         # 2. Partial matches (medium priority)
         partial_match = self._find_partial_match(text_normalized)
         if partial_match:
             business_name, match_type, confidence = partial_match
-            print(f"[DEBUG] BusinessAliasManager: Found partial match: '{business_name}'")
+            print(
+                f"[DEBUG] BusinessMappingManager: Found partial match: '{business_name}'"
+            )
             return (business_name, match_type, confidence)
 
         # 3. Fuzzy matches (lowest priority, requires indicators)
         fuzzy_match = self._find_fuzzy_match(text_normalized)
         if fuzzy_match:
             business_name, match_type, confidence = fuzzy_match
-            print(f"[DEBUG] BusinessAliasManager: Found fuzzy match: '{business_name}'")
+            print(
+                f"[DEBUG] BusinessMappingManager: Found fuzzy match: '{business_name}'"
+            )
             return (business_name, match_type, confidence)
 
-        print(f"[DEBUG] BusinessAliasManager: No matches found")
+        print("[DEBUG] BusinessMappingManager: No matches found")
         return None
 
     def _find_exact_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find exact string matches (case-insensitive)."""
         exact_matches = self.config.get("exact_matches", {})
 
-        for alias, business_name in exact_matches.items():
+        for mapping, business_name in exact_matches.items():
             # Compare both strings in lowercase for case-insensitive matching
-            if text == alias.lower():
+            if text == mapping.lower():
                 confidence = self.config.get("confidence_weights", {}).get(
                     "exact_match", 1.0
                 )
@@ -209,36 +215,42 @@ class BusinessAliasManager:
     def _find_partial_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find partial substring matches (case-insensitive, robust to whitespace and Unicode)."""
         import unicodedata
+
         def normalize(s):
             # Lowercase, strip, normalize unicode, collapse whitespace
             s = s.lower()
-            s = unicodedata.normalize('NFKC', s)
-            s = ' '.join(s.split())
+            s = unicodedata.normalize("NFKC", s)
+            s = " ".join(s.split())
             return s
 
         partial_matches = self.config.get("partial_matches", {})
-        print(f"[DEBUG] BusinessAliasManager: Checking partial matches...")
-        print(f"[DEBUG] BusinessAliasManager: Available partial matches: {list(partial_matches.keys())}")
-        print(f"[DEBUG] BusinessAliasManager: Text repr: {repr(text)}")
+        print("[DEBUG] BusinessMappingManager: Checking partial matches...")
+        print(
+            f"[DEBUG] BusinessMappingManager: Available partial matches: {list(partial_matches.keys())}"
+        )
+        print(f"[DEBUG] BusinessMappingManager: Text repr: {repr(text)}")
         text_norm = normalize(text)
-        print(f"[DEBUG] BusinessAliasManager: Normalized text: {repr(text_norm)}")
+        print(f"[DEBUG] BusinessMappingManager: Normalized text: {repr(text_norm)}")
 
-        for alias, business_name in partial_matches.items():
-            alias_norm = normalize(alias)
-            print(f"[DEBUG] BusinessAliasManager: Checking if alias '{alias}' (norm: '{alias_norm}') is in text (norm)...")
-            if alias_norm in text_norm:
-                print(f"[DEBUG] BusinessAliasManager: Found partial match! '{alias_norm}' is in text (norm)")
+        for mapping, business_name in partial_matches.items():
+            mapping_norm = normalize(mapping)
+            print(
+                f"[DEBUG] BusinessMappingManager: Checking if mapping '{mapping}' (norm: '{mapping_norm}') is in text (norm)..."
+            )
+            if mapping_norm in text_norm:
+                print(
+                    f"[DEBUG] BusinessMappingManager: Found partial match! '{mapping_norm}' is in text (norm)"
+                )
                 confidence = self.config.get("confidence_weights", {}).get(
                     "partial_match", 0.8
                 )
                 return (business_name, "partial_match", confidence)
 
-        print(f"[DEBUG] BusinessAliasManager: No partial matches found")
+        print("[DEBUG] BusinessMappingManager: No partial matches found")
         return None
 
     def _find_fuzzy_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find fuzzy matches using indicators and similarity algorithms (case-insensitive)."""
-        fuzzy_candidates = self.config.get("fuzzy_candidates", [])
         indicators = self.config.get("indicators", {})
 
         # Check if text contains indicators for any business (case-insensitive)
@@ -257,28 +269,28 @@ class BusinessAliasManager:
 
         return None
 
-    def add_alias(
-        self, alias: str, business_name: str, match_type: str = "exact_matches"
+    def add_mapping(
+        self, mapping: str, business_name: str, match_type: str = "exact_matches"
     ):
         """
-        Add a new alias to the configuration.
+        Add a new mapping to the configuration.
 
         Args:
-            alias: The alias string to match
+            mapping: The mapping string to match
             business_name: The canonical business name
             match_type: Type of match ("exact_matches" or "partial_matches")
         """
         if match_type in self.config:
-            self.config[match_type][alias] = business_name
+            self.config[match_type][mapping] = business_name
             self._save_config()
 
     def _save_config(self):
         """Save the current configuration back to the JSON file."""
         try:
-            with open(self.alias_file, "w", encoding="utf-8") as f:
+            with open(self.mapping_file, "w", encoding="utf-8") as f:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
         except IOError as e:
-            print(f"Warning: Could not save alias file {self.alias_file}: {e}")
+            print(f"Warning: Could not save mapping file {self.mapping_file}: {e}")
 
     def get_all_business_names(self) -> List[str]:
         """Get all unique business names from the configuration."""
@@ -296,7 +308,7 @@ class BusinessAliasManager:
         return sorted(list(business_names))
 
     def get_stats(self) -> Dict:
-        """Get statistics about the alias configuration."""
+        """Get statistics about the mapping configuration."""
         return {
             "exact_matches": len(self.config.get("exact_matches", {})),
             "partial_matches": len(self.config.get("partial_matches", {})),

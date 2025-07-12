@@ -135,7 +135,7 @@ ocrinvoice/
 
 **"No data extracted"** → Try `ocrinvoice parse invoice.pdf --show-text --verbose`
 
-**"Business name not recognized"** → Add alias: `ocrinvoice aliases add "Company Name" "OFFICIAL_NAME"`
+**"Business name not recognized"** → Add alias: `ocrinvoice aliases add "Company Name" "CANONICAL_NAME"`
 
 ## 📊 Performance
 

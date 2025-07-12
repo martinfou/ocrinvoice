@@ -61,7 +61,7 @@ python -m ocrinvoice gui
 
 ### User Interface
 - **Main Window**: Clean, professional interface with menu bar and toolbar
-- **Alias Table**: Sortable table with company names, official names, and metadata
+- **Alias Table**: Sortable table with company names, canonical names, and metadata
 - **Add/Edit Forms**: Modal dialogs for managing individual aliases
 - **Status Bar**: Real-time information about data and operations
 - **Context Menus**: Right-click actions for quick operations
@@ -108,7 +108,7 @@ src/ocrinvoice/
 - **Modal Dialog** for adding/editing aliases
 - **Real-time Validation**: Immediate feedback on input errors
 - **Preview Functionality**: Shows how alias will work
-- **Auto-complete**: Suggests existing official names
+- **Auto-complete**: Suggests existing canonical names
 
 ### CLI Integration
 

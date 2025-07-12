@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional, Union, List
 
 from .base_parser import BaseParser
 from .date_extractor import DateExtractor
-from ..business.business_alias_manager import BusinessAliasManager
+from ..business.business_mapping_manager import BusinessMappingManager
 
 
 class InvoiceParser(BaseParser):
@@ -27,9 +27,9 @@ class InvoiceParser(BaseParser):
         self.parser_type = "invoice"
         # Initialize business alias manager for company name matching
         try:
-            self.business_alias_manager = BusinessAliasManager()
+            self.business_alias_manager = BusinessMappingManager()
         except Exception as e:
-            self.logger.warning(f"Could not initialize BusinessAliasManager: {e}")
+            self.logger.warning(f"Could not initialize BusinessMappingManager: {e}")
             self.business_alias_manager = None
 
     def parse(self, pdf_path: Union[str, Path], max_retries: int = 3) -> Dict[str, Any]:
@@ -86,10 +86,10 @@ class InvoiceParser(BaseParser):
 
         # Use base parser validation and confidence calculation
         result = self.validate_extraction_result(result)
-        
+
         # Additional invoice-specific validation
         invoice_valid = self._validate_invoice_data(result)
-        
+
         # If invoice validation fails, mark as invalid
         if not invoice_valid:
             result["is_valid"] = False
@@ -106,7 +106,7 @@ class InvoiceParser(BaseParser):
 
         lines = [line.strip() for line in text.split("\n")]
         search_lines = lines[:20]
-        # Use BusinessAliasManager for company name matching
+        # Use BusinessMappingManager for company name matching
         if self.business_alias_manager:
             print(f"[DEBUG] extract_company: Searching text for business matches...")
             print(
@@ -123,23 +123,25 @@ class InvoiceParser(BaseParser):
             if result:
                 official_name, match_type, confidence = result
                 print(
-                    f"[DEBUG] extract_company: Found company using BusinessAliasManager: '{official_name}' ({match_type}, confidence: {confidence})"
+                    f"[DEBUG] extract_company: Found company using BusinessMappingManager: '{official_name}' ({match_type}, confidence: {confidence})"
                 )
                 return official_name.lower()
             else:
                 print(f"[DEBUG] extract_company: No business match found in text")
         else:
-            print(f"[DEBUG] extract_company: BusinessAliasManager not available")
+            print(f"[DEBUG] extract_company: BusinessMappingManager not available")
 
         # 1. If any known company is present anywhere in the text, return the first one
-        # Note: This fallback is only used if BusinessAliasManager is not available
+        # Note: This fallback is only used if BusinessMappingManager is not available
         # All business names should be configured in business_aliases.json
         text_lower = text.lower()
         known_companies = self.config.get("known_companies", [])
         if known_companies:
             for company in known_companies:
                 if company.lower() in text_lower:
-                    self.logger.debug(f"extract_company: Found known company: '{company}'")
+                    self.logger.debug(
+                        f"extract_company: Found known company: '{company}'"
+                    )
                     return company.lower()
         # 2. After 'INVOICE' or similar, next non-empty line is likely company
         found_header = False
@@ -173,7 +175,7 @@ class InvoiceParser(BaseParser):
                     continue
                 return line.lower()
         # 3. Fuzzy match: extract candidate lines and match to known_companies
-        # Note: This fallback is only used if BusinessAliasManager is not available
+        # Note: This fallback is only used if BusinessMappingManager is not available
         # All business names should be configured in business_aliases.json
         from ..utils.fuzzy_matcher import FuzzyMatcher
 
@@ -307,7 +309,9 @@ class InvoiceParser(BaseParser):
         def filter_out_years_and_small_ints(amounts: List[float]) -> List[float]:
             # Remove values that look like years (1900-2099) or small ints (1-10)
             filtered = [a for a in amounts if not (1900 <= a <= 2099 or 1 <= a <= 10)]
-            return filtered if filtered else amounts  # fallback to original if all filtered
+            return (
+                filtered if filtered else amounts
+            )  # fallback to original if all filtered
 
         raw_floats = filter_valid_amounts(raw_amounts)
         raw_floats = filter_out_years_and_small_ints(raw_floats)
@@ -339,7 +343,10 @@ class InvoiceParser(BaseParser):
         print("[DEBUG] Line-based fallback amounts:", line_amounts)
         line_floats = filter_valid_amounts(line_amounts)
         line_floats = filter_out_years_and_small_ints(line_floats)
-        print("[DEBUG] Line-based fallback float amounts (0.01-10000, filtered):", line_floats)
+        print(
+            "[DEBUG] Line-based fallback float amounts (0.01-10000, filtered):",
+            line_floats,
+        )
         if len(line_floats) == 1:
             print("[DEBUG] Selected total from line-based fallback:", line_floats[0])
             return float(line_floats[0])
@@ -400,7 +407,10 @@ class InvoiceParser(BaseParser):
         if line_floats:
             # Sort by amount and return the highest (most likely to be the total)
             line_floats.sort()
-            print("[DEBUG] Selected highest amount from line-based fallback:", line_floats[-1])
+            print(
+                "[DEBUG] Selected highest amount from line-based fallback:",
+                line_floats[-1],
+            )
             return float(line_floats[-1])
 
         total_line_amounts, preferred_amounts = find_total_candidates(

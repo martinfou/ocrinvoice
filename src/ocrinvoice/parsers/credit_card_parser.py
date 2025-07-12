@@ -1,13 +1,12 @@
 """Credit card bill parser for extracting structured data from credit card PDFs."""
 
 import logging
-import re
 from pathlib import Path
 from typing import Dict, Any, Optional, Union
 
 from .base_parser import BaseParser
 from .date_extractor import DateExtractor
-from ..business.business_alias_manager import BusinessAliasManager
+from ..business.business_mapping_manager import BusinessMappingManager
 
 
 class CreditCardBillParser(BaseParser):
@@ -21,12 +20,12 @@ class CreditCardBillParser(BaseParser):
         self.debug = config.get("debug", False)
         self.company_aliases = config.get("company_aliases", {})
 
-        # Initialize business alias manager for company name matching
+        # Initialize business mapping manager for company name matching
         try:
-            self.business_alias_manager = BusinessAliasManager()
+            self.business_mapping_manager = BusinessMappingManager()
         except Exception as e:
-            self.logger.warning(f"Could not initialize BusinessAliasManager: {e}")
-            self.business_alias_manager = None
+            self.logger.warning(f"Could not initialize BusinessMappingManager: {e}")
+            self.business_mapping_manager = None
 
     def parse(self, pdf_path: Union[str, Path]) -> Dict[str, Any]:
         """Parse the credit card bill PDF and return structured data."""
@@ -44,20 +43,20 @@ class CreditCardBillParser(BaseParser):
 
     def extract_company(self, text: str) -> Optional[str]:
         """Extract company name from text using multiple strategies."""
-        # Use BusinessAliasManager for company name matching
-        if self.business_alias_manager:
-            result = self.business_alias_manager.find_business_match(text)
+        # Use BusinessMappingManager for company name matching
+        if self.business_mapping_manager:
+            result = self.business_mapping_manager.find_business_match(text)
             if result:
                 official_name, match_type, confidence = result
                 self.logger.debug(
-                    f"extract_company: Found company using BusinessAliasManager: "
+                    f"extract_company: Found company using BusinessMappingManager: "
                     f"'{official_name}' ({match_type}, confidence: {confidence})"
                 )
                 return official_name.lower()
 
         # For credit card bills, company is often the bank or issuer
         # Note: All business names should be configured in business_aliases.json
-        # This fallback is only used if BusinessAliasManager is not available
+        # This fallback is only used if BusinessMappingManager is not available
         known_companies = self.config.get("known_companies", [])
         if not text:
             return None

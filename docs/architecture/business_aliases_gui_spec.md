@@ -117,7 +117,7 @@ AliasManager
 ├─────────────────────────────────────────────────────────────────┤
 │ [🔍 Search aliases...] [➕ Add] [✏️ Edit] [🗑️ Delete] [📤 Export] │
 ├─────────────────────────────────────────────────────────────────┤
-│ Company Name    │ Official Name    │ Usage │ Last Used │ Added  │
+│ Company Name    │ Canonical Name   │ Usage │ Last Used │ Added  │
 ├─────────────────┼──────────────────┼───────┼───────────┼────────┤
 │ Hydro Quebec    │ HYDRO-QUÉBEC     │ 15    │ 2024-01-15│ 2023-12│
 │ Bell Canada     │ BELL CANADA INC  │ 8     │ 2024-01-10│ 2023-11│
@@ -171,7 +171,7 @@ AliasManager
 │ Company Name:                       │
 │ [Hydro Quebec              ]        │
 │                                     │
-│ Official Name:                      │
+│ Canonical Name:                     │
 │ [HYDRO-QUÉBEC              ]        │
 │                                     │
 │ [Preview: "Hydro Quebec" → "HYDRO-  │
@@ -219,7 +219,7 @@ AliasManager
 #### 4.1.1 Add Alias
 - **Form Validation**: Real-time validation of inputs
 - **Duplicate Detection**: Warn about similar existing aliases
-- **Auto-complete**: Suggest official names from existing data
+- **Auto-complete**: Suggest canonical names from existing data
 - **Preview**: Show how the alias will work
 - **Bulk Add**: Add multiple aliases at once
 
@@ -239,7 +239,7 @@ AliasManager
 
 #### 4.2.1 Real-time Search
 - **Instant Results**: Filter as you type
-- **Multiple Fields**: Search across company and official names
+- **Multiple Fields**: Search across company and canonical names
 - **Case Options**: Case-sensitive or case-insensitive
 - **Search History**: Remember recent searches
 

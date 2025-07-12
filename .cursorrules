@@ -136,3 +136,12 @@ feat(gui): implement main window with basic table widget
 - **NEVER commit without user review of commit message**
 - **NEVER assume approval - always ask explicitly**
 - **ALWAYS show the commit message first, then ask for approval**
+
+## ASCII Art Standards
+- **Always ensure all lines align properly** when creating ASCII art mockups
+- Use consistent box-drawing characters (┌─┐│└─┘├─┤) throughout
+- Maintain proper spacing and indentation for visual clarity
+- Ensure all borders and dividers line up perfectly
+- Use monospace font considerations when designing layouts
+- Test ASCII art readability in plain text editors
+- Keep mockups clean and professional for documentation

@@ -736,7 +736,7 @@ print(f"Match: {match}")  # Output: Match: HYDRO-QUÉBEC
 List all configured aliases.
 
 **Returns:**
-- Dictionary mapping aliases to official names
+- Dictionary mapping aliases to canonical names
 
 **Example:**
 ```python

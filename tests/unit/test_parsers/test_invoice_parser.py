@@ -62,7 +62,7 @@ class TestInvoiceParserCompanyExtraction:
         """Create an InvoiceParser instance for testing."""
         return InvoiceParser()
 
-    @patch("ocrinvoice.business.business_alias_manager.FuzzyMatcher")
+    @patch("ocrinvoice.business.business_mapping_manager.FuzzyMatcher")
     def test_extract_company_known_company(
         self, mock_fuzzy_matcher: MagicMock, parser: InvoiceParser
     ) -> None:
@@ -84,7 +84,7 @@ class TestInvoiceParserCompanyExtraction:
 
         assert result == "hydro-québec"
 
-    @patch("ocrinvoice.business.business_alias_manager.FuzzyMatcher")
+    @patch("ocrinvoice.business.business_mapping_manager.FuzzyMatcher")
     def test_extract_company_after_invoice_header(
         self, mock_fuzzy_matcher: MagicMock, parser: InvoiceParser
     ) -> None:
@@ -110,7 +110,7 @@ class TestInvoiceParserCompanyExtraction:
 
         assert result == "acme corporation ltd."
 
-    @patch("ocrinvoice.business.business_alias_manager.FuzzyMatcher")
+    @patch("ocrinvoice.business.business_mapping_manager.FuzzyMatcher")
     def test_extract_company_with_keyword_colon(
         self, mock_fuzzy_matcher: MagicMock, parser: InvoiceParser
     ) -> None:
@@ -133,7 +133,7 @@ class TestInvoiceParserCompanyExtraction:
 
         assert result == "xyz corporation"
 
-    @patch("ocrinvoice.business.business_alias_manager.FuzzyMatcher")
+    @patch("ocrinvoice.business.business_mapping_manager.FuzzyMatcher")
     def test_extract_company_no_match(
         self, mock_fuzzy_matcher: MagicMock, parser: InvoiceParser
     ) -> None:
@@ -155,7 +155,7 @@ class TestInvoiceParserCompanyExtraction:
 
         assert result is None
 
-    @patch("ocrinvoice.business.business_alias_manager.FuzzyMatcher")
+    @patch("ocrinvoice.business.business_mapping_manager.FuzzyMatcher")
     def test_extract_company_ignores_dates(
         self, mock_fuzzy_matcher: MagicMock, parser: InvoiceParser
     ) -> None:
@@ -735,20 +735,20 @@ class TestInvoiceParserIntegration:
 
     @patch.object(InvoiceParser, "extract_text")
     @patch.object(InvoiceParser, "preprocess_text")
-    @patch("ocrinvoice.business.business_alias_manager.BusinessAliasManager")
+    @patch("ocrinvoice.business.business_mapping_manager.BusinessMappingManager")
     def test_parsing_with_text_preprocessing(
         self,
-        mock_business_alias_manager: MagicMock,
+        mock_business_mapping_manager: MagicMock,
         mock_preprocess_text: MagicMock,
         mock_extract_text: MagicMock,
         parser: InvoiceParser,
         tmp_path: Path,
     ) -> None:
         """Test parsing with text preprocessing."""
-        # Mock the business alias manager to return None (no match)
-        mock_bam_instance = MagicMock()
-        mock_bam_instance.find_business_match.return_value = None
-        mock_business_alias_manager.return_value = mock_bam_instance
+        # Mock the business mapping manager to return None (no match)
+        mock_bmm_instance = MagicMock()
+        mock_bmm_instance.find_business_match.return_value = None
+        mock_business_mapping_manager.return_value = mock_bmm_instance
 
         # Mock the preprocessing to return text unchanged
         mock_preprocess_text.side_effect = lambda text: text

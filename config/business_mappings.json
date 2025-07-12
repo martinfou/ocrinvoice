@@ -43,7 +43,8 @@
         "rona": "rona",
         "pharm": "pharmacie",
         "gagnon": "gagnon",
-        "gagn 0 n": "gagnon"
+        "gagn 0 n": "gagnon",
+        "compte de taxes scolaire": "taxes-scolaires"
     },
     "fuzzy_candidates": [
         "taxes-scolaires",

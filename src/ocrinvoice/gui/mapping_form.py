@@ -1,11 +1,11 @@
 """
-Alias Form Widget
+Mapping Form Widget
 
-A form widget for adding and editing business aliases with
+A form widget for adding and editing business mappings with
 real-time validation and preview functionality.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -23,19 +23,19 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 
-class AliasForm(QWidget):
+class MappingForm(QWidget):
     """
-    Form widget for adding and editing business aliases.
+    Form widget for adding and editing business mappings.
 
-    Provides input fields for company name and official name,
+    Provides input fields for trigger term and business canonical name,
     with real-time validation and preview functionality.
     """
 
     # Custom signals
-    alias_saved = pyqtSignal(dict)  # Emitted when alias is saved
-    alias_cancelled = pyqtSignal()  # Emitted when form is cancelled
+    mapping_saved = pyqtSignal(dict)  # Emitted when mapping is saved
+    mapping_cancelled = pyqtSignal()  # Emitted when form is cancelled
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
         # Form data
@@ -58,7 +58,7 @@ class AliasForm(QWidget):
         main_layout.setSpacing(15)
 
         # Title
-        title_label = QLabel("Add New Alias")
+        title_label = QLabel("Add New Mapping")
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)
@@ -70,19 +70,19 @@ class AliasForm(QWidget):
         form_layout = QFormLayout()
         form_layout.setSpacing(10)
 
-        # Company Name field
-        self.company_edit = QLineEdit()
-        self.company_edit.setPlaceholderText("Enter company name (e.g., Hydro Quebec)")
-        self.company_edit.setMinimumHeight(35)
-        form_layout.addRow("Company Name:", self.company_edit)
+        # Trigger Term field
+        self.trigger_edit = QLineEdit()
+        self.trigger_edit.setPlaceholderText("Enter trigger term (e.g., Hydro Quebec)")
+        self.trigger_edit.setMinimumHeight(35)
+        form_layout.addRow("Trigger Term:", self.trigger_edit)
 
-        # Official Name field
+        # Business Canonical Name field
         self.official_edit = QLineEdit()
         self.official_edit.setPlaceholderText(
-            "Enter official name (e.g., HYDRO-QUÉBEC)"
+            "Enter business canonical name (e.g., HYDRO-QUÉBEC)"
         )
         self.official_edit.setMinimumHeight(35)
-        form_layout.addRow("Official Name:", self.official_edit)
+        form_layout.addRow("Business Canonical Name:", self.official_edit)
 
         # Match Type field
         self.match_type_combo = QComboBox()
@@ -125,7 +125,9 @@ class AliasForm(QWidget):
         preview_layout.addWidget(preview_title)
 
         # Preview label
-        self.preview_label = QLabel("Enter company and official names to see preview")
+        self.preview_label = QLabel(
+            "Enter trigger term and business canonical name to see preview"
+        )
         self.preview_label.setWordWrap(True)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setMinimumHeight(40)
@@ -172,17 +174,17 @@ class AliasForm(QWidget):
     def _setup_validation(self) -> None:
         """Set up validation for form fields."""
         # Connect text change signals for validation
-        self.company_edit.textChanged.connect(self._validate_form)
+        self.trigger_edit.textChanged.connect(self._validate_form)
         self.official_edit.textChanged.connect(self._validate_form)
 
     def _setup_connections(self) -> None:
         """Set up signal/slot connections."""
         # Button connections
-        self.save_button.clicked.connect(self._save_alias)
+        self.save_button.clicked.connect(self._save_mapping)
         self.cancel_button.clicked.connect(self._cancel_form)
 
         # Text change connections for preview
-        self.company_edit.textChanged.connect(self._update_preview)
+        self.trigger_edit.textChanged.connect(self._update_preview)
         self.official_edit.textChanged.connect(self._update_preview)
         self.match_type_combo.currentTextChanged.connect(self._update_preview)
 
@@ -190,42 +192,42 @@ class AliasForm(QWidget):
         """Show the form in add mode."""
         self._current_mode = "add"
         self._clear_form()
-        self._update_title("Add New Alias")
-        self.save_button.setText("Add Alias")
+        self._update_title("Add New Mapping")
+        self.save_button.setText("Add Mapping")
 
-    def show_edit_mode(self, alias_data: Dict[str, Any]) -> None:
+    def show_edit_mode(self, mapping_data: Dict[str, Any]) -> None:
         """Show the form in edit mode with existing data."""
         self._current_mode = "edit"
-        self._original_data = alias_data.copy()
-        self._populate_form(alias_data)
-        self._update_title("Edit Alias")
-        self.save_button.setText("Update Alias")
+        self._original_data = mapping_data.copy()
+        self._populate_form(mapping_data)
+        self._update_title("Edit Mapping")
+        self.save_button.setText("Update Mapping")
 
     def _update_title(self, title: str) -> None:
         """Update the form title."""
         # Find the title label (first QLabel in the layout)
-        for i in range(self.layout().count()):
-            item = self.layout().itemAt(i)
-            if item.widget() and isinstance(item.widget(), QLabel):
-                item.widget().setText(title)
+        for i in range(self.layout().count()):  # type: ignore[union-attr]
+            item = self.layout().itemAt(i)  # type: ignore[union-attr]
+            if item.widget() and isinstance(item.widget(), QLabel):  # type: ignore[union-attr]
+                item.widget().setText(title)  # type: ignore[union-attr]
                 break
 
     def _clear_form(self) -> None:
         """Clear all form fields."""
-        self.company_edit.clear()
+        self.trigger_edit.clear()
         self.official_edit.clear()
         self.match_type_combo.setCurrentIndex(0)
         self.case_sensitive_check.setChecked(True)
         self.fuzzy_match_check.setChecked(False)
         self._original_data = {}
 
-    def _populate_form(self, alias_data: Dict[str, Any]) -> None:
+    def _populate_form(self, mapping_data: Dict[str, Any]) -> None:
         """Populate form fields with existing data."""
-        self.company_edit.setText(alias_data.get("alias", ""))
-        self.official_edit.setText(alias_data.get("official_name", ""))
+        self.trigger_edit.setText(mapping_data.get("mapping", ""))
+        self.official_edit.setText(mapping_data.get("official_name", ""))
 
         # Set match type
-        match_type = alias_data.get("match_type", "Exact")
+        match_type = mapping_data.get("match_type", "Exact")
         if match_type == "Exact":
             self.match_type_combo.setCurrentIndex(0)
         else:
@@ -233,28 +235,28 @@ class AliasForm(QWidget):
 
     def _validate_form(self) -> None:
         """Validate form fields and update validation message."""
-        company = self.company_edit.text().strip()
+        trigger = self.trigger_edit.text().strip()
         official = self.official_edit.text().strip()
 
         errors = []
 
         # Check for empty fields
-        if not company:
-            errors.append("Company name is required")
+        if not trigger:
+            errors.append("Trigger term is required")
 
         if not official:
-            errors.append("Official name is required")
+            errors.append("Business canonical name is required")
 
         # Check for minimum length
-        if company and len(company) < 2:
-            errors.append("Company name must be at least 2 characters")
+        if trigger and len(trigger) < 2:
+            errors.append("Trigger term must be at least 2 characters")
 
         if official and len(official) < 2:
-            errors.append("Official name must be at least 2 characters")
+            errors.append("Business canonical name must be at least 2 characters")
 
-        # Check for duplicate (in edit mode, exclude current alias)
-        if company and official:
-            # TODO: Check for duplicates in the alias manager
+        # Check for duplicate (in edit mode, exclude current mapping)
+        if trigger and official:
+            # TODO: Check for duplicates in the mapping manager
             pass
 
         # Update validation message
@@ -270,28 +272,28 @@ class AliasForm(QWidget):
 
     def _update_preview(self) -> None:
         """Update the preview display."""
-        company = self.company_edit.text().strip()
+        trigger = self.trigger_edit.text().strip()
         official = self.official_edit.text().strip()
         match_type = self.match_type_combo.currentText()
 
-        if company and official:
-            preview_text = f'"{company}" → "{official}"\n({match_type})'
+        if trigger and official:
+            preview_text = f'"{trigger}" → "{official}"\n({match_type})'
             self.preview_label.setText(preview_text)
         else:
             self.preview_label.setText(
-                "Enter company and official names to see preview"
+                "Enter trigger term and business canonical name to see preview"
             )
 
-    def _save_alias(self) -> None:
-        """Save the alias data."""
+    def _save_mapping(self) -> None:
+        """Save the mapping data."""
         # Validate form
         self._validate_form()
         if not self.save_button.isEnabled():
             return
 
         # Collect form data
-        alias_data = {
-            "alias": self.company_edit.text().strip(),
+        mapping_data = {
+            "mapping": self.trigger_edit.text().strip(),
             "official_name": self.official_edit.text().strip(),
             "match_type": self.match_type_combo.currentText().lower().replace(" ", "_"),
             "case_sensitive": self.case_sensitive_check.isChecked(),
@@ -299,13 +301,13 @@ class AliasForm(QWidget):
         }
 
         # Convert match type to internal format
-        if alias_data["match_type"] == "exact_match":
-            alias_data["match_type"] = "exact_matches"
+        if mapping_data["match_type"] == "exact_match":
+            mapping_data["match_type"] = "exact_matches"
         else:
-            alias_data["match_type"] = "partial_matches"
+            mapping_data["match_type"] = "partial_matches"
 
         # Emit save signal
-        self.alias_saved.emit(alias_data)
+        self.mapping_saved.emit(mapping_data)
 
     def _cancel_form(self) -> None:
         """Cancel the form and emit cancel signal."""
@@ -322,27 +324,27 @@ class AliasForm(QWidget):
             if reply == QMessageBox.StandardButton.No:
                 return
 
-        self.alias_cancelled.emit()
+        self.mapping_cancelled.emit()
 
     def _has_unsaved_changes(self) -> bool:
         """Check if there are unsaved changes in the form."""
         if self._current_mode == "add":
             # In add mode, check if any field has content
-            return bool(self.company_edit.text().strip()) or bool(
+            return bool(self.trigger_edit.text().strip()) or bool(
                 self.official_edit.text().strip()
             )
         else:
             # In edit mode, compare with original data
-            current_company = self.company_edit.text().strip()
+            current_trigger = self.trigger_edit.text().strip()
             current_official = self.official_edit.text().strip()
             current_match_type = self.match_type_combo.currentText()
 
-            original_company = self._original_data.get("alias", "")
+            original_trigger = self._original_data.get("mapping", "")
             original_official = self._original_data.get("official_name", "")
             original_match_type = self._original_data.get("match_type", "Exact")
 
             return (
-                current_company != original_company
+                current_trigger != original_trigger
                 or current_official != original_official
                 or current_match_type != original_match_type
             )
@@ -350,7 +352,7 @@ class AliasForm(QWidget):
     def get_form_data(self) -> Dict[str, Any]:
         """Get the current form data."""
         return {
-            "alias": self.company_edit.text().strip(),
+            "mapping": self.trigger_edit.text().strip(),
             "official_name": self.official_edit.text().strip(),
             "match_type": self.match_type_combo.currentText(),
             "case_sensitive": self.case_sensitive_check.isChecked(),
@@ -359,7 +361,7 @@ class AliasForm(QWidget):
 
     def set_form_data(self, data: Dict[str, Any]) -> None:
         """Set form data from dictionary."""
-        self.company_edit.setText(data.get("alias", ""))
+        self.trigger_edit.setText(data.get("mapping", ""))
         self.official_edit.setText(data.get("official_name", ""))
 
         match_type = data.get("match_type", "Exact Match")

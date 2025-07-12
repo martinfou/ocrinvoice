@@ -16,12 +16,12 @@ from ocrinvoice.cli.commands.parse import parse_command
 from ocrinvoice.cli.commands.batch import batch_command
 from ocrinvoice.cli.commands.test import test_command
 
-# Import BusinessAliasManager for managing business aliases
+# Import BusinessMappingManager for managing business mappings
 try:
-    from ocrinvoice.business.business_alias_manager import BusinessAliasManager
+    from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 except ImportError:
     # Fallback if the module doesn't exist in the new structure
-    BusinessAliasManager = None
+    BusinessMappingManager = None
 
 # Configure logging
 logging.basicConfig(
@@ -426,7 +426,7 @@ def config(config: Optional[Path]):
 
 @cli.command()
 def gui():
-    """Launch the GUI for managing business aliases"""
+    """Launch the GUI for managing business mappings"""
     try:
         from ocrinvoice.gui.main_window import main
 
@@ -441,23 +441,23 @@ def gui():
 
 
 @cli.group()
-def aliases():
-    """Manage business name aliases (business_aliases.json)"""
-    if BusinessAliasManager is None:
+def mappings():
+    """Manage business name mappings (business_mappings.json)"""
+    if BusinessMappingManager is None:
         click.echo(
-            "Error: BusinessAliasManager not available. Make sure business_alias_manager.py is in your project.",  # noqa: E501
+            "Error: BusinessMappingManager not available. Make sure business_mapping_manager.py is in your project.",  # noqa: E501
             err=True,
         )
         sys.exit(1)
 
 
-@aliases.command("list")
-def list_aliases():
-    """List all official business names and aliases"""
+@mappings.command("list")
+def list_mappings():
+    """List all official business names and mappings"""
     try:
-        manager = BusinessAliasManager()
+        manager = BusinessMappingManager()
 
-        click.echo("📋 Business Aliases Configuration")
+        click.echo("📋 Business Mappings Configuration")
         click.echo("=" * 50)
 
         # Official business names
@@ -473,8 +473,8 @@ def list_aliases():
         click.echo("\n🎯 Exact Matches:")
         exact_matches = manager.config.get("exact_matches", {})
         if exact_matches:
-            for alias, name in exact_matches.items():
-                click.echo("Alias: {}".format(alias))
+            for mapping, name in exact_matches.items():
+                click.echo("Mapping: {}".format(mapping))
                 click.echo("Name: {}".format(name))
         else:
             click.echo("  (none defined)")
@@ -483,8 +483,8 @@ def list_aliases():
         click.echo("\n🔍 Partial Matches:")
         partial_matches = manager.config.get("partial_matches", {})
         if partial_matches:
-            for alias, name in partial_matches.items():
-                click.echo(f"Alias: {alias}")
+            for mapping, name in partial_matches.items():
+                click.echo(f"Mapping: {mapping}")
                 click.echo(f"Name: {name}")
         else:
             click.echo("  (none defined)")
@@ -501,20 +501,20 @@ def list_aliases():
         # Statistics
         stats = manager.get_stats()
         click.echo("\n📊 Statistics:")
-        click.echo(f"  Total official names: {stats['official_names']}")
+        click.echo(f"  Total canonical names: {stats['official_names']}")
         click.echo(f"  Total exact matches: {stats['exact_matches']}")
         click.echo(f"  Total partial matches: {stats['partial_matches']}")
         click.echo(f"  Total fuzzy candidates: {stats['fuzzy_candidates']}")
         click.echo(f"  Total unique businesses: {stats['total_businesses']}")
 
     except Exception as e:
-        logger.error(f"Error listing aliases: {e}")
-        click.echo("\u2717 Error: {}".format(e), err=True)
+        logger.error(f"Error listing mappings: {e}")
+        click.echo(f"\u2717 Error: {e}", err=True)
         sys.exit(1)
 
 
-@aliases.command("add")
-@click.argument("alias")
+@mappings.command("add")
+@click.argument("mapping")
 @click.argument("official_name")
 @click.option(
     "--type",
@@ -523,62 +523,62 @@ def list_aliases():
     type=click.Choice(["exact_matches", "partial_matches"]),
     help="Type of match (default: exact_matches)",
 )
-def add_alias(alias: str, official_name: str, match_type: str):
-    """Add a new alias for a business"""
+def add_mapping(mapping: str, official_name: str, match_type: str):
+    """Add a new mapping for a business"""
     try:
-        manager = BusinessAliasManager()
+        manager = BusinessMappingManager()
 
-        # Check if official name exists
+        # Check if canonical name exists
         if not manager.is_official_name(official_name):
             click.echo(
-                f"❌ Error: '{official_name}' is not an official business name.",
+                f"❌ Error: '{official_name}' is not a canonical business name.",
                 err=True,
             )
-            click.echo("Use 'ocrinvoice aliases add-official' to add it first.")
+            click.echo("Use 'ocrinvoice mappings add-official' to add it first.")
             return
 
-        # Check if alias already exists
-        if alias in manager.config.get(match_type, {}):
-            click.echo(f"⚠️  Warning: Alias '{alias}' already exists in {match_type}")
+        # Check if mapping already exists
+        if mapping in manager.config.get(match_type, {}):
+            click.echo(f"⚠️  Warning: Mapping '{mapping}' already exists in {match_type}")
             if not click.confirm("Do you want to overwrite it?"):
                 return
 
-        # Add the alias
-        manager.add_alias(alias, official_name, match_type)
-        click.echo(f"✅ Added alias '{alias}' → '{official_name}' ({match_type})")
+        # Add the mapping
+        manager.add_mapping(mapping, official_name, match_type)
+        click.echo(f"✅ Added mapping '{mapping}' → '{official_name}' ({match_type})")
 
     except Exception as e:
-        logger.error(f"Error adding alias: {e}")
+        logger.error(f"Error adding mapping: {e}")
         click.echo(f"✗ Error: {e}", err=True)
         sys.exit(1)
 
 
-@aliases.command("add-official")
+@mappings.command("add-official")
 @click.argument("name")
 def add_official(name: str):
-    """Add a new official business name"""
+    """Add a new canonical business name"""
     try:
-        manager = BusinessAliasManager()
+        manager = BusinessMappingManager()
 
         # Check if name already exists
         if manager.is_official_name(name):
-            click.echo(f"ℹ️  '{name}' is already an official business name.")
+            click.echo(f"ℹ️  '{name}' is already a canonical business name.")
             return
 
-        # Add the official name
+        # Add the canonical name
         manager.official_names.add(name)
         manager.config["official_names"] = sorted(manager.official_names)
         manager._save_config()
-        click.echo(f"✅ Added official business name: '{name}'")
+        click.echo(f"✅ Added canonical business name: '{name}'")
 
     except Exception as e:
-        logger.error(f"Error adding official name: {e}")
+        logger.error(f"Error adding canonical name: {e}")
         click.echo(f"✗ Error: {e}", err=True)
         sys.exit(1)
 
 
-@aliases.command("remove")
-@click.argument("alias")
+@mappings.command("remove")
+@click.argument("mapping")
 @click.option(
     "--type",
     "match_type",
@@ -586,114 +586,111 @@ def add_official(name: str):
     type=click.Choice(["exact_matches", "partial_matches"]),
     help="Type of match (default: exact_matches)",
 )
-def remove_alias(alias: str, match_type: str):
-    """Remove an alias"""
+def remove_mapping(mapping: str, match_type: str):
+    """Remove a mapping"""
     try:
-        manager = BusinessAliasManager()
+        manager = BusinessMappingManager()
 
-        # Check if alias exists
-        if alias not in manager.config.get(match_type, {}):
-            click.echo(f"❌ Error: Alias '{alias}' not found in {match_type}")
+        # Check if mapping exists
+        if mapping not in manager.config.get(match_type, {}):
+            click.echo(f"❌ Error: Mapping '{mapping}' not found in {match_type}")
             return
 
         # Confirm removal
-        official_name = manager.config[match_type][alias]
+        official_name = manager.config[match_type][mapping]
         if not click.confirm(
-            f"Remove alias '{alias}' → '{official_name}' from {match_type}?"
+            f"Remove mapping '{mapping}' → '{official_name}' from {match_type}?"
         ):
             return
 
-        # Remove the alias
-        del manager.config[match_type][alias]
+        # Remove the mapping
+        del manager.config[match_type][mapping]
         manager._save_config()
-        click.echo(f"✅ Removed alias '{alias}' from {match_type}")
+        click.echo(f"✅ Removed mapping '{mapping}' from {match_type}")
 
     except Exception as e:
-        logger.error(f"Error removing alias: {e}")
+        logger.error(f"Error removing mapping: {e}")
         click.echo(f"✗ Error: {e}", err=True)
         sys.exit(1)
 
 
-@aliases.command("remove-official")
+@mappings.command("remove-official")
 @click.argument("name")
 def remove_official(name: str):
-    """Remove an official business name"""
+    """Remove a canonical business name"""
     try:
-        manager = BusinessAliasManager()
+        manager = BusinessMappingManager()
 
         # Check if name exists
         if not manager.is_official_name(name):
-            click.echo(f"❌ Error: '{name}' is not an official business name.")
+            click.echo(f"❌ Error: '{name}' is not a canonical business name.")
             return
 
         # Check for dependencies
         dependencies = []
         for match_type in ["exact_matches", "partial_matches"]:
-            for alias, official_name in manager.config.get(match_type, {}).items():
+            for mapping, official_name in manager.config.get(match_type, {}).items():
                 if official_name == name:
-                    dependencies.append(f"{alias} ({match_type})")
+                    dependencies.append(f"{mapping} ({match_type})")
 
         if dependencies:
-            click.echo(f"⚠️  Warning: '{name}' is referenced by the following aliases:")
+            click.echo(f"⚠️  Warning: '{name}' is referenced by the following mappings:")
             for dep in dependencies:
                 click.echo(f"  • {dep}")
             if not click.confirm(
-                "Remove anyway? This will also remove all dependent aliases."
+                "Remove anyway? This will also remove all dependent mappings."
             ):
                 return
 
-            # Remove dependent aliases
+            # Remove dependent mappings
             for match_type in ["exact_matches", "partial_matches"]:
-                aliases_to_remove = [
-                    alias
-                    for alias, official_name in manager.config.get(
+                mappings_to_remove = [
+                    mapping
+                    for mapping, official_name in manager.config.get(
                         match_type, {}
                     ).items()
                     if official_name == name
                 ]
-                for alias in aliases_to_remove:
-                    del manager.config[match_type][alias]
+                for mapping in mappings_to_remove:
+                    del manager.config[match_type][mapping]
 
-        # Remove the official name
+        # Remove the canonical name
         manager.official_names.remove(name)
         manager.config["official_names"] = sorted(manager.official_names)
         manager._save_config()
-        click.echo(f"✅ Removed official business name: '{name}'")
+        click.echo(f"✅ Removed canonical business name: '{name}'")
 
     except Exception as e:
-        logger.error(f"Error removing official name: {e}")
+        logger.error(f"Error removing canonical name: {e}")
         click.echo(f"✗ Error: {e}", err=True)
         sys.exit(1)
 
 
-@aliases.command("test")
+@mappings.command("test")
 @click.argument("text")
-def test_alias(text: str):
-    """Test how a text would be matched against business aliases"""
+def test_mapping(text: str):
+    """Test how a text would be matched against business mappings"""
     try:
-        manager = BusinessAliasManager()
-
-        click.echo(f"🔍 Testing text: '{text}'")
-        click.echo("=" * 50)
-
+        manager = BusinessMappingManager()
         result = manager.find_business_match(text)
 
         if result:
-            official_name, match_type, confidence = result
-            click.echo("\u2705 Match found!")
-            click.echo(f"  Official name: '{official_name}'")
+            business_name, match_type, confidence = result
+            click.echo(f"✅ Match found!")
+            click.echo(f"  Text: '{text}'")
+            click.echo(f"  Business: '{business_name}'")
             click.echo(f"  Match type: {match_type}")
             click.echo(f"  Confidence: {confidence:.2f}")
         else:
-            click.echo("❌ No match found")
+            click.echo(f"❌ No match found for text: '{text}'")
             click.echo("\n💡 Suggestions:")
-            click.echo("  • Add a new alias with 'ocrinvoice aliases add'")
+            click.echo("  • Add a new mapping with 'ocrinvoice mappings add'")
             click.echo(
-                "  • Add a new official name with 'ocrinvoice aliases add-official'"
+                "  • Add a new canonical name with 'ocrinvoice mappings add-official'"
             )
 
     except Exception as e:
-        logger.error(f"Error testing alias: {e}")
+        logger.error(f"Error testing mapping: {e}")
         click.echo(f"✗ Error: {e}", err=True)
         sys.exit(1)
 

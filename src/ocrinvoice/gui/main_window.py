@@ -1,7 +1,7 @@
 """
-Main Window for Business Aliases GUI Manager
+Main Window for Business Mappings GUI Manager
 
-The primary application window containing the alias table,
+The primary application window containing the mapping table,
 toolbar, menu bar, and status bar.
 """
 
@@ -18,29 +18,29 @@ from PyQt6.QtWidgets import (
     QApplication,
 )
 from PyQt6.QtCore import QSize
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
 
-from .alias_table import AliasTable
-from .alias_form import AliasForm
-from ..business.business_alias_manager import BusinessAliasManager
+from .mapping_table import MappingTable
+from .mapping_form import MappingForm
+from ..business.business_mapping_manager import BusinessMappingManager
 
 
 class MainWindow(QMainWindow):
     """
-    Main application window for the Business Aliases GUI Manager.
+    Main application window for the Business Mappings GUI Manager.
 
-    Provides a complete interface for managing business aliases with
+    Provides a complete interface for managing business mappings with
     table view, toolbar actions, menu system, and status bar.
     """
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
         # Initialize business logic
-        self.alias_manager = BusinessAliasManager()
+        self.mapping_manager = BusinessMappingManager()
 
         # Window setup
-        self.setWindowTitle("Business Aliases Manager")
+        self.setWindowTitle("Business Mappings Manager")
         self.setMinimumSize(800, 600)
         self.resize(1024, 768)
 
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self._setup_connections()
 
         # Load initial data
-        self._load_aliases()
+        self._load_mappings()
 
     def _setup_ui(self) -> None:
         """Set up the main user interface components."""
@@ -65,27 +65,25 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(8, 8, 8, 8)
         main_layout.setSpacing(8)
 
-        # Create alias table
-        self.alias_table = AliasTable()
-        main_layout.addWidget(self.alias_table)
+        # Create mapping table
+        self.mapping_table = MappingTable()
+        main_layout.addWidget(self.mapping_table)
 
-        # Create alias form (initially hidden)
-        self.alias_form = AliasForm()
-        self.alias_form.hide()
-        main_layout.addWidget(self.alias_form)
+        # Create mapping form (initially hidden)
+        self.mapping_form = MappingForm()
+        self.mapping_form.hide()
+        main_layout.addWidget(self.mapping_form)
 
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar with all menu items."""
         menubar = self.menuBar()
-
-        # File menu
         file_menu = menubar.addMenu("&File")
 
-        # New alias action
-        new_action = QAction("&New Alias", self)
+        # New mapping action
+        new_action = QAction("&New Mapping", self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
-        new_action.setStatusTip("Add a new business alias")
-        new_action.triggered.connect(self._add_alias)
+        new_action.setStatusTip("Add a new business mapping")
+        new_action.triggered.connect(self._add_mapping)
         file_menu.addAction(new_action)
 
         file_menu.addSeparator()
@@ -93,15 +91,15 @@ class MainWindow(QMainWindow):
         # Import action
         import_action = QAction("&Import...", self)
         import_action.setShortcut(QKeySequence.StandardKey.Open)
-        import_action.setStatusTip("Import aliases from file")
-        import_action.triggered.connect(self._import_aliases)
+        import_action.setStatusTip("Import mappings from file")
+        import_action.triggered.connect(self._import_mappings)
         file_menu.addAction(import_action)
 
         # Export action
         export_action = QAction("&Export...", self)
         export_action.setShortcut(QKeySequence("Ctrl+Shift+E"))
-        export_action.setStatusTip("Export aliases to file")
-        export_action.triggered.connect(self._export_aliases)
+        export_action.setStatusTip("Export mappings to file")
+        export_action.triggered.connect(self._export_mappings)
         file_menu.addAction(export_action)
 
         file_menu.addSeparator()
@@ -116,18 +114,18 @@ class MainWindow(QMainWindow):
         # Edit menu
         edit_menu = menubar.addMenu("&Edit")
 
-        # Edit alias action
-        edit_action = QAction("&Edit Alias", self)
+        # Edit mapping action
+        edit_action = QAction("&Edit Mapping", self)
         edit_action.setShortcut(QKeySequence.StandardKey.Copy)
-        edit_action.setStatusTip("Edit selected alias")
-        edit_action.triggered.connect(self._edit_alias)
+        edit_action.setStatusTip("Edit selected mapping")
+        edit_action.triggered.connect(self._edit_mapping)
         edit_menu.addAction(edit_action)
 
-        # Delete alias action
-        delete_action = QAction("&Delete Alias", self)
+        # Delete mapping action
+        delete_action = QAction("&Delete Mapping", self)
         delete_action.setShortcut(QKeySequence.StandardKey.Delete)
-        delete_action.setStatusTip("Delete selected alias")
-        delete_action.triggered.connect(self._delete_alias)
+        delete_action.setStatusTip("Delete selected mapping")
+        delete_action.triggered.connect(self._delete_mapping)
         edit_menu.addAction(delete_action)
 
         edit_menu.addSeparator()
@@ -135,8 +133,8 @@ class MainWindow(QMainWindow):
         # Select all action
         select_all_action = QAction("Select &All", self)
         select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
-        select_all_action.setStatusTip("Select all aliases")
-        select_all_action.triggered.connect(self.alias_table.selectAll)
+        select_all_action.setStatusTip("Select all mappings")
+        select_all_action.triggered.connect(self.mapping_table.selectAll)
         edit_menu.addAction(select_all_action)
 
         # Tools menu
@@ -144,7 +142,7 @@ class MainWindow(QMainWindow):
 
         # Statistics action
         stats_action = QAction("&Statistics", self)
-        stats_action.setStatusTip("View alias statistics")
+        stats_action.setStatusTip("View mapping statistics")
         stats_action.triggered.connect(self._show_statistics)
         tools_menu.addAction(stats_action)
 
@@ -153,7 +151,7 @@ class MainWindow(QMainWindow):
 
         # About action
         about_action = QAction("&About", self)
-        about_action.setStatusTip("About Business Aliases Manager")
+        about_action.setStatusTip("About Business Mappings Manager")
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
 
@@ -164,49 +162,49 @@ class MainWindow(QMainWindow):
         toolbar.setIconSize(QSize(24, 24))
         self.addToolBar(toolbar)
 
-        # Add alias button
+        # Add mapping button
         add_action = QAction("➕ Add", self)
-        add_action.setStatusTip("Add a new business alias")
-        add_action.triggered.connect(self._add_alias)
+        add_action.setStatusTip("Add a new business mapping")
+        add_action.triggered.connect(self._add_mapping)
         toolbar.addAction(add_action)
 
-        # Edit alias button
+        # Edit mapping button
         edit_action = QAction("✏️ Edit", self)
-        edit_action.setStatusTip("Edit selected alias")
-        edit_action.triggered.connect(self._edit_alias)
+        edit_action.setStatusTip("Edit selected mapping")
+        edit_action.triggered.connect(self._edit_mapping)
         toolbar.addAction(edit_action)
 
-        # Delete alias button
+        # Delete mapping button
         delete_action = QAction("🗑️ Delete", self)
-        delete_action.setStatusTip("Delete selected alias")
-        delete_action.triggered.connect(self._delete_alias)
+        delete_action.setStatusTip("Delete selected mapping")
+        delete_action.triggered.connect(self._delete_mapping)
         toolbar.addAction(delete_action)
 
         toolbar.addSeparator()
 
         # Import button
         import_action = QAction("📥 Import", self)
-        import_action.setStatusTip("Import aliases from file")
-        import_action.triggered.connect(self._import_aliases)
+        import_action.setStatusTip("Import mappings from file")
+        import_action.triggered.connect(self._import_mappings)
         toolbar.addAction(import_action)
 
         # Export button
         export_action = QAction("📤 Export", self)
-        export_action.setStatusTip("Export aliases to file")
-        export_action.triggered.connect(self._export_aliases)
+        export_action.setStatusTip("Export mappings to file")
+        export_action.triggered.connect(self._export_mappings)
         toolbar.addAction(export_action)
 
         toolbar.addSeparator()
 
         # Refresh button
         refresh_action = QAction("🔄 Refresh", self)
-        refresh_action.setStatusTip("Refresh alias data")
-        refresh_action.triggered.connect(self._load_aliases)
+        refresh_action.setStatusTip("Refresh mapping data")
+        refresh_action.triggered.connect(self._load_mappings)
         toolbar.addAction(refresh_action)
 
         # Statistics button
         stats_action = QAction("📊 Statistics", self)
-        stats_action.setStatusTip("View alias statistics")
+        stats_action.setStatusTip("View mapping statistics")
         stats_action.triggered.connect(self._show_statistics)
         toolbar.addAction(stats_action)
 
@@ -220,58 +218,58 @@ class MainWindow(QMainWindow):
 
     def _setup_connections(self) -> None:
         """Set up signal/slot connections between components."""
-        # Connect alias table signals
-        self.alias_table.alias_selected.connect(self._on_alias_selected)
-        self.alias_table.alias_double_clicked.connect(self._edit_alias)
+        # Connect mapping table signals
+        self.mapping_table.mapping_selected.connect(self._on_mapping_selected)
+        self.mapping_table.mapping_double_clicked.connect(self._edit_mapping)
 
-        # Connect alias form signals
-        self.alias_form.alias_saved.connect(self._on_alias_saved)
-        self.alias_form.alias_cancelled.connect(self._on_alias_cancelled)
+        # Connect mapping form signals
+        self.mapping_form.mapping_saved.connect(self._on_mapping_saved)
+        self.mapping_form.mapping_cancelled.connect(self._on_mapping_cancelled)
 
-    def _load_aliases(self) -> None:
-        """Load aliases from the business alias manager."""
+    def _load_mappings(self) -> None:
+        """Load mappings from the business mapping manager."""
         try:
-            # Get aliases from manager
-            exact_matches = self.alias_manager.config.get("exact_matches", {})
-            partial_matches = self.alias_manager.config.get("partial_matches", {})
+            # Get mappings from manager
+            exact_matches = self.mapping_manager.config.get("exact_matches", {})
+            partial_matches = self.mapping_manager.config.get("partial_matches", {})
 
             # Load into table
-            self.alias_table.load_aliases(exact_matches, partial_matches)
+            self.mapping_table.load_mappings(exact_matches, partial_matches)
 
             # Update status
             total_count = len(exact_matches) + len(partial_matches)
-            self.status_bar.showMessage(f"{total_count} aliases loaded")
+            self.status_bar.showMessage(f"{total_count} mappings loaded")
 
         except Exception as e:
             QMessageBox.critical(
-                self, "Error Loading Aliases", f"Failed to load aliases: {str(e)}"
+                self, "Error Loading Mappings", f"Failed to load mappings: {str(e)}"
             )
-            self.status_bar.showMessage("Error loading aliases")
+            self.status_bar.showMessage("Error loading mappings")
 
-    def _add_alias(self) -> None:
-        """Show the add alias form."""
-        self.alias_form.show_add_mode()
-        self.alias_form.show()
-        self.alias_table.hide()
+    def _add_mapping(self) -> None:
+        """Show the add mapping form."""
+        self.mapping_form.show_add_mode()
+        self.mapping_form.show()
+        self.mapping_table.hide()
 
-    def _edit_alias(self) -> None:
-        """Edit the selected alias."""
-        selected_alias = self.alias_table.get_selected_alias()
-        if selected_alias:
-            self.alias_form.show_edit_mode(selected_alias)
-            self.alias_form.show()
-            self.alias_table.hide()
+    def _edit_mapping(self) -> None:
+        """Edit the selected mapping."""
+        selected_mapping = self.mapping_table.get_selected_mapping()
+        if selected_mapping:
+            self.mapping_form.show_edit_mode(selected_mapping)
+            self.mapping_form.show()
+            self.mapping_table.hide()
         else:
             QMessageBox.information(
-                self, "No Selection", "Please select an alias to edit."
+                self, "No Selection", "Please select a mapping to edit."
             )
 
-    def _delete_alias(self) -> None:
-        """Delete the selected alias."""
-        selected_alias = self.alias_table.get_selected_alias()
-        if not selected_alias:
+    def _delete_mapping(self) -> None:
+        """Delete the selected mapping."""
+        selected_mapping = self.mapping_table.get_selected_mapping()
+        if not selected_mapping:
             QMessageBox.information(
-                self, "No Selection", "Please select an alias to delete."
+                self, "No Selection", "Please select a mapping to delete."
             )
             return
 
@@ -279,7 +277,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             "Confirm Deletion",
-            f"Are you sure you want to delete the alias '{selected_alias['alias']}'?",
+            f"Are you sure you want to delete the mapping '{selected_mapping['mapping']}'?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -287,53 +285,57 @@ class MainWindow(QMainWindow):
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 # Delete from manager
-                match_type = selected_alias.get("match_type", "exact_matches")
-                del self.alias_manager.config[match_type][selected_alias["alias"]]
-                self.alias_manager._save_config()
+                match_type = selected_mapping.get("match_type", "exact_matches")
+                del self.mapping_manager.config[match_type][selected_mapping["mapping"]]
+                self.mapping_manager._save_config()
 
                 # Reload table
-                self._load_aliases()
+                self._load_mappings()
 
-                self.status_bar.showMessage(f"Deleted alias: {selected_alias['alias']}")
+                self.status_bar.showMessage(
+                    f"Deleted mapping: {selected_mapping['mapping']}"
+                )
 
             except Exception as e:
                 QMessageBox.critical(
-                    self, "Error Deleting Alias", f"Failed to delete alias: {str(e)}"
+                    self,
+                    "Error Deleting Mapping",
+                    f"Failed to delete mapping: {str(e)}",
                 )
 
-    def _import_aliases(self) -> None:
-        """Import aliases from file."""
+    def _import_mappings(self) -> None:
+        """Import mappings from file."""
         # TODO: Implement import dialog
         QMessageBox.information(
             self,
-            "Import Aliases",
+            "Import Mappings",
             "Import functionality will be implemented in Phase 2.",
         )
 
-    def _export_aliases(self) -> None:
-        """Export aliases to file."""
+    def _export_mappings(self) -> None:
+        """Export mappings to file."""
         # TODO: Implement export dialog
         QMessageBox.information(
             self,
-            "Export Aliases",
+            "Export Mappings",
             "Export functionality will be implemented in Phase 2.",
         )
 
     def _show_statistics(self) -> None:
-        """Show alias statistics."""
+        """Show mapping statistics."""
         try:
-            stats = self.alias_manager.get_stats()
+            stats = self.mapping_manager.get_stats()
 
             stats_text = f"""
 Statistics:
-• Total official names: {stats['official_names']}
+            • Total business canonical names: {stats['official_names']}
 • Total exact matches: {stats['exact_matches']}
 • Total partial matches: {stats['partial_matches']}
 • Total fuzzy candidates: {stats['fuzzy_candidates']}
 • Total unique businesses: {stats['total_businesses']}
             """.strip()
 
-            QMessageBox.information(self, "Alias Statistics", stats_text)
+            QMessageBox.information(self, "Mapping Statistics", stats_text)
 
         except Exception as e:
             QMessageBox.critical(
@@ -344,57 +346,57 @@ Statistics:
         """Show about dialog."""
         QMessageBox.about(
             self,
-            "About Business Aliases Manager",
+            "About Business Mappings Manager",
             """
-Business Aliases Manager v1.0.0
+Business Mappings Manager v1.0.0
 
-A PyQt6 desktop application for managing business name aliases
+A PyQt6 desktop application for managing business name mappings
 used by the OCR invoice parser.
 
 Part of the OCR Invoice Parser project.
             """.strip(),
         )
 
-    def _on_alias_selected(self, alias_data: Dict[str, Any]) -> None:
-        """Handle alias selection in the table."""
-        if alias_data:
+    def _on_mapping_selected(self, mapping_data: Dict[str, Any]) -> None:
+        """Handle mapping selection in the table."""
+        if mapping_data:
             self.status_bar.showMessage(
-                f"Selected: {alias_data['alias']} → {alias_data['official_name']}"
+                f"Selected: {mapping_data['mapping']} → {mapping_data['official_name']}"
             )
         else:
             self.status_bar.showMessage("Ready")
 
-    def _on_alias_saved(self, alias_data: Dict[str, Any]) -> None:
-        """Handle alias save from form."""
+    def _on_mapping_saved(self, mapping_data: Dict[str, Any]) -> None:
+        """Handle mapping save from form."""
         try:
             # Save to manager
-            alias = alias_data["alias"]
-            official_name = alias_data["official_name"]
-            match_type = alias_data.get("match_type", "exact_matches")
+            mapping = mapping_data["mapping"]
+            official_name = mapping_data["official_name"]
+            match_type = mapping_data.get("match_type", "exact_matches")
 
-            self.alias_manager.add_alias(alias, official_name, match_type)
+            self.mapping_manager.add_mapping(mapping, official_name, match_type)
 
             # Hide form and show table
-            self.alias_form.hide()
-            self.alias_table.show()
+            self.mapping_form.hide()
+            self.mapping_table.show()
 
             # Reload data
-            self._load_aliases()
+            self._load_mappings()
 
-            self.status_bar.showMessage(f"Saved alias: {alias} → {official_name}")
+            self.status_bar.showMessage(f"Saved mapping: {mapping} → {official_name}")
 
         except Exception as e:
             QMessageBox.critical(
-                self, "Error Saving Alias", f"Failed to save alias: {str(e)}"
+                self, "Error Saving Mapping", f"Failed to save mapping: {str(e)}"
             )
 
-    def _on_alias_cancelled(self) -> None:
-        """Handle alias form cancellation."""
-        self.alias_form.hide()
-        self.alias_table.show()
+    def _on_mapping_cancelled(self) -> None:
+        """Handle mapping form cancellation."""
+        self.mapping_form.hide()
+        self.mapping_table.show()
         self.status_bar.showMessage("Ready")
 
-    def closeEvent(self, event) -> None:
+    def closeEvent(self, event: Optional[QCloseEvent]) -> None:
         """Handle application close event."""
         # TODO: Save window state and settings
         event.accept()
@@ -403,7 +405,7 @@ Part of the OCR Invoice Parser project.
 def main() -> None:
     """Main entry point for the GUI application."""
     app = QApplication(sys.argv)
-    app.setApplicationName("Business Aliases Manager")
+    app.setApplicationName("Business Mappings Manager")
     app.setApplicationVersion("1.0.0")
 
     window = MainWindow()
