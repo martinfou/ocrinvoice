@@ -8,6 +8,18 @@ A powerful command-line tool and desktop GUI that converts scanned PDF invoices 
 
 ### Installation
 
+#### Option 1: From PyPI (Recommended)
+```bash
+# Install the package
+pip install ocrinvoice
+
+# Install Tesseract OCR (required)
+# Windows: choco install tesseract
+# macOS: brew install tesseract
+# Linux: sudo apt-get install tesseract-ocr
+```
+
+#### Option 2: From Source
 ```bash
 # Clone and install
 git clone <repository-url>
@@ -20,6 +32,12 @@ pip install -e .
 brew install tesseract  # macOS
 sudo apt-get install tesseract-ocr  # Ubuntu/Debian
 # Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+```
+
+#### Option 3: Cross-Platform Setup Script
+```bash
+# Run the automated setup script
+python scripts/setup_cross_platform.py
 ```
 
 ### Your First Parse
@@ -214,6 +232,35 @@ ocrinvoice/
 4. **Submit a pull request**
 
 See [Contributing Guidelines](docs/developer/contributing.md) for detailed instructions.
+
+## 🚀 Releases
+
+### Latest Release
+- **Version**: 1.0.0
+- **Platforms**: Windows, macOS, Linux
+- **Download**: [GitHub Releases](https://github.com/your-username/ocrinvoice/releases)
+
+### Automated Releases
+This project uses GitHub Actions for automated cross-platform releases:
+
+- **CI/CD**: Automated testing on Windows, macOS, and Linux
+- **Multi-Python**: Tests on Python 3.8, 3.9, 3.10, and 3.11
+- **Auto-Build**: Creates distribution packages automatically
+- **Auto-Release**: Generates GitHub releases with all artifacts
+
+### Creating a Release
+```bash
+# Automated release (recommended)
+python scripts/release.py patch    # 1.0.0 -> 1.0.1
+python scripts/release.py minor    # 1.0.0 -> 1.1.0
+python scripts/release.py major    # 1.0.0 -> 2.0.0
+
+# Manual release
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+For detailed release instructions, see [Release Guide](docs/developer/release_guide.md).
 
 ## 📄 License
 
