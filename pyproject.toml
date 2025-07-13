@@ -24,7 +24,8 @@ dependencies = [
     "PyQt6>=6.5.0",
     "fuzzywuzzy",
     "PyPDF2",
-    "python-Levenshtein"
+    "python-Levenshtein",
+    "pdfplumber"
 ]
 
 [project.optional-dependencies]
