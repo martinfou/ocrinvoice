@@ -45,7 +45,7 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name "OCRInvoiceParser" run_ocr_gui.py
+        pyinstaller OCRInvoiceParser.spec
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
