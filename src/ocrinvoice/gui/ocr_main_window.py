@@ -26,7 +26,7 @@ from PyQt6.QtWidgets import (
     QSplashScreen,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent, QPixmap
+from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent, QPixmap, QFont
 
 from .widgets.pdf_preview import PDFPreviewWidget
 from .widgets.data_panel import DataPanelWidget
@@ -153,6 +153,8 @@ class OCRMainWindow(QMainWindow):
         self._create_single_pdf_tab()
         self._create_file_naming_tab()
         self._create_settings_tab()
+        self._create_business_aliases_tab()
+        self._create_official_names_tab()
 
     def _create_single_pdf_tab(self) -> None:
         """Create the Single PDF processing tab."""
@@ -337,6 +339,88 @@ class OCRMainWindow(QMainWindow):
 
         self.tab_widget.addTab(settings_widget, "Settings")
 
+    def _create_business_aliases_tab(self) -> None:
+        """Create the Business Aliases tab."""
+        try:
+            from .business_alias_tab import BusinessAliasTab
+
+            business_aliases_widget = BusinessAliasTab()
+
+            # Connect alias update signal to refresh OCR data if needed
+            business_aliases_widget.alias_updated.connect(self._on_aliases_updated)
+
+            # Add to tab widget
+            self.tab_widget.addTab(business_aliases_widget, "Business Aliases")
+
+        except ImportError:
+            # Fallback if business alias components are not available
+            fallback_widget = QWidget()
+            layout = QVBoxLayout(fallback_widget)
+
+            fallback_title = QLabel("Business Aliases")
+            title_font = QFont()
+            title_font.setBold(True)
+            title_font.setPointSize(16)
+            fallback_title.setFont(title_font)
+            fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_title)
+
+            fallback_content = QLabel("Business alias management is not available.")
+            fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_content)
+
+            self.tab_widget.addTab(fallback_widget, "Business Aliases")
+
+    def _create_official_names_tab(self) -> None:
+        """Create the Official Names tab."""
+        try:
+            from .official_names_tab import OfficialNamesTab
+
+            official_names_widget = OfficialNamesTab()
+
+            # Connect official names update signal to refresh OCR data if needed
+            official_names_widget.official_names_updated.connect(
+                self._on_official_names_updated
+            )
+
+            # Add to tab widget
+            self.tab_widget.addTab(official_names_widget, "Official Names")
+
+        except ImportError:
+            # Fallback if official names components are not available
+            fallback_widget = QWidget()
+            layout = QVBoxLayout(fallback_widget)
+
+            fallback_title = QLabel("Official Names")
+            title_font = QFont()
+            title_font.setBold(True)
+            title_font.setPointSize(16)
+            fallback_title.setFont(title_font)
+            fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_title)
+
+            fallback_content = QLabel("Official names management is not available.")
+            fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_content)
+
+            self.tab_widget.addTab(fallback_widget, "Official Names")
+
+    def _on_aliases_updated(self) -> None:
+        """Handle business aliases updates."""
+        # Refresh OCR parser with updated aliases if needed
+        if hasattr(self, "ocr_parser"):
+            # Reinitialize parser to pick up new aliases
+            self.ocr_parser = InvoiceParser(self.config)
+        self.status_bar.showMessage("Business aliases updated - OCR parser refreshed")
+
+    def _on_official_names_updated(self) -> None:
+        """Handle official names updates."""
+        # Refresh OCR parser with updated official names if needed
+        if hasattr(self, "ocr_parser"):
+            # Reinitialize parser to pick up new official names
+            self.ocr_parser = InvoiceParser(self.config)
+        self.status_bar.showMessage("Official names updated - OCR parser refreshed")
+
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar with enhanced menu items and keyboard shortcuts."""
         menubar = self.menuBar()
@@ -390,6 +474,24 @@ class OCRMainWindow(QMainWindow):
         settings_action.setStatusTip("Switch to Settings tab")
         settings_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
         view_menu.addAction(settings_action)
+
+        business_aliases_action = QAction("&Business Aliases", self)
+        business_aliases_action.setShortcut(QKeySequence("Ctrl+4"))
+        business_aliases_action.setStatusTip(
+            "Switch to Business Aliases management tab"
+        )
+        business_aliases_action.triggered.connect(
+            lambda: self.tab_widget.setCurrentIndex(3)
+        )
+        view_menu.addAction(business_aliases_action)
+
+        official_names_action = QAction("&Official Names", self)
+        official_names_action.setShortcut(QKeySequence("Ctrl+5"))
+        official_names_action.setStatusTip("Switch to Official Names management tab")
+        official_names_action.triggered.connect(
+            lambda: self.tab_widget.setCurrentIndex(4)
+        )
+        view_menu.addAction(official_names_action)
 
         # Help menu
         help_menu = menubar.addMenu("&Help")
@@ -455,6 +557,14 @@ class OCRMainWindow(QMainWindow):
         elif tab_name == "Settings":
             self.status_bar.showMessage(
                 "⚙️ Settings - Configure application preferences"
+            )
+        elif tab_name == "Business Aliases":
+            self.status_bar.showMessage(
+                "🏢 Business Aliases - Manage company name mappings for improved OCR accuracy"
+            )
+        elif tab_name == "Official Names":
+            self.status_bar.showMessage(
+                "📋 Official Names - Manage canonical business names that aliases resolve to"
             )
         else:
             self.status_bar.showMessage(f"Switched to {tab_name} tab")
@@ -778,56 +888,62 @@ def main() -> None:
     """Main entry point for the OCR GUI application."""
     import time
     from pathlib import Path
-    
+
     # Startup logging
     print("🚀 Starting OCR Invoice Parser...")
     print(f"📁 Working directory: {Path.cwd()}")
-    
+
     # Check if running in PyInstaller bundle
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         print("📦 Running from PyInstaller binary")
         print(f"📦 Bundle path: {getattr(sys, '_MEIPASS', 'Unknown')}")
     else:
         print("🔧 Running from source code")
-    
+
     print("⚙️  Initializing application...")
     start_time = time.time()
-    
+
     app = QApplication(sys.argv)
     app.setApplicationName("OCR Invoice Parser")
     app.setApplicationVersion("1.0.0")
-    
+
     print("🎨 Creating main window...")
-    
+
     # Create and show splash screen
     splash = QSplashScreen()
     splash.setPixmap(QPixmap(400, 200))
     splash.show()
-    
+
     # Update splash screen with progress
-    splash.showMessage("Initializing OCR Invoice Parser...", 
-                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    splash.showMessage(
+        "Initializing OCR Invoice Parser...",
+        Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+    )
     app.processEvents()
-    
+
     print("🔧 Loading configuration...")
-    splash.showMessage("Loading configuration...", 
-                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    splash.showMessage(
+        "Loading configuration...",
+        Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+    )
     app.processEvents()
-    
+
     window = OCRMainWindow()
-    
+
     print("🎨 Setting up user interface...")
-    splash.showMessage("Setting up user interface...", 
-                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    splash.showMessage(
+        "Setting up user interface...",
+        Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+    )
     app.processEvents()
-    
+
     window.show()
     splash.finish(window)
-    
+
     startup_time = time.time() - start_time
     print(f"✅ Application started in {startup_time:.2f} seconds")
     print("🎯 Ready to process PDF invoices!")
-    
+
     sys.exit(app.exec())
 
 

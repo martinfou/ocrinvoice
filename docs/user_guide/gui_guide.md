@@ -157,7 +157,7 @@ Validates links in documentation files (for developers).
 
 ## Main Interface
 
-The application has three main tabs:
+The application has five main tabs:
 
 ### 1. Single PDF Tab
 
@@ -240,7 +240,48 @@ Configure how processed files are renamed.
 - **Open Containing Folder**: Open the folder containing the processed file
 - **Backup Options**: Create backup copies before renaming
 
-### 3. Settings Tab
+### 3. Business Aliases Tab
+
+Manage business name aliases for improved OCR accuracy.
+
+#### Alias Management
+- **Add Alias**: Create new company name mappings
+- **Edit Alias**: Modify existing aliases
+- **Delete Alias**: Remove aliases
+- **Search Aliases**: Find specific aliases quickly
+
+#### Alias Table Features
+- **Company Name**: The name as it appears on invoices
+- **Canonical Name**: The official business name (dropdown selection)
+- **Match Type**: Exact, Partial, or Fuzzy matching
+- **Usage Statistics**: Track how often aliases are used
+
+#### Canonical Name Selection
+- **Dropdown Only**: Select from existing official names only
+- **Data Integrity**: Prevents invalid canonical name references
+- **Auto-completion**: Quick selection from available options
+
+### 4. Official Names Tab
+
+Manage canonical business names that all aliases resolve to.
+
+#### Official Name Management
+- **Add Official Name**: Create new canonical business names
+- **Edit Official Name**: Modify existing official names
+- **Delete Official Name**: Remove official names (cascades to aliases)
+- **Search Official Names**: Find specific official names quickly
+
+#### Official Name Table Features
+- **Official Name**: The canonical business name
+- **Usage Count**: How many aliases reference this name
+- **Last Used**: When this name was last referenced
+
+#### Cascade Updates
+- **Automatic Updates**: When you edit an official name, all related aliases are updated
+- **Impact Warnings**: Shows which aliases will be affected by changes
+- **Data Integrity**: Ensures all aliases reference valid official names
+
+### 5. Settings Tab
 
 Configure application settings and preferences.
 
@@ -263,7 +304,9 @@ Configure application settings and preferences.
 | `Ctrl+Q` | Quit application |
 | `Ctrl+1` | Switch to Single PDF tab |
 | `Ctrl+2` | Switch to File Naming tab |
-| `Ctrl+3` | Switch to Settings tab |
+| `Ctrl+3` | Switch to Business Aliases tab |
+| `Ctrl+4` | Switch to Official Names tab |
+| `Ctrl+5` | Switch to Settings tab |
 | `F1` | Show keyboard shortcuts help |
 
 ## PDF Preview Features
@@ -329,12 +372,14 @@ The MVP version includes basic data export functionality:
 
 *Note: Full export functionality will be available in future sprints*
 
-## Business Alias System
+## Business Alias & Official Names System
 
-The application integrates with the existing business alias system:
+The application integrates with the existing business alias and official names system:
 
 - **Automatic Mapping**: Company names are automatically mapped to aliases
-- **Alias File**: Configure custom business name mappings
+- **Official Names**: Canonical business names that all aliases resolve to
+- **Data Integrity**: Ensures all aliases reference valid official names
+- **Cascade Updates**: Changes to official names automatically update related aliases
 - **Fallback**: Unknown companies are marked as "Unknown"
 
 ## File Management

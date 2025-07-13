@@ -1,17 +1,18 @@
 {
     "official_names": [
-        "banque-scotia",
-        "banque-td",
-        "bmr",
-        "desjardins",
-        "gagnon",
-        "gary-chartran",
-        "hydro-québec",
-        "la-forfaiterie",
         "pharmacie",
-        "rona",
+        "gary-chartran",
         "taxes-scolaires",
-        "test-official-name"
+        "rona",
+        "desjardins",
+        "test-official-name",
+        "bmr",
+        "banque-td",
+        "hydro-québec",
+        "gagnon",
+        "la-forfaiterie",
+        "test-official-with-aliases",
+        "banque-scotia"
     ],
     "exact_matches": {
         "bmr": "bmr",
@@ -23,12 +24,12 @@
         "banque-scotia": "banque-scotia",
         "gary-chartran": "gary-chartran",
         "garychartrand": "gary-chartran",
-        "scotia": "banque-scotia",
         "pharmacie": "pharmacie",
-        "test-alias": "bmr",
         "test-company": "test-official-name",
         "rona": "rona",
-        "gagnon": "gagnon"
+        "gagnon": "gagnon",
+        "test2": "test2",
+        "test-company-exact": "test-official-with-aliases"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",
@@ -37,14 +38,14 @@
         "forfaiterie": "la-forfaiterie",
         "bmr": "bmr",
         "grandes-seigneuries": "taxes-scolaires",
-        "hautes-rivieres": "taxes-scolaires",
+        "hautes-rivieres": "rona",
         "toronto dominion": "banque-td",
-        "scotia": "banque-scotia",
         "rona": "rona",
         "pharm": "pharmacie",
         "gagnon": "gagnon",
         "gagn 0 n": "gagnon",
-        "compte de taxes scolaire": "taxes-scolaires"
+        "compte de taxes scolaire": "taxes-scolaires",
+        "test-company-partial": "test-official-with-aliases"
     },
     "fuzzy_candidates": [
         "taxes-scolaires",

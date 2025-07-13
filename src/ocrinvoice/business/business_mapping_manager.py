@@ -138,6 +138,86 @@ class BusinessMappingManager:
         """Return the list of official business names."""
         return sorted(self.official_names)
 
+    def add_official_name(self, name: str) -> bool:
+        """
+        Add a new official business name.
+
+        Args:
+            name: The official business name to add
+
+        Returns:
+            True if added successfully, False if already exists
+        """
+        if name not in self.official_names:
+            self.official_names.add(name)
+            self.config["official_names"] = list(self.official_names)
+            self._save_config()
+            return True
+        return False
+
+    def remove_official_name(self, name: str) -> bool:
+        """
+        Remove an official business name.
+
+        Args:
+            name: The official business name to remove
+
+        Returns:
+            True if removed successfully, False if not found
+        """
+        if name in self.official_names:
+            self.official_names.remove(name)
+            self.config["official_names"] = list(self.official_names)
+            self._save_config()
+            return True
+        return False
+
+    def update_official_name(self, old_name: str, new_name: str) -> bool:
+        """
+        Update an official business name.
+
+        Args:
+            old_name: The current official business name
+            new_name: The new official business name
+
+        Returns:
+            True if updated successfully, False if old name not found or new name already exists
+        """
+        if old_name not in self.official_names:
+            return False
+        if new_name in self.official_names and new_name != old_name:
+            return False
+
+        # Remove old name and add new name
+        self.official_names.remove(old_name)
+        self.official_names.add(new_name)
+        self.config["official_names"] = list(self.official_names)
+
+        # Update all mappings that reference the old name
+        exact_matches = self.config.get("exact_matches", {})
+        for alias, canonical in exact_matches.items():
+            if canonical == old_name:
+                exact_matches[alias] = new_name
+
+        partial_matches = self.config.get("partial_matches", {})
+        for alias, canonical in partial_matches.items():
+            if canonical == old_name:
+                partial_matches[alias] = new_name
+
+        # Update fuzzy candidates
+        fuzzy_candidates = self.config.get("fuzzy_candidates", [])
+        if old_name in fuzzy_candidates:
+            fuzzy_candidates.remove(old_name)
+            fuzzy_candidates.append(new_name)
+
+        # Update indicators
+        indicators = self.config.get("indicators", {})
+        if old_name in indicators:
+            indicators[new_name] = indicators.pop(old_name)
+
+        self._save_config()
+        return True
+
     def is_official_name(self, name: str) -> bool:
         """Check if a name is in the official business names list (case-insensitive)."""
         if not name:
@@ -293,6 +373,14 @@ class BusinessMappingManager:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Warning: Could not save mapping file {self.mapping_file}: {e}")
+
+    def reload_config(self):
+        """Reload the configuration from the JSON file."""
+        self.config = self._load_config()
+        # Reload official business names
+        self.official_names = set(self.config.get("official_names", []))
+        # Validate mappings
+        self._validate_mappings()
 
     def get_all_business_names(self) -> List[str]:
         """Get all unique business names from the configuration."""
