@@ -67,16 +67,19 @@ Launch the GUI application for an intuitive desktop experience:
 python -m src.ocrinvoice.gui.ocr_main_window
 ```
 
-### GUI Features (Sprint 3 Completed ✅)
+### GUI Features (Sprint 4 Completed ✅)
 
 - **📄 Single PDF Processing**: Load and process individual PDF invoices
 - **🏷️ File Naming System**: Custom templates with live preview
+- **🏢 Business Aliases Management**: Add, edit, and delete company name mappings
+- **📋 Official Names Management**: Manage canonical business names with cascade updates
 - **⚙️ Template Builder**: Visual interface for creating naming patterns
 - **🔍 Live Preview**: Real-time filename preview with validation
 - **🛡️ Conflict Resolution**: Smart handling of duplicate filenames
 - **💾 Backup Options**: Configurable backup settings
 - **✅ Validation**: Real-time template and filename validation
 - **📁 File Management**: Open folders, manage processed files
+- **🔗 Data Integrity**: Canonical name dropdown prevents invalid references
 
 ### GUI Workflow
 
@@ -84,8 +87,10 @@ python -m src.ocrinvoice.gui.ocr_main_window
 2. **OCR Processing**: Automatic data extraction with progress indicator
 3. **Review Data**: View extracted information in editable table
 4. **File Naming**: Configure custom naming templates with live preview
-5. **Rename Files**: Apply naming with conflict resolution
-6. **Export Data**: Save results in JSON/CSV format
+5. **Manage Aliases**: Add/edit business aliases with canonical name dropdown
+6. **Manage Official Names**: Create and maintain canonical business names
+7. **Rename Files**: Apply naming with conflict resolution
+8. **Export Data**: Save results in JSON/CSV format
 
 ## 📖 Basic Usage
 
@@ -104,7 +109,11 @@ ocrinvoice batch invoices/ --rename --dry-run
 ocrinvoice aliases add "Hydro Quebec" "HYDRO-QUÉBEC"
 ocrinvoice aliases list
 
-# Launch GUI for alias management
+# Manage official names
+ocrinvoice official-names add "HYDRO-QUÉBEC"
+ocrinvoice official-names list
+
+# Launch GUI for alias and official name management
 ocrinvoice gui
 
 # View configuration
@@ -168,13 +177,18 @@ ocrinvoice/
 │   │   ├── widgets/             # GUI components
 │   │   │   ├── pdf_preview.py   # PDF preview widget
 │   │   │   ├── data_panel.py    # Data display widget
-│   │   │   └── file_naming.py   # File naming widget (NEW)
+│   │   │   └── file_naming.py   # File naming widget
+│   │   ├── business_alias_tab.py # Business aliases management tab
+│   │   ├── official_names_tab.py # Official names management tab
+│   │   ├── alias_table.py       # Alias table widget
+│   │   ├── alias_form.py        # Alias form widget
+│   │   ├── official_names_table.py # Official names table widget
 │   │   ├── ocr_main_window.py   # Main GUI window
 │   │   └── dialogs/             # Modal dialogs
 │   ├── core/                    # Core functionality (OCR, image processing)
 │   ├── parsers/                 # Document parsers (invoice, credit card)
 │   ├── utils/                   # Utilities (fuzzy matching, corrections)
-│   ├── business/                # Business logic (alias management)
+│   ├── business/                # Business logic (alias & official name management)
 │   └── config.py                # Configuration management
 ├── config/                      # Configuration files
 ├── tests/                       # Test suite

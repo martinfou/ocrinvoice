@@ -78,6 +78,7 @@ docs/
 3. **NEVER** run `git commit` without user saying "approved" or "commit" after seeing the message
 4. **NEVER** assume approval from phrases like "commit" or "go ahead" - explicit review is required
 5. **ALWAYS** wait for user confirmation before executing any commit command
+6. **ALWAYS** run the the test suite before creating a commit message
 
 **EXAMPLES OF WHAT NOT TO DO:**
 - ❌ User says "commit" → immediately run git commit

@@ -1,8 +1,8 @@
-# Business Aliases GUI Manager - Technical Specification
+# Business Aliases & Official Names GUI Manager - Technical Specification
 
-> **PyQt6 Desktop Application for Managing Business Name Aliases**
+> **PyQt6 Desktop Application for Managing Business Name Aliases and Official Names**
 
-A comprehensive desktop GUI application for managing business aliases used by the OCR invoice parser, providing an intuitive interface for alias management, import/export operations, and analytics.
+A comprehensive desktop GUI application for managing business aliases and official names used by the OCR invoice parser, providing an intuitive interface for alias management, official name management, import/export operations, and analytics.
 
 ## 📋 Table of Contents
 
@@ -20,16 +20,17 @@ A comprehensive desktop GUI application for managing business aliases used by th
 ## 1. Project Overview
 
 ### 1.1 Objective
-Create a desktop GUI application for managing business aliases used by the OCR invoice parser, enabling users to efficiently manage company name mappings through an intuitive graphical interface.
+Create a desktop GUI application for managing business aliases and official names used by the OCR invoice parser, enabling users to efficiently manage company name mappings and canonical business names through an intuitive graphical interface.
 
 ### 1.2 Target Users
-- **Primary**: Users of the ocrinvoice tool who need to manage company name mappings
-- **Secondary**: Administrators managing alias databases for organizations
-- **Tertiary**: Power users requiring advanced alias management features
+- **Primary**: Users of the ocrinvoice tool who need to manage company name mappings and official business names
+- **Secondary**: Administrators managing alias and official name databases for organizations
+- **Tertiary**: Power users requiring advanced alias and official name management features
 
 ### 1.3 Success Criteria
-- Reduce time to manage aliases by 80% compared to CLI
+- Reduce time to manage aliases and official names by 80% compared to CLI
 - Improve alias accuracy through visual feedback and validation
+- Ensure data integrity by preventing invalid canonical name references
 - Support bulk operations for enterprise users
 - Maintain data integrity and provide backup/recovery
 
@@ -40,17 +41,19 @@ Create a desktop GUI application for managing business aliases used by the OCR i
 ```
 src/ocrinvoice/gui/
 ├── __init__.py
-├── main_window.py          # Main application window
-├── alias_table.py          # Custom table widget for aliases
-├── alias_form.py           # Form for adding/editing aliases
-├── alias_manager.py        # Business logic for alias operations
-├── dialogs/                # Modal dialogs
+├── main_window.py              # Main application window
+├── business_alias_tab.py       # Business aliases management tab
+├── official_names_tab.py       # Official names management tab
+├── alias_table.py              # Custom table widget for aliases
+├── alias_form.py               # Form for adding/editing aliases
+├── official_names_table.py     # Custom table widget for official names
+├── dialogs/                    # Modal dialogs
 │   ├── __init__.py
-│   ├── import_dialog.py    # Import aliases from file
-│   ├── export_dialog.py    # Export aliases to file
-│   ├── confirm_dialog.py   # Confirmation dialogs
-│   └── statistics_dialog.py # Analytics and reporting
-├── resources/              # Icons, styles, etc.
+│   ├── import_dialog.py        # Import aliases from file
+│   ├── export_dialog.py        # Export aliases to file
+│   ├── confirm_dialog.py       # Confirmation dialogs
+│   └── statistics_dialog.py    # Analytics and reporting
+├── resources/                  # Icons, styles, etc.
 │   ├── icons/
 │   │   ├── add.png
 │   │   ├── edit.png
@@ -60,11 +63,11 @@ src/ocrinvoice/gui/
 │   │   └── search.png
 │   └── styles/
 │       └── main.qss
-└── utils/                  # GUI utilities
+└── utils/                      # GUI utilities
     ├── __init__.py
-    ├── validators.py       # Input validation
-    ├── file_handlers.py    # File I/O operations
-    └── theme_manager.py    # Theme and styling
+    ├── validators.py           # Input validation
+    ├── file_handlers.py        # File I/O operations
+    └── theme_manager.py        # Theme and styling
 ```
 
 ### 2.2 Data Flow Architecture
@@ -73,10 +76,12 @@ src/ocrinvoice/gui/
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   GUI Layer     │    │  Business Layer │    │   Data Layer    │
 │                 │    │                 │    │                 │
-│ MainWindow      │◄──►│ AliasManager    │◄──►│ business_aliases│
-│ AliasTable      │    │ Validation      │    │ .json           │
-│ AliasForm       │    │ Search/Filter   │    │ Backup files    │
-│ Dialogs         │    │ Import/Export   │    │ Config files    │
+│ MainWindow      │◄──►│ BusinessMapping │◄──►│ business_aliases│
+│ BusinessAliasTab│    │ Manager         │    │ .json           │
+│ OfficialNamesTab│    │ Validation      │    │ Backup files    │
+│ AliasTable      │    │ Search/Filter   │    │ Config files    │
+│ AliasForm       │    │ Import/Export   │    │                 │
+│ Dialogs         │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -85,21 +90,30 @@ src/ocrinvoice/gui/
 ```python
 # Core GUI Classes
 QMainWindow
-└── MainWindow
-    ├── AliasTable (QTableWidget)
-    ├── AliasForm (QWidget)
+└── OCRMainWindow
+    ├── BusinessAliasTab (QWidget)
+    │   ├── AliasTable (QTableWidget)
+    │   ├── AliasForm (QWidget)
+    │   └── StatisticsPanel (QWidget)
+    ├── OfficialNamesTab (QWidget)
+    │   ├── OfficialNamesTable (QTableWidget)
+    │   └── StatisticsPanel (QWidget)
     ├── ToolBar (QToolBar)
     └── StatusBar (QStatusBar)
 
 # Dialog Classes
 QDialog
+├── AliasDialog
+├── AddOfficialNameDialog
 ├── ImportDialog
 ├── ExportDialog
 ├── ConfirmDialog
 └── StatisticsDialog
 
 # Business Logic Classes
-AliasManager
+BusinessMappingManager
+├── AliasManagerThread
+├── OfficialNamesManagerThread
 ├── AliasValidator
 ├── FileHandler
 └── SearchEngine
@@ -214,22 +228,46 @@ AliasManager
 
 ## 4. Core Features
 
-### 4.1 Alias Management
+### 4.1 Official Names Management
 
-#### 4.1.1 Add Alias
+#### 4.1.1 Add Official Name
+- **Form Validation**: Real-time validation of official name inputs
+- **Duplicate Detection**: Prevent duplicate official names
+- **Cascade Updates**: Automatically update all aliases when official names change
+- **Preview**: Show impact of adding new official name
+- **Bulk Add**: Add multiple official names at once
+
+#### 4.1.2 Edit Official Name
+- **In-place Editing**: Double-click to edit in table
+- **Modal Dialog**: Full-featured edit dialog
+- **Cascade Updates**: Update all related aliases automatically
+- **Validation**: Prevent invalid modifications
+- **Impact Preview**: Show which aliases will be affected
+
+#### 4.1.3 Delete Official Name
+- **Single Delete**: Delete selected official name
+- **Bulk Delete**: Delete multiple selected official names
+- **Cascade Deletion**: Remove all aliases that reference the deleted name
+- **Confirmation**: Require confirmation for deletions
+- **Impact Warning**: Show which aliases will be deleted
+
+### 4.2 Alias Management
+
+#### 4.2.1 Add Alias
 - **Form Validation**: Real-time validation of inputs
 - **Duplicate Detection**: Warn about similar existing aliases
-- **Auto-complete**: Suggest canonical names from existing data
+- **Canonical Name Dropdown**: Select from existing official names only
 - **Preview**: Show how the alias will work
 - **Bulk Add**: Add multiple aliases at once
 
-#### 4.1.2 Edit Alias
+#### 4.2.2 Edit Alias
 - **In-place Editing**: Double-click to edit in table
 - **Modal Dialog**: Full-featured edit dialog
+- **Canonical Name Dropdown**: Select from existing official names only
 - **History Tracking**: Track changes and modifications
 - **Validation**: Prevent invalid modifications
 
-#### 4.1.3 Delete Alias
+#### 4.2.3 Delete Alias
 - **Single Delete**: Delete selected alias
 - **Bulk Delete**: Delete multiple selected aliases
 - **Confirmation**: Require confirmation for deletions
