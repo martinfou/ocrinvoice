@@ -21,7 +21,10 @@ dependencies = [
     "pytest",
     "pytest-cov",
     "pytest-qt>=4.2.0",
-    "PyQt6>=6.5.0"
+    "PyQt6>=6.5.0",
+    "fuzzywuzzy",
+    "PyPDF2",
+    "python-Levenshtein"
 ]
 
 [project.optional-dependencies]
