@@ -43,34 +43,58 @@ class OCRProcessingThread(QThread):
     processing_started = pyqtSignal()
     processing_finished = pyqtSignal(dict)  # Emits extracted data
     processing_error = pyqtSignal(str)  # Emits error message
+    processing_progress = pyqtSignal(int)  # Emits progress percentage
 
     def __init__(self, pdf_path: str, config: Dict[str, Any]):
         super().__init__()
         self.pdf_path = pdf_path
         self.config = config
+        self._is_cancelled = False
+
+    def cancel(self) -> None:
+        """Cancel the processing operation."""
+        self._is_cancelled = True
 
     def run(self) -> None:
         """Run OCR processing in background thread."""
         try:
             self.processing_started.emit()
+            self.processing_progress.emit(10)
+
+            # Check if cancelled
+            if self._is_cancelled:
+                return
 
             # Initialize parser with config
             parser = InvoiceParser(self.config)
+            self.processing_progress.emit(30)
+
+            # Check if cancelled
+            if self._is_cancelled:
+                return
 
             # Parse the PDF
             result = parser.parse(self.pdf_path)
+            self.processing_progress.emit(90)
 
-            # Debug: Check if "rona" is in the raw text
-            raw_text = result.get("raw_text", "")
-            print(f"[DEBUG] Raw text contains 'rona': {'rona' in raw_text.lower()}")
-            print(f"[DEBUG] Raw text contains 'RONA': {'RONA' in raw_text}")
-            print(f"[DEBUG] Raw text sample (first 500 chars): {raw_text[:500]}")
+            # Check if cancelled
+            if self._is_cancelled:
+                return
 
-            # Emit the result
+            # Clean up any large objects to free memory
+            if "raw_text" in result and len(result["raw_text"]) > 10000:
+                # Keep only first 1000 chars for debugging if needed
+                result["raw_text"] = result["raw_text"][:1000] + "... (truncated)"
+
+            self.processing_progress.emit(100)
             self.processing_finished.emit(result)
 
         except Exception as e:
-            self.processing_error.emit(str(e))
+            if not self._is_cancelled:
+                self.processing_error.emit(str(e))
+        finally:
+            # Clean up
+            self._is_cancelled = False
 
 
 class OCRMainWindow(QMainWindow):
@@ -139,7 +163,8 @@ class OCRMainWindow(QMainWindow):
         self.select_pdf_btn.clicked.connect(self._on_select_pdf)
         self.select_pdf_btn.setStyleSheet(
             "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; }"
+            "padding: 12px 24px; border-radius: 6px; font-size: 14px; "
+            "font-weight: bold; }"
             "QPushButton:hover { background-color: #2980b9; }"
             "QPushButton:pressed { background-color: #21618c; }"
         )
@@ -164,8 +189,8 @@ class OCRMainWindow(QMainWindow):
         # Add OCR progress bar with unified blue/gray theme
         self.ocr_progress = QProgressBar()
         self.ocr_progress.setVisible(False)
-        self.ocr_progress.setRange(0, 0)  # Indeterminate progress
-        self.ocr_progress.setFormat("🔄 Processing PDF with OCR...")
+        self.ocr_progress.setRange(0, 100)  # Percentage-based progress
+        self.ocr_progress.setFormat("🔄 Processing PDF with OCR... %p%")
         self.ocr_progress.setStyleSheet(
             "QProgressBar { "
             "border: 2px solid #bdc3c7; "
@@ -466,6 +491,7 @@ class OCRMainWindow(QMainWindow):
         self.ocr_thread.processing_started.connect(self._on_ocr_started)
         self.ocr_thread.processing_finished.connect(self._on_ocr_finished)
         self.ocr_thread.processing_error.connect(self._on_ocr_error)
+        self.ocr_thread.processing_progress.connect(self._on_ocr_progress)
 
         self.ocr_thread.start()
 
@@ -527,9 +553,15 @@ class OCRMainWindow(QMainWindow):
 
         # Show status with confidence indicator
         if confidence and confidence > 0.7:
-            status_msg = f"✅ OCR completed successfully! {company_display} - {total_display} (Confidence: {confidence:.1%})"
+            status_msg = (
+                f"✅ OCR completed successfully! {company_display} - "
+                f"{total_display} (Confidence: {confidence:.1%})"
+            )
         else:
-            status_msg = f"⚠️ OCR completed with low confidence. {company_display} - {total_display} (Confidence: {confidence:.1%})"
+            status_msg = (
+                f"⚠️ OCR completed with low confidence. {company_display} - "
+                f"{total_display} (Confidence: {confidence:.1%})"
+            )
 
         self.status_bar.showMessage(status_msg)
         self._show_success_message("OCR processing completed successfully")
@@ -538,12 +570,70 @@ class OCRMainWindow(QMainWindow):
         """Handle OCR processing error."""
         self.ocr_progress.setVisible(False)
         self.select_pdf_btn.setEnabled(True)
-        self.status_bar.showMessage(f"❌ OCR Error: {error_message}")
-        self._show_error_message(f"OCR processing failed: {error_message}")
+
+        # Provide more specific error messages
+        if "tesseract" in error_message.lower():
+            user_message = (
+                "OCR Engine Error: Tesseract is not installed or not found in PATH. "
+                "Please install Tesseract OCR."
+            )
+        elif "pdf" in error_message.lower() and "corrupt" in error_message.lower():
+            user_message = (
+                "PDF Error: The selected file appears to be corrupted or "
+                "not a valid PDF."
+            )
+        elif "permission" in error_message.lower():
+            user_message = (
+                "Permission Error: Cannot access the selected file. "
+                "Please check file permissions."
+            )
+        elif "memory" in error_message.lower():
+            user_message = (
+                "Memory Error: The PDF is too large to process. "
+                "Try with a smaller file."
+            )
+        else:
+            user_message = f"OCR Processing Error: {error_message}"
+
+        self.status_bar.showMessage(f"❌ {user_message}")
+        self._show_error_message(user_message)
+
+        # Clear any partial data
+        self.extracted_data = None
+        self.data_panel.clear_data()
+
+    def _on_ocr_progress(self, progress: int) -> None:
+        """Handle OCR processing progress updates."""
+        self.ocr_progress.setValue(progress)
 
     def _show_error_message(self, message: str) -> None:
-        """Show error message to user."""
-        QMessageBox.critical(self, "Error", message)
+        """Show error message to user with improved formatting."""
+        error_dialog = QMessageBox(self)
+        error_dialog.setIcon(QMessageBox.Icon.Critical)
+        error_dialog.setWindowTitle("OCR Processing Error")
+        error_dialog.setText("An error occurred during OCR processing:")
+        error_dialog.setInformativeText(message)
+        error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        error_dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
+
+        # Add helpful suggestions based on error type
+        if "tesseract" in message.lower():
+            error_dialog.setDetailedText(
+                "To fix this issue:\n"
+                "1. Download and install Tesseract OCR from: "
+                "https://github.com/tesseract-ocr/tesseract\n"
+                "2. Add Tesseract to your system PATH\n"
+                "3. Restart the application"
+            )
+        elif "pdf" in message.lower():
+            error_dialog.setDetailedText(
+                "To fix this issue:\n"
+                "1. Verify the file is a valid PDF\n"
+                "2. Try opening the file in a PDF viewer\n"
+                "3. If the file is corrupted, try to obtain a new copy"
+            )
+
+        error_dialog.exec()
         self.status_bar.showMessage(f"Error: {message}")
 
     def _show_success_message(self, message: str) -> None:

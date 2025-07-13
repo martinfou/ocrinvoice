@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-This guide helps you resolve common issues when using the Invoice OCR Parser.
+This guide helps you resolve common issues when using the Invoice OCR Parser, including both CLI and GUI versions.
 
 ## Quick Diagnosis
 
@@ -15,7 +15,151 @@ ocrinvoice config
 
 # Test with a simple command
 ocrinvoice parse --help
+
+# For GUI issues, check PyQt6 installation
+python -c "import PyQt6; print('PyQt6 installed successfully')"
 ```
+
+## GUI-Specific Issues
+
+### Issue: GUI Application Won't Start
+
+**Symptoms:**
+- Application fails to launch
+- Error: `ModuleNotFoundError: No module named 'PyQt6'`
+- Application crashes on startup
+
+**Solutions:**
+
+1. **Install PyQt6:**
+   ```bash
+   pip install PyQt6
+   ```
+
+2. **Check Python Version:**
+   ```bash
+   python --version  # Should be 3.8+
+   ```
+
+3. **Verify Dependencies:**
+   ```bash
+   pip list | grep -i qt
+   ```
+
+4. **Launch with Debug:**
+   ```bash
+   python -v run_ocr_gui.py
+   ```
+
+### Issue: GUI Freezes During OCR Processing
+
+**Symptoms:**
+- Application becomes unresponsive
+- Progress bar doesn't update
+- No error messages displayed
+
+**Solutions:**
+
+1. **Wait for Processing:**
+   - Large PDF files take longer to process
+   - Check the progress bar for updates
+
+2. **Check System Resources:**
+   - Close other applications
+   - Monitor memory usage
+   - Try with a smaller PDF file
+
+3. **Restart Application:**
+   - Close and relaunch the GUI
+   - Try processing the file again
+
+### Issue: PDF Preview Not Displaying
+
+**Symptoms:**
+- PDF preview area is blank
+- Error: `Cannot display PDF`
+- Preview shows error message
+
+**Solutions:**
+
+1. **Check PDF File:**
+   - Verify the PDF is not corrupted
+   - Try opening in a PDF viewer
+   - Check file permissions
+
+2. **Install PDF Dependencies:**
+   ```bash
+   pip install pdf2image
+   ```
+
+3. **Check Image Libraries:**
+   - Ensure PIL/Pillow is installed
+   - Verify image format support
+
+### Issue: Data Panel Shows "No Data Extracted"
+
+**Symptoms:**
+- Data table shows placeholder text
+- All fields are empty or "Not extracted"
+- Confidence scores are all 0%
+
+**Solutions:**
+
+1. **Check OCR Processing:**
+   - Look for error messages in status bar
+   - Verify Tesseract is installed
+   - Check PDF text quality
+
+2. **Try Different PDF:**
+   - Test with a known good PDF
+   - Check if the issue is file-specific
+
+3. **Check Console Output:**
+   - Look for error messages in terminal
+   - Verify OCR processing completed
+
+### Issue: File Naming Template Not Working
+
+**Symptoms:**
+- Template preview shows errors
+- Rename button is disabled
+- Template variables not recognized
+
+**Solutions:**
+
+1. **Check Template Syntax:**
+   - Use valid variables: `{company}`, `{date}`, `{total}`
+   - Avoid special characters in template
+
+2. **Verify Data Availability:**
+   - Ensure PDF has been processed
+   - Check that required fields are extracted
+
+3. **Test Template:**
+   - Try a simple template first
+   - Check template preview for errors
+
+### Issue: Settings Not Saving
+
+**Symptoms:**
+- Settings changes are lost on restart
+- Configuration not persisting
+- Default values always used
+
+**Solutions:**
+
+1. **Check File Permissions:**
+   - Verify write access to config directory
+   - Check user permissions
+
+2. **Manual Configuration:**
+   - Edit config file directly
+   - Use CLI configuration commands
+
+3. **Reset Configuration:**
+   ```bash
+   ocrinvoice config reset
+   ```
 
 ## Common Issues and Solutions
 

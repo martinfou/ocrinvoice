@@ -143,10 +143,8 @@ class DataPanelWidget(QWidget):
             self._show_placeholder()
             self.export_btn.setEnabled(False)
             self.clear_btn.setEnabled(False)
+            self.rename_btn.setEnabled(False)
             return
-
-        # Debug: Print the data being processed
-        print(f"[DEBUG] DataPanel updating with data: {data}")
 
         # Clear existing data and spans
         self.data_table.clear()
@@ -178,9 +176,6 @@ class DataPanelWidget(QWidget):
             # Value
             raw_value = data.get(field_key, "")
 
-            # Debug: Print each field value
-            print(f"[DEBUG] Field '{field_key}': {raw_value} (type: {type(raw_value)})")
-
             # Process the value based on field type
             if field_key == "company":
                 if raw_value and raw_value != "Unknown":
@@ -200,22 +195,42 @@ class DataPanelWidget(QWidget):
             elif field_key == "is_valid":
                 value = "Yes" if raw_value else "No"
             elif field_key == "confidence" and raw_value:
-                value = (
-                    f"{raw_value:.1%}"
-                    if isinstance(raw_value, (int, float))
-                    else str(raw_value)
-                )
+                if isinstance(raw_value, (int, float)):
+                    value = f"{raw_value:.1%}"
+                else:
+                    value = str(raw_value)
             else:
                 value = str(raw_value) if raw_value else "Not extracted"
 
-            # Create and set the value item
+            # Set value
             value_item = QTableWidgetItem(value)
             self.data_table.setItem(row, 1, value_item)
 
-            # Confidence (placeholder for now)
-            confidence_item = QTableWidgetItem("N/A")
-            confidence_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.data_table.setItem(row, 2, confidence_item)
+            # Confidence indicator (if available)
+            if field_key in ["company", "total", "date", "invoice_number"]:
+                confidence_key = f"{field_key}_confidence"
+                confidence_value = data.get(confidence_key, 0)
+
+                if confidence_value:
+                    if isinstance(confidence_value, (int, float)):
+                        confidence_text = f"{confidence_value:.1%}"
+                        # Color code based on confidence
+                        if confidence_value >= 0.8:
+                            confidence_item = QTableWidgetItem("🟢 " + confidence_text)
+                        elif confidence_value >= 0.6:
+                            confidence_item = QTableWidgetItem("🟡 " + confidence_text)
+                        else:
+                            confidence_item = QTableWidgetItem("🔴 " + confidence_text)
+                    else:
+                        confidence_item = QTableWidgetItem(str(confidence_value))
+                else:
+                    confidence_item = QTableWidgetItem("N/A")
+
+                self.data_table.setItem(row, 2, confidence_item)
+            else:
+                # For non-confidence fields, show empty or N/A
+                confidence_item = QTableWidgetItem("")
+                self.data_table.setItem(row, 2, confidence_item)
 
         # Enable buttons
         self.export_btn.setEnabled(True)

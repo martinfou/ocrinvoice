@@ -1,324 +1,254 @@
-# OCR Invoice Parser - Desktop GUI Guide
+# OCR Invoice Parser GUI - User Guide
 
-> **Complete guide to using the OCR Invoice Parser desktop application**
+## Overview
 
-The OCR Invoice Parser now includes a powerful desktop GUI application that provides an intuitive interface for processing PDF invoices with advanced file management capabilities. **All MVP features are now complete and fully functional.**
+The OCR Invoice Parser GUI is a desktop application that extracts structured data from PDF invoices using Optical Character Recognition (OCR). This guide covers all features available in the MVP (Minimum Viable Product) version.
 
-## 🚀 Quick Start
+## Getting Started
 
-### Launching the GUI
+### System Requirements
 
-```bash
-# Launch the desktop application
-python -m src.ocrinvoice.gui.ocr_main_window
-```
+- **Operating System**: Windows 10+, macOS 10.14+, or Linux
+- **Python**: 3.8 or higher
+- **Tesseract OCR**: Must be installed and available in system PATH
+- **Memory**: At least 4GB RAM recommended
+- **Storage**: 100MB free space
 
-The application will open with three main tabs:
-- **Single PDF**: Process individual PDF invoices with integrated rename functionality
-- **File Naming**: Manage file naming templates and preview
-- **Settings**: Configure application settings
+### Installation
 
-## 📄 Single PDF Processing
+1. **Install Tesseract OCR**:
+   - **Windows**: Download from https://github.com/tesseract-ocr/tesseract
+   - **macOS**: `brew install tesseract`
+   - **Linux**: `sudo apt-get install tesseract-ocr`
 
-### Loading a PDF
+2. **Install Python Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. **Select PDF**: Click "Select PDF" or drag and drop a PDF file
-2. **Processing**: The application will automatically start OCR processing
-3. **Progress**: Watch the progress bar during processing
-4. **Results**: View extracted data in the data panel
-5. **Filename Display**: The current filename is displayed persistently in the status bar
+3. **Launch the Application**:
+   ```bash
+   python run_ocr_gui.py
+   ```
 
-### Data Review
+## Main Interface
 
-The extracted data is displayed in an editable table showing:
-- **Company Name**: Extracted business name
-- **Total Amount**: Invoice total with currency formatting
-- **Invoice Date**: Formatted date
-- **Invoice Number**: Invoice identifier
-- **Parser Type**: Type of document processed
-- **Confidence**: Overall extraction confidence
-- **Validation Status**: Whether the extraction is valid
+The application has three main tabs:
 
-### Data Export and File Management
+### 1. Single PDF Tab
 
-- **Export Data**: Click to save extracted data in JSON/CSV format
-- **Clear Data**: Reset the data panel for new processing
-- **Rename File**: **NEW** - Directly rename the current file using the File Naming system
+This is the primary interface for processing individual PDF invoices.
 
-### Quick Rename Feature
+#### File Selection
+- **Select PDF File Button**: Click to browse and select a PDF file
+- **Drag & Drop Area**: Drag PDF files directly onto the application
+- **Supported Formats**: PDF files (single or multi-page)
 
-The **Rename File** button on the Single PDF tab provides instant access to file renaming:
-1. **Click Rename**: Automatically switches to File Naming tab
-2. **Configure Template**: Set up your naming pattern
-3. **Preview**: See the new filename in real-time
-4. **Apply**: Rename the file with backup and conflict resolution
+#### Processing Workflow
+1. **Select a PDF**: Use the file browser or drag-and-drop
+2. **OCR Processing**: The application automatically processes the PDF
+3. **Review Results**: Check extracted data in the right panel
+4. **Edit if Needed**: Modify any extracted fields
+5. **Rename File**: Use the file naming template to rename the file
 
-## 🏷️ File Naming System (Sprint 3 ✅ COMPLETED)
+#### Data Display
+The right panel shows extracted data in a table format:
 
-The File Naming tab provides comprehensive file management capabilities with custom templates and live preview.
+| Field | Value | Confidence |
+|-------|-------|------------|
+| Company Name | Extracted company | 🟢 95% |
+| Total Amount | $123.45 | 🟢 92% |
+| Invoice Date | 2025-01-15 | 🟡 78% |
+| Invoice Number | INV-001 | 🔴 45% |
 
-### Template Builder
+**Confidence Indicators**:
+- 🟢 **Green**: High confidence (80%+)
+- 🟡 **Yellow**: Medium confidence (60-79%)
+- 🔴 **Red**: Low confidence (<60%)
 
-#### Creating Custom Templates
+#### Action Buttons
+- **💾 Export Data**: Export extracted data to JSON/CSV (coming in future sprints)
+- **🗑️ Clear Data**: Clear all extracted data
+- **📝 Rename File**: Rename the current file using the template
 
-1. **Template Format**: Enter your desired naming pattern
-2. **Add Fields**: Use the dropdown to add template variables:
-   - `{documentType}`: Document type (facture, relevé, etc.)
-   - `{company}`: Company name
-   - `{date}`: Invoice date
-   - `{total}`: Total amount
-   - `{invoice_number}`: Invoice number
-   - Custom text
+### 2. File Naming Tab
 
-#### Template Presets
+Configure how processed files are renamed.
 
-Choose from predefined templates:
-- **Default**: `{documentType}_{company}_{date}_{total}.pdf`
-- **Simple**: `{company}_{date}.pdf`
-- **Detailed**: `{date}_{company}_{total}_{invoice_number}.pdf`
-- **Custom**: Create your own pattern
+#### Template Builder
+- **Template Field**: Shows the current naming template
+- **Available Fields**: List of fields that can be used in templates
+- **Live Preview**: Shows how the current file will be renamed
 
-### Live Preview
+#### Template Variables
+- `{company}`: Company name
+- `{date}`: Invoice date
+- `{total}`: Total amount
+- `{invoice_number}`: Invoice number
+- `{original_name}`: Original filename
 
-The preview section shows:
-- **Original Filename**: Current file name
-- **New Filename**: Preview of renamed file
-- **Template Variables**: Available data for the template
-- **Options**: Current settings (rename enabled, dry run, backup)
+#### Example Templates
+- `{date}_{company}_{total}.pdf` → `2025-01-15_Rona_$123.45.pdf`
+- `{company}_{total}_{invoice_number}.pdf` → `Rona_$123.45_INV-001.pdf`
 
-### File Management Options
+#### File Management
+- **Rename File**: Apply the template to rename the current file
+- **Open Containing Folder**: Open the folder containing the processed file
+- **Backup Options**: Create backup copies before renaming
 
-#### Document Type
-Select the document type for your template:
-- `facture` (Invoice)
-- `relevé` (Statement)
-- `invoice` (English)
-- `statement` (English)
+### 3. Settings Tab
 
-#### Renaming Options
-- **Enable File Renaming**: Toggle file renaming on/off
-- **Create Backup**: Create backup of original file before renaming
-- **Dry Run**: Preview rename operations without executing
+Configure application settings and preferences.
 
-#### Backup Settings
-- **Backup Location**: Choose custom backup directory (optional)
-- **Same Folder**: Default backup location
+#### OCR Settings
+- **Output Directory**: Where processed files are saved
+- **Business Alias File**: JSON file containing company name mappings
+- **OCR Language**: Language for OCR processing (default: English)
 
-### Conflict Resolution
+#### File Management Settings
+- **Default Template**: Default file naming template
+- **Backup Files**: Whether to create backup copies
+- **Overwrite Protection**: Handle file conflicts
 
-When a file with the same name already exists:
-1. **Add Timestamp**: Automatically add timestamp to make filename unique
-2. **Overwrite**: Replace existing file
-3. **Cancel**: Abort the rename operation
+## Keyboard Shortcuts
 
-### File Operations
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+O` | Open PDF file |
+| `Ctrl+E` | Export data |
+| `Ctrl+Q` | Quit application |
+| `Ctrl+1` | Switch to Single PDF tab |
+| `Ctrl+2` | Switch to File Naming tab |
+| `Ctrl+3` | Switch to Settings tab |
+| `F1` | Show keyboard shortcuts help |
 
-#### Rename File
-- Click "Rename File" to apply the naming template
-- The system will check for conflicts and handle them appropriately
-- Success/failure messages are displayed
-- **Full Path Display**: Shows complete file path in dialogs and status messages
+## PDF Preview Features
 
-#### Open Folder
-- Click "Open Folder" to open the directory containing the file
-- Works on macOS, Windows, and Linux
+When viewing a PDF in the preview panel:
 
-## 🎨 User Interface (Sprint 4 ✅ COMPLETED)
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl++` | Zoom in |
+| `Ctrl+-` | Zoom out |
+| `Ctrl+0` | Reset zoom to 100% |
+| `Ctrl+Wheel` | Zoom with mouse wheel |
+| Mouse drag | Pan around the document |
 
-### Visual Design
-- **Consistent Theme**: Uniform blue/gray color scheme throughout the application
-- **Professional Look**: Clean, modern interface with proper spacing and typography
-- **Visual Feedback**: Clear indicators for all user actions and system states
-
-### Enhanced User Experience
-- **Persistent Filename Display**: Current filename shown in status bar at all times
-- **Keyboard Shortcuts**: Quick access to common functions
-- **Tooltips**: Helpful information on hover for all interactive elements
-- **Status Indicators**: Real-time feedback on processing and file operations
-- **Progress Visualization**: Clear progress bars and status messages
-
-### Responsive Design
-- **Adaptive Layout**: Interface adjusts to different window sizes
-- **Drag and Drop**: Intuitive file selection with visual feedback
-- **Error Handling**: User-friendly error messages with actionable guidance
-
-## ⚙️ Settings Configuration
-
-### OCR Settings
-- **Language**: Select OCR language (eng, fra, spa, deu)
-- **Default**: English
-
-### Output Settings
-- **Output Directory**: Set default output location for processed files
-- **Browse**: Select directory using file dialog
-
-### Business Settings
-- **Business Alias File**: Path to business alias configuration
-- **Browse**: Select alias file using file dialog
-
-### Save/Cancel
-- **Save Settings**: Apply configuration changes
-- **Cancel**: Discard changes and revert to previous settings
-
-## 🔧 Advanced Features
-
-### Template Validation
-
-The system provides real-time validation:
-- **Required Fields**: Ensures all necessary template variables are present
-- **Invalid Characters**: Checks for forbidden filename characters
-- **File Extension**: Ensures template ends with `.pdf`
-- **Length Limits**: Validates filename length (max 260 characters)
-
-### Error Handling
-
-Comprehensive error handling includes:
-- **File Loading Errors**: Clear messages for invalid PDFs
-- **OCR Processing Errors**: Detailed error information
-- **Template Validation**: Real-time feedback on template issues
-- **File Operation Errors**: Graceful handling of file system errors
-- **Integration Errors**: Clear messages for CLI compatibility issues
-
-### Integration with CLI
-
-The GUI maintains full compatibility with the CLI:
-- **Same Data Formats**: GUI reads/writes same JSON/CSV formats
-- **Shared Configuration**: Settings are compatible between CLI and GUI
-- **Business Alias System**: Uses same alias system as CLI
-- **File Management**: Same naming patterns and options
-- **Workflow Integration**: Seamless switching between CLI and GUI
-
-## 📋 Workflow Examples
-
-### Example 1: Basic Invoice Processing
-
-1. **Launch GUI**: `python -m src.ocrinvoice.gui.ocr_main_window`
-2. **Load PDF**: Drag and drop invoice.pdf
-3. **Review Data**: Check extracted information
-4. **Quick Rename**: Click "Rename File" button on Single PDF tab
-5. **Configure Template**: Set template to `{company}_{date}.pdf`
-6. **Apply Rename**: Execute rename with conflict resolution
-7. **Export Data**: Save results as JSON
-
-### Example 2: Custom Template with Advanced Features
-
-1. **Create Template**: `{documentType}_{company}_{total}_{invoice_number}.pdf`
-2. **Set Document Type**: Choose "facture"
-3. **Live Preview**: See `facture_HYDRO-QUÉBEC_137.50_INV-001.pdf`
-4. **Enable Backup**: Check backup option
-5. **Rename**: Apply with backup creation
-6. **Open Folder**: Access renamed file immediately
-
-### Example 3: Batch Preparation
-
-1. **Configure Template**: Set up naming pattern for batch processing
-2. **Test with Single File**: Use GUI to verify template works correctly
-3. **Save Settings**: Store configuration for batch use
-4. **Use CLI for Batch**: Apply same settings to batch processing
-
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-**GUI won't launch**
-```bash
-# Install PyQt6
-pip install PyQt6
+#### 1. "Tesseract not found" Error
+**Problem**: OCR engine is not installed or not in PATH
+**Solution**:
+1. Install Tesseract OCR for your operating system
+2. Add Tesseract to your system PATH
+3. Restart the application
 
-# Check Python version (requires 3.8+)
-python --version
-```
+#### 2. "PDF corrupted" Error
+**Problem**: The PDF file is corrupted or not a valid PDF
+**Solution**:
+1. Verify the file opens in a PDF viewer
+2. Try to obtain a new copy of the file
+3. Check if the file is password-protected
 
-**PDF won't load**
-- Ensure file is a valid PDF
-- Check file permissions
-- Try a different PDF file
+#### 3. Low OCR Accuracy
+**Problem**: Extracted data has low confidence scores
+**Solution**:
+1. Ensure the PDF has clear, high-resolution text
+2. Check that the PDF is not scanned at a low resolution
+3. Verify the text is not rotated or skewed
+4. Try processing a different page if multi-page
 
-**OCR processing fails**
-- Verify Tesseract is installed
-- Check OCR language settings
-- Review error messages in status bar
+#### 4. Application Freezes
+**Problem**: Application becomes unresponsive during processing
+**Solution**:
+1. Wait for processing to complete (large files take longer)
+2. Check available system memory
+3. Try with a smaller PDF file
+4. Restart the application if necessary
 
-**Template validation errors**
-- Ensure template ends with `.pdf`
-- Check for invalid characters (`<>:"/\|?*`)
-- Include required template variables
+### Performance Tips
 
-**File naming conflicts**
-- Use timestamp option for unique names
-- Check file permissions in target directory
-- Verify template generates valid filenames
+1. **File Size**: Smaller PDF files process faster
+2. **Text Quality**: Clear, high-resolution text improves accuracy
+3. **System Resources**: Close other applications to free up memory
+4. **Batch Processing**: For multiple files, use the CLI version (coming in future sprints)
 
-**Rename button not working**
-- Ensure a PDF is loaded in Single PDF tab
-- Check that file exists and is accessible
-- Verify template is valid before renaming
+## Data Export
 
-### Getting Help
+The MVP version includes basic data export functionality:
 
-- **Status Bar**: Check for error messages and status updates
-- **Error Dialogs**: Read detailed error information
-- **Validation Feedback**: Review template validation messages
-- **Logs**: Check console output for debugging information
-- **Filename Display**: Current file path shown in status bar
+- **JSON Format**: Structured data export
+- **CSV Format**: Tabular data export
+- **Export Location**: Choose where to save exported files
 
-## 🎯 Best Practices
+*Note: Full export functionality will be available in future sprints*
 
-### Template Design
-- **Keep it Simple**: Start with basic templates
-- **Use Descriptive Names**: Include key information in filename
-- **Test First**: Use dry run to preview results
-- **Backup Important Files**: Enable backup for critical documents
+## Business Alias System
 
-### File Management
-- **Organize by Date**: Include dates in templates for chronological sorting
-- **Company Prefixes**: Use company names for easy identification
-- **Consistent Formatting**: Maintain consistent naming across projects
-- **Regular Backups**: Use backup features for important files
+The application integrates with the existing business alias system:
 
-### Performance
-- **Single File Processing**: Use GUI for individual files
-- **Batch Processing**: Use CLI for large numbers of files
-- **Memory Management**: Close large PDFs when done
-- **Regular Updates**: Keep application and dependencies updated
+- **Automatic Mapping**: Company names are automatically mapped to aliases
+- **Alias File**: Configure custom business name mappings
+- **Fallback**: Unknown companies are marked as "Unknown"
 
-### Workflow Optimization
-- **Quick Rename**: Use the rename button on Single PDF tab for immediate access
-- **Template Reuse**: Save common templates for repeated use
-- **Integration**: Combine GUI and CLI for optimal workflow
-- **Validation**: Always preview templates before applying
+## File Management
 
-## 🔄 Integration with CLI
+### Supported Operations
+- **File Renaming**: Automatic renaming based on templates
+- **Backup Creation**: Optional backup copies before renaming
+- **Conflict Resolution**: Handle duplicate filenames
+- **Folder Access**: Quick access to processed files
 
-The GUI and CLI work seamlessly together:
+### File Formats
+- **Input**: PDF files only
+- **Output**: Renamed PDF files
+- **Data**: JSON/CSV export files
 
-### Shared Configuration
-```bash
-# CLI uses same settings as GUI
-ocrinvoice parse invoice.pdf --rename
-```
+## Integration with CLI
 
-### Data Compatibility
-```bash
-# GUI can read CLI-generated data
-# CLI can process GUI-configured files
-```
+The GUI is fully compatible with the existing CLI version:
 
-### Workflow Integration
-```bash
-# Configure in GUI, use in CLI
-# Process in CLI, review in GUI
-# Export from GUI, import to CLI
-```
+- **Shared Configuration**: Both use the same settings
+- **Data Compatibility**: Same data formats and structures
+- **Alias System**: Shared business alias mappings
+- **File Operations**: Compatible file naming and management
 
-### File Management Compatibility
-- **Same Naming Patterns**: GUI and CLI use identical template formats
-- **Shared Settings**: Configuration is compatible between interfaces
-- **Backup Systems**: Both interfaces support backup and restore
-- **Conflict Resolution**: Consistent handling across CLI and GUI
+## Future Features
+
+The following features are planned for future sprints:
+
+### Phase 2: Batch Processing
+- Process multiple PDF files at once
+- Batch progress tracking
+- Batch error handling and reporting
+
+### Phase 3: Advanced Features
+- PDF text search functionality
+- Advanced filtering and sorting
+- Custom field extraction rules
+
+### Phase 4: Enterprise Features
+- Performance optimizations
+- Advanced reporting
+- API integration capabilities
+
+## Support
+
+For technical support or feature requests:
+
+1. **Documentation**: Check this user guide first
+2. **Troubleshooting**: Review the troubleshooting section
+3. **Issues**: Report bugs or issues through the project repository
+4. **Feature Requests**: Submit feature requests for future sprints
+
+## Version Information
+
+- **Current Version**: 1.0.0 (MVP)
+- **Development Phase**: Sprint 4 - MVP Polish & Testing
+- **Compatibility**: Compatible with CLI version 1.0.0
 
 ---
 
-**Ready to get started?** Launch the GUI with `python -m src.ocrinvoice.gui.ocr_main_window` and begin processing your invoices with the complete MVP file management system! 🚀
-
-**MVP Status**: ✅ **COMPLETE** - All features working and tested with comprehensive error handling and user experience polish.
+*This user guide covers the MVP version of the OCR Invoice Parser GUI. For the latest features and updates, please refer to the project documentation.*
