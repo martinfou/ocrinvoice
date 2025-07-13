@@ -6,6 +6,7 @@ Provides a get_config() function for use throughout the codebase.
 """
 
 import os
+import sys
 import yaml
 from pathlib import Path
 from typing import Any, Dict, Union
@@ -14,16 +15,32 @@ from typing import Any, Dict, Union
 # Default config file path - try multiple locations
 def _find_config_path() -> Path:
     """Find the configuration file path, trying multiple locations."""
-    possible_paths = [
-        # From installed package
-        Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
-        # From project root (when running from source)
-        Path(__file__).parent.parent.parent.parent / "config" / "default_config.yaml",
-        # From current working directory
-        Path.cwd() / "config" / "default_config.yaml",
-        # From user's home directory
-        Path.home() / ".ocrinvoice" / "config.yaml",
-    ]
+    # Check if running in PyInstaller bundle
+    if getattr(sys, "frozen", False):
+        # Running in PyInstaller bundle
+        base_path = Path(getattr(sys, '_MEIPASS', ''))
+        possible_paths = [
+            # PyInstaller extracts config files to the bundle root
+            base_path / "config" / "default_config.yaml",
+            # Also check current working directory
+            Path.cwd() / "config" / "default_config.yaml",
+            # User's home directory
+            Path.home() / ".ocrinvoice" / "config.yaml",
+        ]
+    else:
+        # Running from source
+        possible_paths = [
+            # From installed package
+            Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
+            # From project root (when running from source)
+            Path(__file__).parent.parent.parent.parent
+            / "config"
+            / "default_config.yaml",
+            # From current working directory
+            Path.cwd() / "config" / "default_config.yaml",
+            # From user's home directory
+            Path.home() / ".ocrinvoice" / "config.yaml",
+        ]
 
     for path in possible_paths:
         if path.exists():
@@ -58,14 +75,24 @@ def load_yaml_config(config_path: Path = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
     """
     if not config_path.exists():
         # Try to find the config file in other locations
-        possible_paths = [
-            Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
-            Path(__file__).parent.parent.parent.parent
-            / "config"
-            / "default_config.yaml",
-            Path.cwd() / "config" / "default_config.yaml",
-            Path.home() / ".ocrinvoice" / "config.yaml",
-        ]
+        if getattr(sys, "frozen", False):
+            # Running in PyInstaller bundle
+            base_path = Path(getattr(sys, '_MEIPASS', ''))
+            possible_paths = [
+                base_path / "config" / "default_config.yaml",
+                Path.cwd() / "config" / "default_config.yaml",
+                Path.home() / ".ocrinvoice" / "config.yaml",
+            ]
+        else:
+            # Running from source
+            possible_paths = [
+                Path(__file__).parent.parent.parent / "config" / "default_config.yaml",
+                Path(__file__).parent.parent.parent.parent
+                / "config"
+                / "default_config.yaml",
+                Path.cwd() / "config" / "default_config.yaml",
+                Path.home() / ".ocrinvoice" / "config.yaml",
+            ]
 
         found_paths = [p for p in possible_paths if p.exists()]
         if found_paths:
