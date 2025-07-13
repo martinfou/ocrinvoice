@@ -10,7 +10,9 @@ except ImportError:
     # Fallback if import fails - create a simple FuzzyMatcher
     class FuzzyMatcher:
         @staticmethod
-        def fuzzy_match(target: str, candidates: List[str], threshold: float = 0.3) -> Optional[str]:
+        def fuzzy_match(
+            target: str, candidates: List[str], threshold: float = 0.3
+        ) -> Optional[str]:
             # Simple fallback implementation
             for candidate in candidates:
                 if (

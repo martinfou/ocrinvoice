@@ -121,6 +121,15 @@ class OCRMainWindow(QMainWindow):
         # Extracted data
         self.extracted_data: Optional[Dict[str, Any]] = None
 
+        # Initialize business mapping manager for backups
+        self.business_mapping_manager = None
+        try:
+            from ..business.business_mapping_manager import BusinessMappingManager
+            self.business_mapping_manager = BusinessMappingManager()
+            print("✅ Business mapping manager initialized")
+        except Exception as e:
+            print(f"⚠️ Could not initialize business mapping manager: {e}")
+
         print("🎨 Setting up user interface...")
         # Set up the UI
         self._setup_ui()
@@ -131,6 +140,10 @@ class OCRMainWindow(QMainWindow):
         # Set window properties
         self.setWindowTitle("OCR Invoice Parser")
         self.setGeometry(100, 100, 1200, 800)
+        
+        # Create startup backup
+        self._create_startup_backup()
+        
         print("✅ Main window initialization complete")
 
     def _setup_ui(self) -> None:
@@ -865,6 +878,26 @@ PDF Preview (when focused):
 
         QMessageBox.information(self, "Keyboard Shortcuts", shortcuts_text)
 
+    def _create_startup_backup(self) -> None:
+        """Create a backup on application startup."""
+        if self.business_mapping_manager:
+            try:
+                backup_path = self.business_mapping_manager.create_startup_backup()
+                if backup_path:
+                    self.status_bar.showMessage(f"Startup backup created: {os.path.basename(backup_path)}", 3000)
+            except Exception as e:
+                print(f"⚠️ Startup backup failed: {e}")
+
+    def _create_shutdown_backup(self) -> None:
+        """Create a backup on application shutdown."""
+        if self.business_mapping_manager:
+            try:
+                backup_path = self.business_mapping_manager.create_shutdown_backup()
+                if backup_path:
+                    print(f"✅ Shutdown backup created: {os.path.basename(backup_path)}")
+            except Exception as e:
+                print(f"⚠️ Shutdown backup failed: {e}")
+
     def _show_about(self) -> None:
         """Show the about dialog."""
         QMessageBox.about(
@@ -879,7 +912,14 @@ PDF Preview (when focused):
 
     def closeEvent(self, event: Optional[QCloseEvent]) -> None:
         """Handle application close event."""
-        # TODO: Add save prompts and cleanup logic in future sprints
+        # Create shutdown backup
+        self._create_shutdown_backup()
+        
+        # Cancel any ongoing OCR processing
+        if self.ocr_thread and self.ocr_thread.isRunning():
+            self.ocr_thread.cancel()
+            self.ocr_thread.wait()
+        
         if event is not None:
             event.accept()
 

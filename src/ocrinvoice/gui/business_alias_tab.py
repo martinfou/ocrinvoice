@@ -162,6 +162,11 @@ class AliasManagerThread(QThread):
         if company_name in self.mapping_manager.config.get("partial_matches", {}):
             del self.mapping_manager.config["partial_matches"][company_name]
 
+        # Remove from fuzzy candidates (for fuzzy matches, company_name is the canonical_name)
+        fuzzy_candidates = self.mapping_manager.config.get("fuzzy_candidates", [])
+        if company_name in fuzzy_candidates:
+            fuzzy_candidates.remove(company_name)
+
         # Ensure the configuration is properly saved
         try:
             self.mapping_manager._save_config()
@@ -306,6 +311,16 @@ class BusinessAliasTab(QWidget):
         )
         self.refresh_button.clicked.connect(self._load_aliases)
         toolbar_layout.addWidget(self.refresh_button)
+
+        # Backup/Restore button
+        self.backup_button = QPushButton("💾 Backup/Restore")
+        self.backup_button.setStyleSheet(
+            "QPushButton { background-color: #9b59b6; color: white; border: none; "
+            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #8e44ad; }"
+        )
+        self.backup_button.clicked.connect(self._on_backup_restore)
+        toolbar_layout.addWidget(self.backup_button)
 
         layout.addLayout(toolbar_layout)
 
@@ -473,3 +488,19 @@ class BusinessAliasTab(QWidget):
     def refresh_data(self) -> None:
         """Refresh the alias data."""
         self._load_aliases()
+
+    def _on_backup_restore(self) -> None:
+        """Handle backup/restore button click."""
+        try:
+            from .dialogs.backup_restore_dialog import BackupRestoreDialog
+            dialog = BackupRestoreDialog(self, self.mapping_manager)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                # Refresh data after backup/restore operations
+                self._load_aliases()
+        except ImportError as e:
+            QMessageBox.warning(
+                self,
+                "Backup/Restore Not Available",
+                "Backup and restore functionality is not available.\n\n"
+                f"Error: {str(e)}"
+            )
