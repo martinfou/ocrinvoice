@@ -16,20 +16,144 @@ The OCR Invoice Parser GUI is a desktop application that extracts structured dat
 
 ### Installation
 
-1. **Install Tesseract OCR**:
-   - **Windows**: Download from https://github.com/tesseract-ocr/tesseract
-   - **macOS**: `brew install tesseract`
-   - **Linux**: `sudo apt-get install tesseract-ocr`
+#### Step 1: Create a Virtual Environment (Recommended)
 
-2. **Install Python Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+It's recommended to create a virtual environment to isolate the project dependencies:
 
-3. **Launch the Application**:
-   ```bash
-   python run_ocr_gui.py
-   ```
+**Windows:**
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+venv\Scripts\activate
+
+# Verify activation (you should see (venv) in your prompt)
+```
+
+**macOS/Linux:**
+```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Verify activation (you should see (venv) in your prompt)
+```
+
+#### Step 2: Install Tesseract OCR
+
+**Windows:**
+- Download from https://github.com/tesseract-ocr/tesseract
+- Add Tesseract to your system PATH
+
+**macOS:**
+```bash
+brew install tesseract
+```
+
+**Linux:**
+```bash
+sudo apt-get install tesseract-ocr
+```
+
+#### Step 3: Install Python Dependencies
+
+This project uses `pyproject.toml` for dependency management (modern Python packaging). Install dependencies using:
+
+```bash
+# Install the project and its dependencies
+pip install -e .
+
+# Or install with development dependencies (for contributors)
+pip install -e ".[dev]"
+```
+
+**Note**: The project doesn't use a traditional `requirements.txt` file. Instead, dependencies are defined in `pyproject.toml` at the root of the project. This is the modern Python standard for package management.
+
+#### Step 4: Launch the Application
+
+```bash
+python run_ocr_gui.py
+```
+
+**Alternative Launch Methods:**
+```bash
+# If installed with pip install -e .
+python -m ocrinvoice.gui.ocr_main_window
+
+# Or use the provided launcher script
+python run_ocr_gui.py
+```
+
+#### Step 5: Deactivate Virtual Environment (When Done)
+
+When you're finished using the application, deactivate the virtual environment:
+
+```bash
+deactivate
+```
+
+### Scripts Folder
+
+The project includes a `scripts/` folder with helpful utilities and automation tools:
+
+#### Setup Scripts
+**Windows:**
+```bash
+scripts\setup.bat
+```
+
+**macOS/Linux:**
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+
+These setup scripts will:
+1. Create a virtual environment
+2. Install Tesseract OCR (if not already installed)
+3. Install Python dependencies
+4. Launch the application
+
+#### Additional Scripts
+
+**`scripts/demo_mvp.py`** - Interactive demonstration of MVP features
+```bash
+python scripts/demo_mvp.py
+```
+This script provides a guided tour of all GUI features and capabilities.
+
+**`scripts/install_dependencies.py`** - Advanced dependency installer
+```bash
+python scripts/install_dependencies.py
+```
+Handles complex dependency installation scenarios and provides detailed feedback.
+
+**`scripts/validate_links.py`** - Documentation link validator
+```bash
+python scripts/validate_links.py
+```
+Validates links in documentation files (for developers).
+
+### Quick Setup Script
+
+### Troubleshooting Installation
+
+#### Virtual Environment Issues
+- **"python not found"**: Ensure Python 3.8+ is installed and in your PATH
+- **"venv module not found"**: Install python3-venv package (Linux: `sudo apt-get install python3-venv`)
+- **Activation fails**: Use the correct activation command for your OS
+
+#### Dependency Installation Issues
+- **"pip install -e . fails"**: Ensure you're in the project root directory
+- **"build tools not found"**: Install build tools: `pip install build setuptools wheel`
+- **"PyQt6 installation fails"**: On Linux, install system dependencies: `sudo apt-get install python3-pyqt6`
+
+#### Tesseract Issues
+- **"tesseract not found"**: Ensure Tesseract is installed and added to system PATH
+- **"tesseract version"**: Verify installation by running `tesseract --version`
 
 ## Main Interface
 
@@ -48,11 +172,18 @@ This is the primary interface for processing individual PDF invoices.
 1. **Select a PDF**: Use the file browser or drag-and-drop
 2. **OCR Processing**: The application automatically processes the PDF
 3. **Review Results**: Check extracted data in the right panel
-4. **Edit if Needed**: Modify any extracted fields
-5. **Rename File**: Use the file naming template to rename the file
+4. **Edit if Needed**: Double-click any value to edit it
+5. **Real-time Preview**: See file name changes instantly as you edit
+6. **Rename File**: Use the file naming template to rename the file
+
+#### Real-time File Naming
+- **Live Updates**: As you edit data in the table, the file name preview updates automatically
+- **Instant Feedback**: See exactly how your changes affect the final file name
+- **Template Integration**: Changes are reflected in all file naming templates
+- **Status Updates**: Status bar shows when data has been updated
 
 #### Data Display
-The right panel shows extracted data in a table format:
+The right panel shows extracted data in an **editable table format**:
 
 | Field | Value | Confidence |
 |-------|-------|------------|
@@ -61,10 +192,23 @@ The right panel shows extracted data in a table format:
 | Invoice Date | 2025-01-15 | 🟡 78% |
 | Invoice Number | INV-001 | 🔴 45% |
 
+**Editable Fields**:
+- **Value Column**: Double-click any value to edit it
+- **Real-time Updates**: Changes automatically update the file name preview
+- **Smart Formatting**: Currency and percentage values are automatically formatted
+- **Field Names & Confidence**: These columns are read-only for data integrity
+
 **Confidence Indicators**:
 - 🟢 **Green**: High confidence (80%+)
 - 🟡 **Yellow**: Medium confidence (60-79%)
 - 🔴 **Red**: Low confidence (<60%)
+
+**Editing Tips**:
+- **Company Names**: Edit to correct OCR errors or improve accuracy
+- **Amounts**: Enter numbers with or without currency symbols (e.g., "123.45" or "$123.45")
+- **Dates**: Use standard date formats (e.g., "2025-01-15")
+- **Invoice Numbers**: Correct any OCR misreads
+- **Confidence**: Shows OCR confidence but cannot be edited (maintains data integrity)
 
 #### Action Buttons
 - **💾 Export Data**: Export extracted data to JSON/CSV (coming in future sprints)

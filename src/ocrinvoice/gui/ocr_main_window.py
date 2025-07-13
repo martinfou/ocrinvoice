@@ -217,6 +217,8 @@ class OCRMainWindow(QMainWindow):
         # Data Panel (right side)
         self.data_panel = DataPanelWidget()
         self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
+        # Connect data changes to file naming updates
+        self.data_panel.data_changed.connect(self._on_data_changed)
         content_splitter.addWidget(self.data_panel)
 
         # Set initial splitter sizes (60% PDF, 40% data)
@@ -685,6 +687,26 @@ class OCRMainWindow(QMainWindow):
 
         # TODO: Implement actual export functionality
         self.status_bar.showMessage("Export functionality coming in future sprints")
+
+    def _on_data_changed(self, updated_data: Dict[str, Any]) -> None:
+        """Handle data changes from the data panel."""
+        # Update the stored extracted data
+        self.extracted_data = updated_data
+
+        # Update file naming widget with new data
+        if self.current_pdf_path:
+            from pathlib import Path
+
+            original_filename = Path(self.current_pdf_path).name
+            self.file_naming_widget.update_data(
+                updated_data, original_filename, self.current_pdf_path
+            )
+            # Update persistent filename label after data update
+            new_filename = self.file_naming_widget.new_filename_label.text()
+            self._update_filename_status_label(new_filename)
+
+        # Show status message indicating data was updated
+        self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
 
     def _on_rename_from_data_panel(self) -> None:
         """Handle rename request from data panel."""

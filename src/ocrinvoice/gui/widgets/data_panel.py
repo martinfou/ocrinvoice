@@ -16,7 +16,21 @@ from PyQt6.QtWidgets import (
     QPushButton,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor
+
+
+class EditableTableWidget(QTableWidget):
+    """Custom table widget that handles editing state properly."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def editItem(self, item):
+        """Override editItem to ensure proper text visibility during editing."""
+        # Set the item's background to a light color and text to dark for editing
+        item.setBackground(QColor("#f8f9fa"))
+        item.setForeground(QColor("#2c3e50"))
+        super().editItem(item)
 
 
 class DataPanelWidget(QWidget):
@@ -25,8 +39,12 @@ class DataPanelWidget(QWidget):
     # Signal emitted when rename is requested
     rename_requested = pyqtSignal()
 
+    # Signal emitted when data is changed by user
+    data_changed = pyqtSignal(dict)  # Emits updated data dictionary
+
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
+        self.current_data: Dict[str, Any] = {}
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -34,15 +52,19 @@ class DataPanelWidget(QWidget):
         layout = QVBoxLayout(self)
 
         # Title with unified blue/gray theme
-        title = QLabel("📄 Extracted Data")
+        title = QLabel("📄 Extracted Data (Double-click values to edit)")
         title.setStyleSheet(
             "font-size: 16px; font-weight: bold; margin-bottom: 15px; "
             "color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;"
         )
+        title.setToolTip(
+            "Values in the table are editable. Double-click any value to edit it "
+            "and see real-time file name updates."
+        )
         layout.addWidget(title)
 
         # Data table
-        self.data_table = QTableWidget()
+        self.data_table = EditableTableWidget()
         self.data_table.setColumnCount(3)
         self.data_table.setHorizontalHeaderLabels(["Field", "Value", "Confidence"])
 
@@ -55,6 +77,18 @@ class DataPanelWidget(QWidget):
         self.data_table.setAlternatingRowColors(True)
         self.data_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
 
+        # Make the table editable
+        self.data_table.setEditTriggers(
+            QTableWidget.EditTrigger.DoubleClicked
+            | QTableWidget.EditTrigger.EditKeyPressed
+        )
+
+        # Connect cell changed signal
+        self.data_table.itemChanged.connect(self._on_cell_changed)
+
+        # Connect editing signals to handle visual feedback
+        self.data_table.itemSelectionChanged.connect(self._on_selection_changed)
+
         # Apply unified blue/gray theme to the table
         self.data_table.setStyleSheet(
             "QTableWidget { "
@@ -66,10 +100,16 @@ class DataPanelWidget(QWidget):
             "QTableWidget::item { "
             "padding: 8px; "
             "border-bottom: 1px solid #ecf0f1; "
+            "color: #2c3e50; "
             "}"
             "QTableWidget::item:selected { "
             "background-color: #3498db; "
             "color: white; "
+            "}"
+            "QTableWidget::item:selected:focus { "
+            "background-color: #f8f9fa; "
+            "color: #2c3e50; "
+            "border: 2px solid #3498db; "
             "}"
             "QHeaderView::section { "
             "background-color: #34495e; "
@@ -128,6 +168,81 @@ class DataPanelWidget(QWidget):
         # Placeholder text
         self._show_placeholder()
 
+    def _on_cell_changed(self, item: QTableWidgetItem) -> None:
+        """Handle cell content changes in the data table."""
+        if not self.current_data:
+            return
+
+        # Only handle changes to the Value column (column 1)
+        if item.column() != 1:
+            return
+
+        row = item.row()
+        field_name = self.data_table.item(row, 0).text()
+
+        # Map display names back to field keys
+        field_mapping = {
+            "Company Name": "company",
+            "Total Amount": "total",
+            "Invoice Date": "date",
+            "Invoice Number": "invoice_number",
+            "Parser Type": "parser_type",
+            "Valid": "is_valid",
+            "Overall Confidence": "confidence",
+        }
+
+        field_key = field_mapping.get(field_name)
+        if not field_key:
+            return
+
+        new_value = item.text()
+
+        # Process the value based on field type
+        if field_key == "total":
+            # Remove currency symbols and convert to float
+            try:
+                # Remove $ and other currency symbols
+                clean_value = new_value.replace("$", "").replace(",", "").strip()
+                if clean_value:
+                    float_value = float(clean_value)
+                    self.current_data[field_key] = float_value
+                else:
+                    self.current_data[field_key] = None
+            except ValueError:
+                # Keep as string if not a valid number
+                self.current_data[field_key] = new_value
+        elif field_key == "is_valid":
+            # Convert to boolean
+            self.current_data[field_key] = new_value.lower() in ["yes", "true", "1"]
+        elif field_key == "confidence":
+            # Remove % and convert to float
+            try:
+                clean_value = new_value.replace("%", "").strip()
+                if clean_value:
+                    float_value = float(clean_value) / 100.0
+                    self.current_data[field_key] = float_value
+                else:
+                    self.current_data[field_key] = None
+            except ValueError:
+                # Keep as string if not a valid number
+                self.current_data[field_key] = new_value
+        else:
+            # Keep as string for other fields
+            self.current_data[field_key] = new_value
+
+        # Emit the updated data
+        self.data_changed.emit(self.current_data.copy())
+
+    def _on_selection_changed(self) -> None:
+        """Handle selection changes to ensure proper text visibility."""
+        # Ensure all editable items have proper text color
+        for row in range(self.data_table.rowCount()):
+            for col in range(self.data_table.columnCount()):
+                item = self.data_table.item(row, col)
+                if item and col == 1:  # Value column
+                    # Ensure editable items always have dark text
+                    item.setForeground(QColor("#2c3e50"))
+
     def _show_placeholder(self) -> None:
         """Show placeholder text when no data is available."""
         self.data_table.setRowCount(1)
@@ -144,7 +259,11 @@ class DataPanelWidget(QWidget):
             self.export_btn.setEnabled(False)
             self.clear_btn.setEnabled(False)
             self.rename_btn.setEnabled(False)
+            self.current_data = {}
             return
+
+        # Store the current data
+        self.current_data = data.copy()
 
         # Clear existing data and spans
         self.data_table.clear()
@@ -171,6 +290,9 @@ class DataPanelWidget(QWidget):
             # Field name
             field_item = QTableWidgetItem(display_name)
             field_item.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+            field_item.setFlags(
+                field_item.flags() & ~Qt.ItemFlag.ItemIsEditable
+            )  # Make field name non-editable
             self.data_table.setItem(row, 0, field_item)
 
             # Value
@@ -202,11 +324,14 @@ class DataPanelWidget(QWidget):
             else:
                 value = str(raw_value) if raw_value else "Not extracted"
 
-            # Set value
+            # Set value - make it editable
             value_item = QTableWidgetItem(value)
+            value_item.setFlags(value_item.flags() | Qt.ItemFlag.ItemIsEditable)
+            # Set text color to ensure visibility during editing
+            value_item.setForeground(QColor("#2c3e50"))
             self.data_table.setItem(row, 1, value_item)
 
-            # Confidence indicator (if available)
+            # Confidence indicator (if available) - make non-editable
             if field_key in ["company", "total", "date", "invoice_number"]:
                 confidence_key = f"{field_key}_confidence"
                 confidence_value = data.get(confidence_key, 0)
@@ -226,10 +351,16 @@ class DataPanelWidget(QWidget):
                 else:
                     confidence_item = QTableWidgetItem("N/A")
 
+                confidence_item.setFlags(
+                    confidence_item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                )
                 self.data_table.setItem(row, 2, confidence_item)
             else:
                 # For non-confidence fields, show empty or N/A
                 confidence_item = QTableWidgetItem("")
+                confidence_item.setFlags(
+                    confidence_item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                )
                 self.data_table.setItem(row, 2, confidence_item)
 
         # Enable buttons
@@ -243,6 +374,7 @@ class DataPanelWidget(QWidget):
         self.export_btn.setEnabled(False)
         self.clear_btn.setEnabled(False)
         self.rename_btn.setEnabled(False)
+        self.current_data = {}
 
     def _export_data(self) -> None:
         """Export the current data (placeholder for now)."""
