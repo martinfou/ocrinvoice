@@ -36,7 +36,7 @@ class TestOCRMainWindow:
     def test_tab_widget_exists(self, main_window: OCRMainWindow) -> None:
         """Test that the tab widget is created and accessible."""
         assert main_window.tab_widget is not None
-        assert main_window.tab_widget.count() == 3  # Single PDF, File Naming, Settings
+        assert main_window.tab_widget.count() == 5  # Single PDF, File Naming, Business Aliases, Official Names, Settings
 
     def test_tab_names(self, main_window: OCRMainWindow) -> None:
         """Test that the correct tabs are created."""
@@ -46,6 +46,8 @@ class TestOCRMainWindow:
         ]
         assert "Single PDF" in tab_names
         assert "File Naming" in tab_names
+        assert "Business Aliases" in tab_names
+        assert "Official Names" in tab_names
         assert "Settings" in tab_names
 
     def test_status_bar_exists(self, main_window: OCRMainWindow) -> None:
