@@ -23,9 +23,10 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QStatusBar,
     QProgressBar,
+    QSplashScreen,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
+from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent, QPixmap
 
 from .widgets.pdf_preview import PDFPreviewWidget
 from .widgets.data_panel import DataPanelWidget
@@ -103,9 +104,11 @@ class OCRMainWindow(QMainWindow):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
+        print("🔧 Loading configuration...")
         # Load configuration
         self.config = get_config()
 
+        print("🤖 Initializing OCR parser...")
         # Initialize OCR parser
         self.ocr_parser = InvoiceParser(self.config)
 
@@ -118,6 +121,7 @@ class OCRMainWindow(QMainWindow):
         # Extracted data
         self.extracted_data: Optional[Dict[str, Any]] = None
 
+        print("🎨 Setting up user interface...")
         # Set up the UI
         self._setup_ui()
         self._setup_menu_bar()
@@ -127,6 +131,7 @@ class OCRMainWindow(QMainWindow):
         # Set window properties
         self.setWindowTitle("OCR Invoice Parser")
         self.setGeometry(100, 100, 1200, 800)
+        print("✅ Main window initialization complete")
 
     def _setup_ui(self) -> None:
         """Set up the main user interface components."""
@@ -771,13 +776,58 @@ PDF Preview (when focused):
 
 def main() -> None:
     """Main entry point for the OCR GUI application."""
+    import time
+    from pathlib import Path
+    
+    # Startup logging
+    print("🚀 Starting OCR Invoice Parser...")
+    print(f"📁 Working directory: {Path.cwd()}")
+    
+    # Check if running in PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        print("📦 Running from PyInstaller binary")
+        print(f"📦 Bundle path: {getattr(sys, '_MEIPASS', 'Unknown')}")
+    else:
+        print("🔧 Running from source code")
+    
+    print("⚙️  Initializing application...")
+    start_time = time.time()
+    
     app = QApplication(sys.argv)
     app.setApplicationName("OCR Invoice Parser")
     app.setApplicationVersion("1.0.0")
-
+    
+    print("🎨 Creating main window...")
+    
+    # Create and show splash screen
+    splash = QSplashScreen()
+    splash.setPixmap(QPixmap(400, 200))
+    splash.show()
+    
+    # Update splash screen with progress
+    splash.showMessage("Initializing OCR Invoice Parser...", 
+                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    app.processEvents()
+    
+    print("🔧 Loading configuration...")
+    splash.showMessage("Loading configuration...", 
+                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    app.processEvents()
+    
     window = OCRMainWindow()
+    
+    print("🎨 Setting up user interface...")
+    splash.showMessage("Setting up user interface...", 
+                      Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+    app.processEvents()
+    
     window.show()
-
+    splash.finish(window)
+    
+    startup_time = time.time() - start_time
+    print(f"✅ Application started in {startup_time:.2f} seconds")
+    print("🎯 Ready to process PDF invoices!")
+    
     sys.exit(app.exec())
 
 

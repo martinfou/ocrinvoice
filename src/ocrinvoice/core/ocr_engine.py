@@ -3,7 +3,6 @@
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import logging
-import os
 
 from PIL import Image
 
@@ -341,7 +340,7 @@ class OCREngine:
         try:
             version = pytesseract.get_tesseract_version()
             languages = pytesseract.get_languages()
-        except Exception as e:
+        except Exception:
             version = "Unknown"
             languages = []
 

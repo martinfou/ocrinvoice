@@ -1,6 +1,6 @@
 """OCR correction utilities for improving text accuracy."""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any
 import re
 import logging
 

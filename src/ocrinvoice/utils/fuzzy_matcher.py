@@ -1,9 +1,9 @@
 """Fuzzy string matching utilities for OCR text processing."""
 
-from typing import List, Dict, Any, Optional, Tuple, Union
+from typing import List, Dict, Any, Optional, Tuple
 import re
 from difflib import SequenceMatcher
-from fuzzywuzzy import fuzz, process
+from fuzzywuzzy import fuzz
 
 
 class FuzzyMatcher:
