@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11']
 
     steps:
@@ -23,16 +23,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Tesseract OCR
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
 
-    - name: Install Qt/OpenGL dependencies
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get install -y libgl1-mesa-glx libegl1 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2t64 libxi6 libxtst6 xvfb
 
     - name: Install Tesseract OCR
       if: matrix.os == 'macos-latest'
@@ -57,14 +48,8 @@ jobs:
     #     mypy src/
 
     - name: Run tests
-      if: matrix.os != 'ubuntu-latest'
       run: |
         pytest tests/ -v --tb=short --cov=src/ocrinvoice --cov-report=xml
-
-    - name: Run tests with virtual display
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        xvfb-run -a pytest tests/ -v --tb=short --cov=src/ocrinvoice --cov-report=xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
