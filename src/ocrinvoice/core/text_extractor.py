@@ -4,14 +4,12 @@ from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import logging
 import re
-import importlib.util
 
 # Conditional imports for optional dependencies
 try:
     import pdfplumber
     from PyPDF2 import PdfReader
     from pdf2image import convert_from_path
-    from PIL import Image
 
     DEPENDENCIES_AVAILABLE = True
 except ImportError as e:
@@ -310,7 +308,7 @@ class TextExtractor:
                     try:
                         with pdfplumber.open(pdf_path) as pdf:
                             result["pages"] = len(pdf.pages)
-                    except:
+                    except Exception:
                         result["pages"] = 0
 
                     break

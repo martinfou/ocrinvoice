@@ -8,7 +8,7 @@ Provides a get_config() function for use throughout the codebase.
 import os
 import yaml
 from pathlib import Path
-from typing import Any, Dict, Union, Optional
+from typing import Any, Dict, Union
 
 
 # Default config file path - try multiple locations

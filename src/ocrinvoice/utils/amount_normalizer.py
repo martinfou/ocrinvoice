@@ -1,6 +1,6 @@
 """Amount normalization utilities for OCR text processing."""
 
-from typing import Optional, Union, Dict, Any, List
+from typing import Optional, Union, Dict, List
 import re
 from decimal import Decimal, InvalidOperation
 
