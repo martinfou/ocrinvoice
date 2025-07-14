@@ -493,6 +493,7 @@ class BusinessAliasTab(QWidget):
         """Handle backup/restore button click."""
         try:
             from .dialogs.backup_restore_dialog import BackupRestoreDialog
+
             dialog = BackupRestoreDialog(self, self.mapping_manager)
             if dialog.exec() == QDialog.DialogCode.Accepted:
                 # Refresh data after backup/restore operations
@@ -502,5 +503,5 @@ class BusinessAliasTab(QWidget):
                 self,
                 "Backup/Restore Not Available",
                 "Backup and restore functionality is not available.\n\n"
-                f"Error: {str(e)}"
+                f"Error: {str(e)}",
             )

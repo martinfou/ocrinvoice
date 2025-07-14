@@ -4,7 +4,7 @@ File Naming Widget
 Provides GUI interface for file naming template system with live preview.
 """
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -63,7 +63,9 @@ class FileNamingWidget(QWidget):
         format_label = QLabel("Template Format:")
         self.template_input = QLineEdit()
         self.template_input.setPlaceholderText("Enter template format...")
-        self.template_input.setText("{documentType}_{company}_{date}_{total}.pdf")
+        self.template_input.setText(
+            "{project}_{documentType}_{company}_{date}_$${total}.pdf"
+        )
         format_layout.addWidget(format_label)
         format_layout.addWidget(self.template_input)
         template_layout.addLayout(format_layout)
@@ -75,6 +77,7 @@ class FileNamingWidget(QWidget):
         self.field_combo = QComboBox()
         self.field_combo.addItems(
             [
+                "Project",
                 "Document Type",
                 "Company Name",
                 "Date",
@@ -82,6 +85,52 @@ class FileNamingWidget(QWidget):
                 "Invoice Number",
                 "Custom Text",
             ]
+        )
+        self.field_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
         )
 
         self.add_field_btn = QPushButton("Add")
@@ -105,14 +154,60 @@ class FileNamingWidget(QWidget):
         self.preset_combo = QComboBox()
         self.preset_combo.addItems(
             [
-                "Default: {documentType}_{company}_{date}_{total}.pdf",
-                "Simple: {company}_{date}.pdf",
-                "Detailed: {date}_{company}_{total}_{invoice_number}.pdf",
+                "Default: {project}_{documentType}_{company}_{date}_$${total}.pdf",
+                "Simple: {project}_{company}_{date}_$${total}.pdf",
+                "Detailed: {project}_{date}_{company}_{documentType}_$${total}_{invoice_number}.pdf",
+                "No Project: {documentType}_{company}_{date}_$${total}.pdf",
                 "Custom...",
             ]
         )
         self.preset_combo.currentTextChanged.connect(self._on_preset_changed)
-
+        self.preset_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+        )
         preset_layout.addWidget(preset_label)
         preset_layout.addWidget(self.preset_combo)
         preset_layout.addStretch()
@@ -129,10 +224,114 @@ class FileNamingWidget(QWidget):
         doc_type_label = QLabel("Document Type:")
         self.doc_type_combo = QComboBox()
         self.doc_type_combo.addItems(["facture", "relevé", "invoice", "statement"])
+        self.doc_type_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+        )
         doc_type_layout.addWidget(doc_type_label)
         doc_type_layout.addWidget(self.doc_type_combo)
         doc_type_layout.addStretch()
         options_layout.addLayout(doc_type_layout)
+
+        # Project selection
+        project_layout = QHBoxLayout()
+        project_label = QLabel("Project:")
+        self.project_combo = QComboBox()
+        self.project_combo.addItem("project")  # Default project
+        self.project_combo.setEditable(True)
+        self.project_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.project_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+        )
+        project_layout.addWidget(project_label)
+        project_layout.addWidget(self.project_combo)
+        project_layout.addStretch()
+        options_layout.addLayout(project_layout)
 
         # File management options
         self.rename_enabled_cb = QCheckBox("Enable file renaming")
@@ -247,6 +446,7 @@ class FileNamingWidget(QWidget):
         """Set up signal connections."""
         self.template_input.textChanged.connect(self._on_template_changed)
         self.doc_type_combo.currentTextChanged.connect(self._update_preview)
+        self.project_combo.currentTextChanged.connect(self._update_preview)
         self.rename_enabled_cb.toggled.connect(self._update_preview)
         self.backup_original_cb.toggled.connect(self._update_preview)
         self.dry_run_cb.toggled.connect(self._update_preview)
@@ -257,6 +457,7 @@ class FileNamingWidget(QWidget):
 
         # Map field names to template variables
         field_map = {
+            "Project": "{project}",
             "Document Type": "{documentType}",
             "Company Name": "{company}",
             "Date": "{date}",
@@ -451,8 +652,12 @@ class FileNamingWidget(QWidget):
             return
 
         try:
+            # Add project data to extracted data for filename generation
+            preview_data = self.extracted_data.copy()
+            preview_data["project"] = self.project_combo.currentText()
+
             # Generate preview filename
-            preview_filename = self.file_manager.format_filename(self.extracted_data)
+            preview_filename = self.file_manager.format_filename(preview_data)
 
             # Validate filename
             is_valid, message = self._validate_filename(preview_filename)
@@ -493,6 +698,7 @@ class FileNamingWidget(QWidget):
 
         # Show available data
         data_mapping = {
+            "project": self.project_combo.currentText(),
             "documentType": self.doc_type_combo.currentText(),
             "company": self.extracted_data.get("company", "unknown"),
             "date": self.extracted_data.get("date", "unknown"),
@@ -716,3 +922,45 @@ class FileNamingWidget(QWidget):
     def get_config(self) -> Dict[str, Any]:
         """Get the current configuration."""
         return self.config
+
+    def update_projects(self, project_names: List[str]) -> None:
+        """
+        Update the project combo box with available projects.
+
+        Args:
+            project_names: List of project names to add to the combo box
+        """
+        current_text = self.project_combo.currentText()
+
+        # Clear and add default project
+        self.project_combo.clear()
+        self.project_combo.addItem("project")  # Default project
+
+        # Add available projects
+        for project_name in project_names:
+            self.project_combo.addItem(project_name)
+
+        # Restore current selection if it still exists
+        index = self.project_combo.findText(current_text)
+        if index >= 0:
+            self.project_combo.setCurrentIndex(index)
+        else:
+            # If current text not found, set to default
+            self.project_combo.setCurrentText("project")
+
+    def set_project(self, project_name: str) -> None:
+        """Set the selected project in the dropdown."""
+        if project_name:
+            index = self.project_combo.findText(project_name)
+            if index >= 0:
+                self.project_combo.setCurrentIndex(index)
+            else:
+                # If project not found, add it and select it
+                self.project_combo.addItem(project_name)
+                self.project_combo.setCurrentText(project_name)
+        else:
+            # Set to default project
+            self.project_combo.setCurrentText("project")
+
+        # Update the preview when project changes
+        self._update_preview()

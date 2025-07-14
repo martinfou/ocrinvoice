@@ -5,6 +5,7 @@ Main application window for the OCR Invoice Parser GUI.
 """
 
 import sys
+import os
 from typing import Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QApplication,
@@ -25,7 +26,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QSplashScreen,
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent, QPixmap, QFont
 
 from .widgets.pdf_preview import PDFPreviewWidget
@@ -125,10 +126,21 @@ class OCRMainWindow(QMainWindow):
         self.business_mapping_manager = None
         try:
             from ..business.business_mapping_manager import BusinessMappingManager
+
             self.business_mapping_manager = BusinessMappingManager()
             print("✅ Business mapping manager initialized")
         except Exception as e:
             print(f"⚠️ Could not initialize business mapping manager: {e}")
+
+        # Initialize project manager
+        self.project_manager = None
+        try:
+            from ..business.project_manager import ProjectManager
+
+            self.project_manager = ProjectManager()
+            print("✅ Project manager initialized")
+        except Exception as e:
+            print(f"⚠️ Could not initialize project manager: {e}")
 
         print("🎨 Setting up user interface...")
         # Set up the UI
@@ -139,11 +151,13 @@ class OCRMainWindow(QMainWindow):
 
         # Set window properties
         self.setWindowTitle("OCR Invoice Parser")
-        self.setGeometry(100, 100, 1200, 800)
-        
+        self.resize(1800, 800)
+        self.move(100, 100)
+        self.setMinimumSize(1200, 600)  # Ensure window doesn't get too small
+
         # Create startup backup
         self._create_startup_backup()
-        
+
         print("✅ Main window initialization complete")
 
     def _setup_ui(self) -> None:
@@ -165,9 +179,10 @@ class OCRMainWindow(QMainWindow):
         # Create tabs
         self._create_single_pdf_tab()
         self._create_file_naming_tab()
-        self._create_settings_tab()
-        self._create_business_aliases_tab()
+        self._create_project_tab()
         self._create_official_names_tab()
+        self._create_business_aliases_tab()
+        self._create_settings_tab()
 
     def _create_single_pdf_tab(self) -> None:
         """Create the Single PDF processing tab."""
@@ -239,10 +254,12 @@ class OCRMainWindow(QMainWindow):
         self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
         # Connect data changes to file naming updates
         self.data_panel.data_changed.connect(self._on_data_changed)
+        # Connect project selection changes
+        self.data_panel.project_changed.connect(self._on_project_changed)
         content_splitter.addWidget(self.data_panel)
 
         # Set initial splitter sizes (60% PDF, 40% data)
-        content_splitter.setSizes([600, 400])
+        content_splitter.setSizes([900, 600])
 
         layout.addWidget(content_splitter)
 
@@ -286,6 +303,52 @@ class OCRMainWindow(QMainWindow):
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["eng", "fra", "spa", "deu"])
         self.lang_combo.setCurrentText("eng")
+        self.lang_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+        )
         lang_layout.addWidget(lang_label)
         lang_layout.addWidget(self.lang_combo)
         lang_layout.addStretch()
@@ -434,6 +497,53 @@ class OCRMainWindow(QMainWindow):
             self.ocr_parser = InvoiceParser(self.config)
         self.status_bar.showMessage("Official names updated - OCR parser refreshed")
 
+    def _create_project_tab(self) -> None:
+        """Create the Projects tab."""
+        try:
+            from .project_tab import ProjectTab
+
+            project_widget = ProjectTab()
+
+            # Connect project update signal to refresh file naming if needed
+            project_widget.project_updated.connect(self._on_projects_updated)
+
+            # Add to tab widget
+            self.tab_widget.addTab(project_widget, "Projects")
+
+        except ImportError:
+            # Fallback if project components are not available
+            fallback_widget = QWidget()
+            layout = QVBoxLayout(fallback_widget)
+
+            fallback_title = QLabel("Projects")
+            title_font = QFont()
+            title_font.setBold(True)
+            title_font.setPointSize(16)
+            fallback_title.setFont(title_font)
+            fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_title)
+
+            fallback_content = QLabel("Project management is not available.")
+            fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_content)
+
+            self.tab_widget.addTab(fallback_widget, "Projects")
+
+    def _on_projects_updated(self) -> None:
+        """Handle projects updates."""
+        # Refresh the project dropdown in the data panel
+        self._update_project_dropdown()
+
+        # Update file naming widget with new projects
+        if self.project_manager and self.file_naming_widget:
+            try:
+                projects = self.project_manager.get_project_names()
+                self.file_naming_widget.update_projects(projects)
+            except Exception as e:
+                print(f"⚠️ Could not update file naming widget projects: {e}")
+
+        self.status_bar.showMessage("Projects updated - File naming refreshed")
+
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar with enhanced menu items and keyboard shortcuts."""
         menubar = self.menuBar()
@@ -506,6 +616,12 @@ class OCRMainWindow(QMainWindow):
         )
         view_menu.addAction(official_names_action)
 
+        projects_action = QAction("&Projects", self)
+        projects_action.setShortcut(QKeySequence("Ctrl+6"))
+        projects_action.setStatusTip("Switch to Projects management tab")
+        projects_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(5))
+        view_menu.addAction(projects_action)
+
         # Help menu
         help_menu = menubar.addMenu("&Help")
 
@@ -555,6 +671,9 @@ class OCRMainWindow(QMainWindow):
     def _setup_connections(self) -> None:
         """Set up signal connections."""
         self.tab_widget.currentChanged.connect(self._on_tab_changed)
+
+        # Initialize project dropdown
+        self._update_project_dropdown()
 
     def _on_tab_changed(self, index: int) -> None:
         """Handle tab changes."""
@@ -836,6 +955,24 @@ class OCRMainWindow(QMainWindow):
         # Show status message indicating data was updated
         self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
 
+    def _on_project_changed(self, project_name: str) -> None:
+        """Handle project selection changes from the data panel."""
+        # Update the file naming widget with the selected project
+        if self.file_naming_widget:
+            self.file_naming_widget.set_project(project_name)
+
+        # Update the status bar
+        self.status_bar.showMessage(f"Project selected: {project_name}")
+
+    def _update_project_dropdown(self) -> None:
+        """Update the project dropdown with available projects."""
+        if self.project_manager and self.data_panel:
+            try:
+                projects = self.project_manager.get_project_names()
+                self.data_panel.update_projects(projects)
+            except Exception as e:
+                print(f"⚠️ Could not load projects: {e}")
+
     def _on_rename_from_data_panel(self) -> None:
         """Handle rename request from data panel."""
         if not self.extracted_data or not self.current_pdf_path:
@@ -865,6 +1002,9 @@ Navigation:
   Ctrl+1          Switch to Single PDF tab
   Ctrl+2          Switch to File Naming tab
   Ctrl+3          Switch to Settings tab
+  Ctrl+4          Switch to Business Aliases tab
+  Ctrl+5          Switch to Official Names tab
+  Ctrl+6          Switch to Projects tab
 
 Help:
   F1              Show this help dialog
@@ -884,7 +1024,9 @@ PDF Preview (when focused):
             try:
                 backup_path = self.business_mapping_manager.create_startup_backup()
                 if backup_path:
-                    self.status_bar.showMessage(f"Startup backup created: {os.path.basename(backup_path)}", 3000)
+                    self.status_bar.showMessage(
+                        f"Startup backup created: {os.path.basename(backup_path)}", 3000
+                    )
             except Exception as e:
                 print(f"⚠️ Startup backup failed: {e}")
 
@@ -894,7 +1036,9 @@ PDF Preview (when focused):
             try:
                 backup_path = self.business_mapping_manager.create_shutdown_backup()
                 if backup_path:
-                    print(f"✅ Shutdown backup created: {os.path.basename(backup_path)}")
+                    print(
+                        f"✅ Shutdown backup created: {os.path.basename(backup_path)}"
+                    )
             except Exception as e:
                 print(f"⚠️ Shutdown backup failed: {e}")
 
@@ -914,12 +1058,12 @@ PDF Preview (when focused):
         """Handle application close event."""
         # Create shutdown backup
         self._create_shutdown_backup()
-        
+
         # Cancel any ongoing OCR processing
         if self.ocr_thread and self.ocr_thread.isRunning():
             self.ocr_thread.cancel()
             self.ocr_thread.wait()
-        
+
         if event is not None:
             event.accept()
 
@@ -946,6 +1090,10 @@ def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("OCR Invoice Parser")
     app.setApplicationVersion("1.0.0")
+
+    # Set Qt application settings to ensure window size is respected
+    # app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+    # app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
 
     print("🎨 Creating main window...")
 
@@ -978,6 +1126,13 @@ def main() -> None:
     app.processEvents()
 
     window.show()
+
+    def force_window_size():
+        window.resize(900, 800)
+        window.move(100, 100)
+
+    QTimer.singleShot(0, force_window_size)
+
     splash.finish(window)
 
     startup_time = time.time() - start_time

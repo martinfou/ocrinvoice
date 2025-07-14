@@ -8,7 +8,11 @@ import re
 # Conditional imports for optional dependencies
 try:
     import pdfplumber
-    from PyPDF2 import PdfReader
+
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        from PyPDF2 import PdfReader  # Fallback for older installations
     from pdf2image import convert_from_path
 
     DEPENDENCIES_AVAILABLE = True

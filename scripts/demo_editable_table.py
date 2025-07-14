@@ -2,7 +2,7 @@
 """
 Editable Table Demo Script
 
-This script demonstrates the new editable table feature with real-time 
+This script demonstrates the new editable table feature with real-time
 file naming updates.
 """
 

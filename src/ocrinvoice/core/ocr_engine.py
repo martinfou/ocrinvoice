@@ -11,7 +11,11 @@ try:
     import pytesseract
     from pdf2image import convert_from_path
     import pdfplumber
-    from PyPDF2 import PdfReader
+
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        from PyPDF2 import PdfReader  # Fallback for older installations
     import cv2
     import numpy as np
 
