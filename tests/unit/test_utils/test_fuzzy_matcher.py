@@ -1,22 +1,23 @@
+# mypy: disable-error-code="no-untyped-def,var-annotated"
 """Unit tests for the FuzzyMatcher class."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, call
-from pathlib import Path
-from typing import Dict, Any
 import os
-
 import sys
+import threading
+import time
 
+import pytest
+
+# Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "src"))
 
-from ocrinvoice.utils.fuzzy_matcher import FuzzyMatcher
+from ocrinvoice.utils.fuzzy_matcher import FuzzyMatcher  # noqa: E402
 
 
 class TestFuzzyMatcherInitialization:
     """Test FuzzyMatcher initialization and configuration."""
 
-    def test_init_with_default_config(self):
+    def test_init_with_default_config(self) -> None:
         """Test initialization with default configuration."""
         matcher = FuzzyMatcher()
 
@@ -26,7 +27,7 @@ class TestFuzzyMatcherInitialization:
         assert matcher.remove_punctuation is True
         assert matcher.cache_size == 1000
 
-    def test_init_with_custom_config(self):
+    def test_init_with_custom_config(self) -> None:
         """Test initialization with custom configuration."""
         config = {
             "threshold": 0.9,
@@ -44,14 +45,14 @@ class TestFuzzyMatcherInitialization:
         assert matcher.remove_punctuation is False
         assert matcher.cache_size == 500
 
-    def test_init_with_invalid_threshold(self):
+    def test_init_with_invalid_threshold(self) -> None:
         """Test initialization with invalid threshold."""
         config = {"threshold": 1.5}  # Above 1.0
 
         with pytest.raises(ValueError, match="Threshold must be between 0 and 1"):
             FuzzyMatcher(config)
 
-    def test_init_with_negative_threshold(self):
+    def test_init_with_negative_threshold(self) -> None:
         """Test initialization with negative threshold."""
         config = {"threshold": -0.1}  # Below 0
 
@@ -62,19 +63,19 @@ class TestFuzzyMatcherInitialization:
 class TestFuzzyMatcherTextPreprocessing:
     """Test FuzzyMatcher text preprocessing methods."""
 
-    @pytest.fixture
-    def matcher(self):
+    @pytest.fixture  # type: ignore[misc]
+    def matcher(self) -> FuzzyMatcher:
         """Create a FuzzyMatcher instance for testing."""
         return FuzzyMatcher()
 
-    def test_preprocess_text_basic(self, matcher):
+    def test_preprocess_text_basic(self, matcher: FuzzyMatcher) -> None:
         """Test basic text preprocessing."""
         text = "  Hello,   World!  "
         result = matcher._preprocess_text(text)
 
         assert result == "hello world"
 
-    def test_preprocess_text_case_sensitive(self, matcher):
+    def test_preprocess_text_case_sensitive(self, matcher: FuzzyMatcher) -> None:
         """Test text preprocessing with case sensitivity."""
         matcher.case_sensitive = True
         text = "  Hello,   World!  "
@@ -82,7 +83,9 @@ class TestFuzzyMatcherTextPreprocessing:
 
         assert result == "Hello World"
 
-    def test_preprocess_text_no_whitespace_normalization(self, matcher):
+    def test_preprocess_text_no_whitespace_normalization(
+        self, matcher: FuzzyMatcher
+    ) -> None:
         """Test text preprocessing without whitespace normalization."""
         matcher.normalize_whitespace = False
         text = "  Hello,   World!  "
@@ -90,7 +93,9 @@ class TestFuzzyMatcherTextPreprocessing:
 
         assert result == "hello   world"
 
-    def test_preprocess_text_no_punctuation_removal(self, matcher):
+    def test_preprocess_text_no_punctuation_removal(
+        self, matcher: FuzzyMatcher
+    ) -> None:
         """Test text preprocessing without punctuation removal."""
         matcher.remove_punctuation = False
         text = "  Hello,   World!  "
@@ -98,24 +103,26 @@ class TestFuzzyMatcherTextPreprocessing:
 
         assert result == "hello, world!"
 
-    def test_preprocess_text_empty(self, matcher):
+    def test_preprocess_text_empty(self, matcher: FuzzyMatcher) -> None:
         """Test text preprocessing with empty text."""
         result = matcher._preprocess_text("")
         assert result == ""
 
-    def test_preprocess_text_whitespace_only(self, matcher):
+    def test_preprocess_text_whitespace_only(self, matcher: FuzzyMatcher) -> None:
         """Test text preprocessing with whitespace-only text."""
         result = matcher._preprocess_text("   \n\t   ")
         assert result == ""
 
-    def test_preprocess_text_with_special_characters(self, matcher):
+    def test_preprocess_text_with_special_characters(
+        self, matcher: FuzzyMatcher
+    ) -> None:
         """Test text preprocessing with special characters."""
         text = "ABC Company, Inc. (LLC) - 123 Main St."
         result = matcher._preprocess_text(text)
 
         assert result == "abc company inc llc 123 main st"
 
-    def test_preprocess_text_with_numbers(self, matcher):
+    def test_preprocess_text_with_numbers(self, matcher: FuzzyMatcher) -> None:
         """Test text preprocessing with numbers."""
         text = "Invoice #12345 - Total: $1,234.56"
         result = matcher._preprocess_text(text)
@@ -403,8 +410,6 @@ class TestFuzzyMatcherPerformance:
 
     def test_multiple_concurrent_requests(self, matcher):
         """Test handling of multiple concurrent requests."""
-        import threading
-
         results = []
         errors = []
 
@@ -431,23 +436,32 @@ class TestFuzzyMatcherPerformance:
 
     def test_cache_performance_improvement(self, matcher):
         """Test that caching improves performance."""
-        import time
-
-        candidates = ["apple", "banana", "orange"] * 100  # Large candidate list
+        candidates = [
+            "apple",
+            "banana",
+            "orange",
+        ] * 1000  # Larger candidate list for measurable difference
         query = "appl"
 
         # First call (no cache)
-        start_time = time.time()
+        start_time = time.perf_counter()
         matcher.find_best_match(query, candidates)
-        first_call_time = time.time() - start_time
+        first_call_time = time.perf_counter() - start_time
 
         # Second call (with cache)
-        start_time = time.time()
+        start_time = time.perf_counter()
         matcher.find_best_match(query, candidates)
-        second_call_time = time.time() - start_time
+        second_call_time = time.perf_counter() - start_time
 
-        # Second call should be faster
-        assert second_call_time < first_call_time
+        # Second call should be faster, but allow for timing variations
+        # If both times are very small (< 0.001s), just verify cache is working
+        if first_call_time < 0.001 and second_call_time < 0.001:
+            # Verify cache is actually being used
+            cache_key = (query, tuple(sorted(candidates)))
+            assert cache_key in matcher._cache
+        else:
+            # Normal performance assertion
+            assert second_call_time < first_call_time
 
 
 class TestFuzzyMatcherErrorHandling:
