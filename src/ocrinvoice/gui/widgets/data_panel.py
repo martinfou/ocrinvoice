@@ -55,12 +55,8 @@ class DataPanelWidget(QWidget):
         """Set up the user interface."""
         layout = QVBoxLayout(self)
 
-        # Title with unified blue/gray theme
+        # Title
         title = QLabel("📄 Extracted Data (Double-click values to edit)")
-        title.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-bottom: 15px; "
-            "color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;"
-        )
         title.setToolTip(
             "Values in the table are editable. Double-click any value to edit it "
             "and see real-time file name updates."
@@ -71,63 +67,10 @@ class DataPanelWidget(QWidget):
         project_layout = QHBoxLayout()
 
         project_label = QLabel("📁 Project:")
-        project_label.setStyleSheet(
-            "font-weight: bold; color: #2c3e50; margin-right: 8px;"
-        )
         project_layout.addWidget(project_label)
 
         self.project_combo = QComboBox()
         self.project_combo.setPlaceholderText("Select a project...")
-        self.project_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected:active { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         self.project_combo.currentTextChanged.connect(self._on_project_changed)
         project_layout.addWidget(self.project_combo)
 
@@ -160,64 +103,21 @@ class DataPanelWidget(QWidget):
         # Connect editing signals to handle visual feedback
         self.data_table.itemSelectionChanged.connect(self._on_selection_changed)
 
-        # Apply unified blue/gray theme to the table
-        self.data_table.setStyleSheet(
-            "QTableWidget { "
-            "background-color: white; "
-            "gridline-color: #ecf0f1; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "}"
-            "QTableWidget::item { "
-            "padding: 8px; "
-            "border-bottom: 1px solid #ecf0f1; "
-            "color: #2c3e50; "
-            "}"
-            "QTableWidget::item:selected { "
-            "background-color: #3498db; "
-            "color: white; "
-            "}"
-            "QTableWidget::item:selected:focus { "
-            "background-color: #f8f9fa; "
-            "color: #2c3e50; "
-            "border: 2px solid #3498db; "
-            "}"
-            "QHeaderView::section { "
-            "background-color: #34495e; "
-            "color: white; "
-            "padding: 8px; "
-            "border: none; "
-            "font-weight: bold; "
-            "}"
-        )
-
         layout.addWidget(self.data_table)
 
-        # Action buttons with unified blue/gray theme
+        # Action buttons
         button_layout = QHBoxLayout()
 
         self.export_btn = QPushButton("💾 Export Data")
         self.export_btn.setEnabled(False)
         self.export_btn.setToolTip("Export extracted data to JSON/CSV format")
         self.export_btn.clicked.connect(self._export_data)
-        self.export_btn.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
-        )
         button_layout.addWidget(self.export_btn)
 
         self.clear_btn = QPushButton("🗑️ Clear Data")
         self.clear_btn.setEnabled(False)
         self.clear_btn.setToolTip("Clear all extracted data")
         self.clear_btn.clicked.connect(self.clear_data)
-        self.clear_btn.setStyleSheet(
-            "QPushButton { background-color: #e74c3c; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #c0392b; }"
-            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
-        )
         button_layout.addWidget(self.clear_btn)
 
         # Add rename button
@@ -225,12 +125,6 @@ class DataPanelWidget(QWidget):
         self.rename_btn.setEnabled(False)
         self.rename_btn.setToolTip("Rename the current file using the template")
         self.rename_btn.clicked.connect(self._on_rename_requested)
-        self.rename_btn.setStyleSheet(
-            "QPushButton { background-color: #5dade2; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #3498db; }"
-            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
-        )
         button_layout.addWidget(self.rename_btn)
 
         button_layout.addStretch()
