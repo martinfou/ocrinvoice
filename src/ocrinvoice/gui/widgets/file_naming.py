@@ -60,7 +60,7 @@ class FileNamingWidget(QWidget):
         self.template_input = QLineEdit()
         self.template_input.setPlaceholderText("Enter template format...")
         self.template_input.setText(
-            "{project}_{documentType}_{company}_{date}_$${total}.pdf"
+            "{project}_{documentType}_{company}_{date}_{total}.pdf"
         )
         format_layout.addWidget(format_label)
         format_layout.addWidget(self.template_input)
@@ -99,10 +99,10 @@ class FileNamingWidget(QWidget):
         self.preset_combo = QComboBox()
         self.preset_combo.addItems(
             [
-                "Default: {project}_{documentType}_{company}_{date}_$${total}.pdf",
-                "Simple: {project}_{company}_{date}_$${total}.pdf",
-                "Detailed: {project}_{date}_{company}_{documentType}_$${total}_{invoice_number}.pdf",
-                "No Project: {documentType}_{company}_{date}_$${total}.pdf",
+                "Default: {project}_{documentType}_{company}_{date}_{total}.pdf",
+                "Simple: {project}_{company}_{date}_{total}.pdf",
+                "Detailed: {project}_{date}_{company}_{documentType}_{total}_{invoice_number}.pdf",
+                "No Project: {documentType}_{company}_{date}_{total}.pdf",
                 "Custom...",
             ]
         )
