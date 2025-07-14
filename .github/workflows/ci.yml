@@ -23,8 +23,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-
-
     - name: Install Tesseract OCR
       if: matrix.os == 'macos-latest'
       run: |
@@ -41,13 +39,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
 
-    # - name: Run linting
-    #   run: |
-    #     flake8 src/ tests/
-    #     black --check src/ tests/
-    #     mypy src/
+    - name: Run tests
+      if: matrix.os == 'windows-latest'
+      run: |
+        python scripts/ci_test_runner_windows.py
 
     - name: Run tests
+      if: matrix.os == 'macos-latest'
       run: |
         pytest tests/ -v --tb=short --cov=src/ocrinvoice --cov-report=xml
 
@@ -60,7 +58,7 @@ jobs:
         fail_ci_if_error: false
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: test
 
     steps:
@@ -74,12 +72,8 @@ jobs:
 
     - name: Install Tesseract OCR
       run: |
-        sudo apt-get update
-        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
-
-    - name: Install Qt/OpenGL dependencies
-      run: |
-        sudo apt-get install -y libgl1-mesa-glx libegl1 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2t64 libxi6 libxtst6 xvfb
+        choco install tesseract
+        echo "$env:ProgramFiles\Tesseract-OCR" >> $env:GITHUB_PATH
 
     - name: Install dependencies
       run: |
