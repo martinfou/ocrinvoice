@@ -45,7 +45,19 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller OCRInvoiceParser.spec
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          pyinstaller OCRInvoiceParser-macos.spec
+        else
+          pyinstaller OCRInvoiceParser.spec
+        fi
+        
+        # Debug: Show what was created
+        echo "=== Build output ==="
+        ls -la dist/
+        if [ -d "dist/OCRInvoiceParser.app" ]; then
+          echo "Found .app bundle, extracting executable"
+          cp dist/OCRInvoiceParser.app/Contents/MacOS/OCRInvoiceParser dist/OCRInvoiceParser
+        fi
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -65,11 +77,22 @@ jobs:
 
     - name: Prepare release files
       run: |
+        # Debug: List what we have
+        echo "=== Artifact contents ==="
+        ls -la OCRInvoiceParser-windows-latest/
+        ls -la OCRInvoiceParser-macos-latest/
+        
         # Extract and rename Windows executable
         cp OCRInvoiceParser-windows-latest/OCRInvoiceParser.exe OCRInvoiceParser.exe
         
-        # Extract and rename macOS executable
+        # Extract and rename macOS executable with proper permissions
         cp OCRInvoiceParser-macos-latest/OCRInvoiceParser OCRInvoiceParser
+        chmod +x OCRInvoiceParser
+        
+        # Debug: Check final files
+        echo "=== Final release files ==="
+        ls -la OCRInvoiceParser*
+        file OCRInvoiceParser*
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
