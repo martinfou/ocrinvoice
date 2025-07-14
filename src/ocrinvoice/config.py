@@ -18,7 +18,7 @@ def _find_config_path() -> Path:
     # Check if running in PyInstaller bundle
     if getattr(sys, "frozen", False):
         # Running in PyInstaller bundle
-        base_path = Path(getattr(sys, '_MEIPASS', ''))
+        base_path = Path(getattr(sys, "_MEIPASS", ""))
         possible_paths = [
             # PyInstaller extracts config files to the bundle root
             base_path / "config" / "default_config.yaml",
@@ -77,7 +77,7 @@ def load_yaml_config(config_path: Path = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
         # Try to find the config file in other locations
         if getattr(sys, "frozen", False):
             # Running in PyInstaller bundle
-            base_path = Path(getattr(sys, '_MEIPASS', ''))
+            base_path = Path(getattr(sys, "_MEIPASS", ""))
             possible_paths = [
                 base_path / "config" / "default_config.yaml",
                 Path.cwd() / "config" / "default_config.yaml",

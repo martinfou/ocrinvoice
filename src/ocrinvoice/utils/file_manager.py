@@ -17,9 +17,9 @@ class FileManager:
         self.config = config
         self.file_config = config.get("file_management", {})
         self.rename_enabled = self.file_config.get("rename_files", False)
-        # Update default template to include documentType
+        # Update default template to include project and documentType
         self.rename_format = self.file_config.get(
-            "rename_format", "{documentType}_{company}_{date}_{total}.pdf"
+            "rename_format", "{project}_{documentType}_{company}_{date}_$${total}.pdf"
         )
         self.dry_run = self.file_config.get("rename_dry_run", False)
         self.backup_original = self.file_config.get("backup_original", False)
@@ -54,12 +54,15 @@ class FileManager:
         total = extracted_data.get("total")
         date_str = extracted_data.get("date", "unknown")
         document_type = self.document_type or "unknown"
+        project = extracted_data.get("project", "project")  # Default to "project"
 
         # Handle missing or invalid data
         if not company or company == "unknown":
             company = "unknown-company"
         if not document_type:
             document_type = "unknown"
+        if not project:
+            project = "project"
         if not total:
             total = "unknown"
         else:
@@ -80,7 +83,11 @@ class FileManager:
 
         # Format the filename using the new template
         filename = self.rename_format.format(
-            documentType=document_type, date=date_str, company=company, total=total
+            project=project,
+            documentType=document_type,
+            date=date_str,
+            company=company,
+            total=total,
         )
 
         # Make it safe

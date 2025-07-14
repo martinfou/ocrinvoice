@@ -90,12 +90,12 @@ class BackupRestoreThread(QThread):
             elif self._operation == "load_backups":
                 backup_files = self.mapping_manager.list_backups()
                 backup_info_list = []
-                
+
                 for backup_path in backup_files:
                     info = self.mapping_manager.get_backup_info(backup_path)
                     if info:
                         backup_info_list.append(info)
-                
+
                 self.progress_updated.emit(100)
                 self.backups_loaded.emit(backup_info_list)
 
@@ -106,17 +106,19 @@ class BackupRestoreThread(QThread):
 class BackupRestoreDialog(QDialog):
     """Dialog for backup and restore operations."""
 
-    def __init__(self, parent=None, mapping_manager: Optional[BusinessMappingManager] = None):
+    def __init__(
+        self, parent=None, mapping_manager: Optional[BusinessMappingManager] = None
+    ):
         super().__init__(parent)
         self.mapping_manager = mapping_manager or BusinessMappingManager()
-        
+
         # Background thread
         self.backup_thread = BackupRestoreThread(self.mapping_manager)
-        
+
         self.setWindowTitle("Backup & Restore Business Mappings")
         self.setModal(True)
         self.setMinimumSize(700, 500)
-        
+
         self._setup_ui()
         self._setup_connections()
         self._load_backups()
@@ -256,7 +258,7 @@ class BackupRestoreDialog(QDialog):
         # Header
         header_layout = QHBoxLayout()
         header_layout.addWidget(QLabel("Available Backups"))
-        
+
         self.refresh_button = QPushButton("🔄 Refresh")
         self.refresh_button.setStyleSheet(
             "QPushButton { background-color: #3498db; color: white; border: none; "
@@ -265,7 +267,7 @@ class BackupRestoreDialog(QDialog):
         )
         self.refresh_button.clicked.connect(self._load_backups)
         header_layout.addWidget(self.refresh_button)
-        
+
         layout.addLayout(header_layout)
 
         # Backup list
@@ -320,13 +322,13 @@ class BackupRestoreDialog(QDialog):
     def _update_current_stats(self):
         """Update the current configuration statistics."""
         stats = self.mapping_manager.get_stats()
-        
+
         stats_text = f"""Official Names: {stats['official_names']}
 Exact Matches: {stats['exact_matches']}
 Partial Matches: {stats['partial_matches']}
 Fuzzy Candidates: {stats['fuzzy_candidates']}
 Total Businesses: {stats['total_businesses']}"""
-        
+
         self.current_stats_text.setText(stats_text)
 
     def _on_create_backup(self):
@@ -336,9 +338,9 @@ Total Businesses: {stats['total_businesses']}"""
             "Create Backup",
             "Create a backup of your current business mappings configuration?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.Yes
+            QMessageBox.StandardButton.Yes,
         )
-        
+
         if reply == QMessageBox.StandardButton.Yes:
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(0)
@@ -347,12 +349,9 @@ Total Businesses: {stats['total_businesses']}"""
     def _on_restore_backup(self):
         """Handle restore backup button click."""
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select Backup File",
-            "",
-            "JSON Files (*.json);;All Files (*)"
+            self, "Select Backup File", "", "JSON Files (*.json);;All Files (*)"
         )
-        
+
         if file_path:
             reply = QMessageBox.warning(
                 self,
@@ -361,9 +360,9 @@ Total Businesses: {stats['total_businesses']}"""
                 "A backup of your current configuration will be created first. "
                 "Do you want to continue?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
-            
+
             if reply == QMessageBox.StandardButton.Yes:
                 self.progress_bar.setVisible(True)
                 self.progress_bar.setValue(0)
@@ -374,11 +373,11 @@ Total Businesses: {stats['total_businesses']}"""
         current_item = self.backup_list.currentItem()
         if not current_item:
             return
-        
+
         backup_path = current_item.data(Qt.ItemDataRole.UserRole)
         if not backup_path:
             return
-        
+
         reply = QMessageBox.warning(
             self,
             "Restore Backup",
@@ -387,9 +386,9 @@ Total Businesses: {stats['total_businesses']}"""
             "A backup of your current configuration will be created first. "
             "Do you want to continue?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
-        
+
         if reply == QMessageBox.StandardButton.Yes:
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(0)
@@ -401,7 +400,7 @@ Total Businesses: {stats['total_businesses']}"""
         QMessageBox.information(
             self,
             "Backup Created",
-            f"Backup created successfully:\n{os.path.basename(backup_path)}"
+            f"Backup created successfully:\n{os.path.basename(backup_path)}",
         )
         self._load_backups()
         self._update_current_stats()
@@ -412,7 +411,7 @@ Total Businesses: {stats['total_businesses']}"""
         QMessageBox.information(
             self,
             "Backup Restored",
-            f"Backup restored successfully from:\n{os.path.basename(backup_path)}"
+            f"Backup restored successfully from:\n{os.path.basename(backup_path)}",
         )
         self._load_backups()
         self._update_current_stats()
@@ -421,16 +420,16 @@ Total Businesses: {stats['total_businesses']}"""
         """Handle backups loaded successfully."""
         self.progress_bar.setVisible(False)
         self.backup_list.clear()
-        
+
         for backup_info in backup_info_list:
             # Create display text
-            created_time = datetime.fromtimestamp(backup_info['created_time'])
+            created_time = datetime.fromtimestamp(backup_info["created_time"])
             display_text = f"{created_time.strftime('%Y-%m-%d %H:%M:%S')} - "
             display_text += f"{backup_info['official_names_count']} official names, "
             display_text += f"{backup_info['exact_matches_count']} exact matches"
-            
+
             item = QListWidgetItem(display_text)
-            item.setData(Qt.ItemDataRole.UserRole, backup_info['file_path'])
+            item.setData(Qt.ItemDataRole.UserRole, backup_info["file_path"])
             self.backup_list.addItem(item)
 
     def _on_backup_selected(self):
@@ -440,20 +439,20 @@ Total Businesses: {stats['total_businesses']}"""
             self.backup_details.clear()
             self.restore_from_list_button.setEnabled(False)
             return
-        
+
         backup_path = current_item.data(Qt.ItemDataRole.UserRole)
         if not backup_path:
             return
-        
+
         # Get backup info
         backup_info = self.mapping_manager.get_backup_info(backup_path)
         if not backup_info:
             return
-        
+
         # Display backup details
-        created_time = datetime.fromtimestamp(backup_info['created_time'])
-        modified_time = datetime.fromtimestamp(backup_info['modified_time'])
-        
+        created_time = datetime.fromtimestamp(backup_info["created_time"])
+        modified_time = datetime.fromtimestamp(backup_info["modified_time"])
+
         details_text = f"""File: {os.path.basename(backup_path)}
 Size: {backup_info['file_size']} bytes
 Created: {created_time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -464,18 +463,14 @@ Configuration:
 - Exact Matches: {backup_info['exact_matches_count']}
 - Partial Matches: {backup_info['partial_matches_count']}
 - Fuzzy Candidates: {backup_info['fuzzy_candidates_count']}"""
-        
+
         self.backup_details.setText(details_text)
         self.restore_from_list_button.setEnabled(True)
 
     def _on_error_occurred(self, error_message: str):
         """Handle error occurred."""
         self.progress_bar.setVisible(False)
-        QMessageBox.critical(
-            self,
-            "Error",
-            f"An error occurred:\n{error_message}"
-        )
+        QMessageBox.critical(self, "Error", f"An error occurred:\n{error_message}")
 
     def _on_progress_updated(self, progress: int):
         """Handle progress update."""
@@ -484,4 +479,4 @@ Configuration:
     def showEvent(self, event):
         """Handle dialog show event."""
         super().showEvent(event)
-        self._update_current_stats() 
+        self._update_current_stats()

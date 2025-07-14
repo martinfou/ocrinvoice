@@ -1,20 +1,22 @@
-"""Unit tests for the BaseParser class."""
+"""
+Tests for Base Parser
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
-from typing import Dict, Any
+Tests for the base parser functionality and common parsing utilities.
+"""
 
-import sys
 import os
+import sys
+import pytest
+from unittest.mock import Mock, patch
 
+# Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from ocrinvoice.parsers.base_parser import BaseParser
 from ocrinvoice.core.ocr_engine import OCREngine
 
 
-class TestBaseParser(BaseParser):
+class ConcreteBaseParser(BaseParser):
     """Concrete implementation of BaseParser for testing."""
 
     def parse(self, pdf_path):
@@ -53,7 +55,7 @@ class TestBaseParserInitialization:
     def test_init_with_basic_config(self):
         """Test initialization with basic configuration."""
         config = {"debug": True}
-        parser = TestBaseParser(config)
+        parser = ConcreteBaseParser(config)
 
         assert parser.config == config
         assert parser.debug is True
@@ -78,7 +80,7 @@ class TestBaseParserInitialization:
             "ocr_config": {"ocr_language": "eng"},
         }
 
-        parser = TestBaseParser(config)
+        parser = ConcreteBaseParser(config)
 
         assert parser.confidence_threshold == 0.8
         assert parser.max_retries == 5
@@ -91,7 +93,7 @@ class TestBaseParserValidation:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": False})
+        return ConcreteBaseParser({"debug": False})
 
     def test_validate_pdf_path_valid(self, parser, tmp_path):
         """Test validation of valid PDF path."""
@@ -129,7 +131,7 @@ class TestBaseParserTextExtraction:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": False})
+        return ConcreteBaseParser({"debug": False})
 
     @patch("ocrinvoice.parsers.base_parser.OCREngine")
     def test_extract_text_success(self, mock_ocr_engine, parser, tmp_path):
@@ -199,7 +201,7 @@ class TestBaseParserTextProcessing:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": False})
+        return ConcreteBaseParser({"debug": False})
 
     def test_preprocess_text_basic(self, parser):
         """Test basic text preprocessing."""
@@ -230,7 +232,7 @@ class TestBaseParserExtractionHelpers:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": False})
+        return ConcreteBaseParser({"debug": False})
 
     def test_extract_amount_with_context(self, parser):
         """Test amount extraction with context keywords."""
@@ -276,7 +278,7 @@ class TestBaseParserConfidence:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": False})
+        return ConcreteBaseParser({"debug": False})
 
     def test_calculate_confidence_full_data(self, parser):
         """Test confidence calculation with full data."""
@@ -324,7 +326,7 @@ class TestBaseParserConfidence:
         assert "parser_type" in validated
         assert "confidence" in validated
         assert "is_valid" in validated
-        assert validated["parser_type"] == "TestBaseParser"
+        assert validated["parser_type"] == "ConcreteBaseParser"
 
 
 class TestBaseParserLogging:
@@ -333,7 +335,7 @@ class TestBaseParserLogging:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": True})
+        return ConcreteBaseParser({"debug": True})
 
     def test_log_parsing_result_high_confidence(self, parser):
         """Test logging with high confidence result."""
@@ -358,13 +360,13 @@ class TestBaseParserInfo:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser({"debug": True, "confidence_threshold": 0.8})
+        return ConcreteBaseParser({"debug": True, "confidence_threshold": 0.8})
 
     def test_get_parser_info(self, parser):
         """Test getting parser information."""
         info = parser.get_parser_info()
 
-        assert info["parser_type"] == "TestBaseParser"
+        assert info["parser_type"] == "ConcreteBaseParser"
         assert info["debug_mode"] is True
         assert info["confidence_threshold"] == 0.8
         assert info["max_retries"] == 3
@@ -394,7 +396,7 @@ class TestBaseParserIntegration:
     @pytest.fixture
     def parser(self):
         """Create a parser instance for testing."""
-        return TestBaseParser(
+        return ConcreteBaseParser(
             {"debug": False, "confidence_threshold": 0.7, "max_retries": 2}
         )
 

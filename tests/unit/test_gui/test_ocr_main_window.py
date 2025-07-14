@@ -36,7 +36,9 @@ class TestOCRMainWindow:
     def test_tab_widget_exists(self, main_window: OCRMainWindow) -> None:
         """Test that the tab widget is created and accessible."""
         assert main_window.tab_widget is not None
-        assert main_window.tab_widget.count() == 5  # Single PDF, File Naming, Business Aliases, Official Names, Settings
+        assert (
+            main_window.tab_widget.count() == 6
+        )  # Single PDF, File Naming, Projects, Official Names, Business Aliases, Settings
 
     def test_tab_names(self, main_window: OCRMainWindow) -> None:
         """Test that the correct tabs are created."""
@@ -46,14 +48,17 @@ class TestOCRMainWindow:
         ]
         assert "Single PDF" in tab_names
         assert "File Naming" in tab_names
-        assert "Business Aliases" in tab_names
+        assert "Projects" in tab_names
         assert "Official Names" in tab_names
+        assert "Business Aliases" in tab_names
         assert "Settings" in tab_names
 
     def test_status_bar_exists(self, main_window: OCRMainWindow) -> None:
         """Test that the status bar is created and shows initial message."""
         assert main_window.status_bar is not None
-        assert "Ready" in main_window.status_bar.currentMessage()
+        # The status bar should show either "Ready" or a backup message
+        current_message = main_window.status_bar.currentMessage()
+        assert "Ready" in current_message or "backup" in current_message.lower()
 
     def test_tab_switching(self, main_window: OCRMainWindow, qtbot: QtBot) -> None:
         """Test that switching tabs updates the status bar."""

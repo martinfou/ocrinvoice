@@ -4,7 +4,7 @@ Data Panel Widget
 Displays extracted data from PDF invoices in an editable format.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QHBoxLayout,
     QPushButton,
+    QComboBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
@@ -42,6 +43,9 @@ class DataPanelWidget(QWidget):
     # Signal emitted when data is changed by user
     data_changed = pyqtSignal(dict)  # Emits updated data dictionary
 
+    # Signal emitted when project selection changes
+    project_changed = pyqtSignal(str)  # Emits selected project name
+
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.current_data: Dict[str, Any] = {}
@@ -62,6 +66,73 @@ class DataPanelWidget(QWidget):
             "and see real-time file name updates."
         )
         layout.addWidget(title)
+
+        # Project selection section
+        project_layout = QHBoxLayout()
+
+        project_label = QLabel("📁 Project:")
+        project_label.setStyleSheet(
+            "font-weight: bold; color: #2c3e50; margin-right: 8px;"
+        )
+        project_layout.addWidget(project_label)
+
+        self.project_combo = QComboBox()
+        self.project_combo.setPlaceholderText("Select a project...")
+        self.project_combo.setStyleSheet(
+            "QComboBox { "
+            "padding: 6px 12px; "
+            "border: 2px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "font-size: 14px; "
+            "background-color: white; "
+            "color: #2c3e50; "
+            "}"
+            "QComboBox:focus { "
+            "border-color: #3498db; "
+            "}"
+            "QComboBox::drop-down { "
+            "border: none; "
+            "width: 20px; "
+            "}"
+            "QComboBox::down-arrow { "
+            "image: none; "
+            "border-left: 5px solid transparent; "
+            "border-right: 5px solid transparent; "
+            "border-top: 5px solid #7f8c8d; "
+            "margin-right: 8px; "
+            "}"
+            "QComboBox QAbstractItemView { "
+            "background-color: white; "
+            "border: 1px solid #bdc3c7; "
+            "border-radius: 4px; "
+            "selection-background-color: #3498db; "
+            "selection-color: white; "
+            "outline: none; "
+            "}"
+            "QComboBox QAbstractItemView::item { "
+            "padding: 8px 12px; "
+            "color: #2c3e50; "
+            "background-color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:hover { "
+            "background-color: #e74c3c; "
+            "color: white; "
+            "font-weight: bold; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+            "QComboBox QAbstractItemView::item:selected:active { "
+            "background-color: #2980b9; "
+            "color: white; "
+            "}"
+        )
+        self.project_combo.currentTextChanged.connect(self._on_project_changed)
+        project_layout.addWidget(self.project_combo)
+
+        project_layout.addStretch()
+        layout.addLayout(project_layout)
 
         # Data table
         self.data_table = EditableTableWidget()
@@ -167,6 +238,27 @@ class DataPanelWidget(QWidget):
 
         # Placeholder text
         self._show_placeholder()
+
+    def _on_project_changed(self, project_name: str) -> None:
+        """Handle project selection change."""
+        if project_name:
+            self.project_changed.emit(project_name)
+
+    def update_projects(self, projects: List[str]) -> None:
+        """Update the project dropdown with available projects."""
+        self.project_combo.clear()
+        self.project_combo.addItem("")  # Empty option
+        self.project_combo.addItems(projects)
+
+    def set_selected_project(self, project_name: str) -> None:
+        """Set the selected project in the dropdown."""
+        index = self.project_combo.findText(project_name)
+        if index >= 0:
+            self.project_combo.setCurrentIndex(index)
+
+    def get_selected_project(self) -> str:
+        """Get the currently selected project."""
+        return self.project_combo.currentText()
 
     def _on_cell_changed(self, item: QTableWidgetItem) -> None:
         """Handle cell content changes in the data table."""
