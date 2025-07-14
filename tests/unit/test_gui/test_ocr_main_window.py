@@ -38,11 +38,14 @@ class TestOCRMainWindow:
         assert main_window.windowTitle() == "OCR Invoice Parser"
 
     def test_window_size(self, main_window: OCRMainWindow) -> None:
-        """Test that the window has the correct minimum size."""
-        # The window should have a reasonable minimum size for the content
-        # Based on the actual layout: PDF preview + data panel + margins
-        assert main_window.minimumSize().width() >= 590
-        assert main_window.minimumSize().height() >= 500
+        """Test that the window has a reasonable size."""
+        # The window should have a reasonable size for the content
+        # Allow for system adjustments while ensuring minimum usability
+        size = main_window.size()
+        assert size.width() >= 700, f"Window width {size.width()} is too small"
+        assert size.height() >= 600, f"Window height {size.height()} is too small"
+        assert size.width() <= 2000, f"Window width {size.width()} is too large"
+        assert size.height() <= 1500, f"Window height {size.height()} is too large"
 
     def test_tab_widget_exists(self, main_window: OCRMainWindow) -> None:
         """Test that the tab widget is created and accessible."""
