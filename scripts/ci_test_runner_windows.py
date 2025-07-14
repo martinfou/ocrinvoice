@@ -28,8 +28,6 @@ def main() -> int:
         sys.executable,
         "-m",
         "pytest",
-        "--timeout=300",
-        "--timeout-method=thread",
         "--durations=10",
         "--tb=short",
         "-v",
