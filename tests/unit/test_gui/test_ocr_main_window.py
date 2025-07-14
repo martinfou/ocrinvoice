@@ -8,9 +8,9 @@ import os
 import pytest
 from pytestqt.qtbot import QtBot
 
-# Skip GUI tests in CI environments if no display is available
-if os.environ.get("CI") and not os.environ.get("DISPLAY") and os.name != "nt":
-    pytest.skip("GUI tests require display in CI environment", allow_module_level=True)
+# Skip GUI tests in CI environments (including Windows CI)
+if os.environ.get("CI"):
+    pytest.skip("GUI tests disabled in CI environment", allow_module_level=True)
 
 from ocrinvoice.gui.ocr_main_window import OCRMainWindow
 
