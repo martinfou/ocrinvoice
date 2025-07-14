@@ -229,34 +229,17 @@ class OfficialNamesTab(QWidget):
 
         # Add button
         self.add_button = QPushButton("➕ Add Official Name")
-        self.add_button.setStyleSheet(
-            "QPushButton { background-color: #27ae60; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #229954; }"
-        )
         self.add_button.clicked.connect(self._on_add_official_name)
         toolbar_layout.addWidget(self.add_button)
 
         # Edit button
         self.edit_button = QPushButton("✏️ Edit Name")
-        self.edit_button.setStyleSheet(
-            "QPushButton { background-color: #f39c12; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #e67e22; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.edit_button.clicked.connect(self._on_edit_official_name)
         self.edit_button.setEnabled(False)
         toolbar_layout.addWidget(self.edit_button)
 
         # Delete button
         self.delete_button = QPushButton("🗑️ Delete Name")
-        self.delete_button.setStyleSheet(
-            "QPushButton { background-color: #e74c3c; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #c0392b; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.delete_button.clicked.connect(self._on_delete_official_name)
         self.delete_button.setEnabled(False)
         toolbar_layout.addWidget(self.delete_button)
@@ -265,11 +248,6 @@ class OfficialNamesTab(QWidget):
 
         # Refresh button
         self.refresh_button = QPushButton("🔄 Refresh")
-        self.refresh_button.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-        )
         self.refresh_button.clicked.connect(self._load_official_names)
         toolbar_layout.addWidget(self.refresh_button)
 
@@ -323,7 +301,6 @@ class OfficialNamesTab(QWidget):
             "They represent the standardized names for businesses in your system."
         )
         info_text.setWordWrap(True)
-        info_text.setStyleSheet("color: #666; font-size: 11px;")
         info_layout.addWidget(info_text)
 
         layout.addWidget(info_group)

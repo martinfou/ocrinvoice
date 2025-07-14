@@ -268,34 +268,17 @@ class BusinessAliasTab(QWidget):
 
         # Add button
         self.add_button = QPushButton("➕ Add Alias")
-        self.add_button.setStyleSheet(
-            "QPushButton { background-color: #27ae60; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #229954; }"
-        )
         self.add_button.clicked.connect(self._on_add_alias)
         toolbar_layout.addWidget(self.add_button)
 
         # Edit button
         self.edit_button = QPushButton("✏️ Edit Alias")
-        self.edit_button.setStyleSheet(
-            "QPushButton { background-color: #f39c12; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #e67e22; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.edit_button.clicked.connect(self._on_edit_alias)
         self.edit_button.setEnabled(False)
         toolbar_layout.addWidget(self.edit_button)
 
         # Delete button
         self.delete_button = QPushButton("🗑️ Delete Alias")
-        self.delete_button.setStyleSheet(
-            "QPushButton { background-color: #e74c3c; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #c0392b; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.delete_button.clicked.connect(self._on_delete_alias)
         self.delete_button.setEnabled(False)
         toolbar_layout.addWidget(self.delete_button)
@@ -304,21 +287,11 @@ class BusinessAliasTab(QWidget):
 
         # Refresh button
         self.refresh_button = QPushButton("🔄 Refresh")
-        self.refresh_button.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-        )
         self.refresh_button.clicked.connect(self._load_aliases)
         toolbar_layout.addWidget(self.refresh_button)
 
         # Backup/Restore button
         self.backup_button = QPushButton("💾 Backup/Restore")
-        self.backup_button.setStyleSheet(
-            "QPushButton { background-color: #9b59b6; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #8e44ad; }"
-        )
         self.backup_button.clicked.connect(self._on_backup_restore)
         toolbar_layout.addWidget(self.backup_button)
 
