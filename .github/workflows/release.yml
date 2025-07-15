@@ -63,12 +63,20 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
 
+    - name: Prepare release files
+      run: |
+        # Extract and rename Windows executable
+        cp OCRInvoiceParser-windows-latest/OCRInvoiceParser.exe OCRInvoiceParser.exe
+        
+        # Extract and rename macOS executable
+        cp OCRInvoiceParser-macos-latest/OCRInvoiceParser OCRInvoiceParser
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          OCRInvoiceParser-windows-latest/OCRInvoiceParser.exe
-          OCRInvoiceParser-macos-latest/OCRInvoiceParser
+          OCRInvoiceParser.exe
+          OCRInvoiceParser
         body: |
           # OCR Invoice Parser v${{ github.ref_name }}
 

@@ -21,8 +21,10 @@ def main_window(qtbot: QtBot) -> OCRMainWindow:
     try:
         window = OCRMainWindow()
         qtbot.addWidget(window)
-        # Add timeout to prevent hanging
-        qtbot.wait(100)
+        # Show the window to trigger the QTimer.singleShot resize
+        window.show()
+        # Add timeout to prevent hanging and allow QTimer to execute
+        qtbot.wait(200)
         return window
     except Exception as e:
         pytest.skip(f"GUI initialization failed: {e}")
@@ -42,7 +44,7 @@ class TestOCRMainWindow:
         # The window should have a reasonable size for the content
         # Allow for system adjustments while ensuring minimum usability
         size = main_window.size()
-        assert size.width() >= 700, f"Window width {size.width()} is too small"
+        assert size.width() >= 800, f"Window width {size.width()} is too small"
         assert size.height() >= 600, f"Window height {size.height()} is too small"
         assert size.width() <= 2000, f"Window width {size.width()} is too large"
         assert size.height() <= 1500, f"Window height {size.height()} is too large"

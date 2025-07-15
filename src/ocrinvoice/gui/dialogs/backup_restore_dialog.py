@@ -144,7 +144,6 @@ class BackupRestoreDialog(QDialog):
             "Backups are automatically saved in the config/backups directory."
         )
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet("color: #666; margin: 10px 0;")
         layout.addWidget(desc_label)
 
         # Main content area
@@ -172,11 +171,6 @@ class BackupRestoreDialog(QDialog):
         button_layout.addStretch()
 
         self.close_button = QPushButton("Close")
-        self.close_button.setStyleSheet(
-            "QPushButton { background-color: #95a5a6; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #7f8c8d; }"
-        )
         self.close_button.clicked.connect(self.accept)
         button_layout.addWidget(self.close_button)
 
@@ -195,15 +189,9 @@ class BackupRestoreDialog(QDialog):
             "Create a timestamped backup of your current business mappings configuration."
         )
         backup_desc.setWordWrap(True)
-        backup_desc.setStyleSheet("color: #666; margin: 5px 0;")
         backup_layout.addWidget(backup_desc)
 
         self.create_backup_button = QPushButton("💾 Create Backup")
-        self.create_backup_button.setStyleSheet(
-            "QPushButton { background-color: #27ae60; color: white; border: none; "
-            "padding: 10px 20px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #229954; }"
-        )
         self.create_backup_button.clicked.connect(self._on_create_backup)
         backup_layout.addWidget(self.create_backup_button)
 
@@ -218,15 +206,9 @@ class BackupRestoreDialog(QDialog):
             "This will replace your current configuration."
         )
         restore_desc.setWordWrap(True)
-        restore_desc.setStyleSheet("color: #666; margin: 5px 0;")
         restore_layout.addWidget(restore_desc)
 
         self.restore_backup_button = QPushButton("📂 Restore from File...")
-        self.restore_backup_button.setStyleSheet(
-            "QPushButton { background-color: #f39c12; color: white; border: none; "
-            "padding: 10px 20px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #e67e22; }"
-        )
         self.restore_backup_button.clicked.connect(self._on_restore_backup)
         restore_layout.addWidget(self.restore_backup_button)
 
@@ -239,10 +221,6 @@ class BackupRestoreDialog(QDialog):
         self.current_stats_text = QTextEdit()
         self.current_stats_text.setMaximumHeight(120)
         self.current_stats_text.setReadOnly(True)
-        self.current_stats_text.setStyleSheet(
-            "QTextEdit { background-color: #f8f9fa; border: 1px solid #dee2e6; "
-            "border-radius: 4px; padding: 8px; font-family: monospace; }"
-        )
         current_layout.addWidget(self.current_stats_text)
 
         layout.addWidget(current_group)
@@ -260,11 +238,6 @@ class BackupRestoreDialog(QDialog):
         header_layout.addWidget(QLabel("Available Backups"))
 
         self.refresh_button = QPushButton("🔄 Refresh")
-        self.refresh_button.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 6px 12px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-        )
         self.refresh_button.clicked.connect(self._load_backups)
         header_layout.addWidget(self.refresh_button)
 
@@ -272,29 +245,16 @@ class BackupRestoreDialog(QDialog):
 
         # Backup list
         self.backup_list = QListWidget()
-        self.backup_list.setStyleSheet(
-            "QListWidget { border: 1px solid #dee2e6; border-radius: 4px; }"
-        )
         layout.addWidget(self.backup_list)
 
         # Backup details
         self.backup_details = QTextEdit()
         self.backup_details.setMaximumHeight(150)
         self.backup_details.setReadOnly(True)
-        self.backup_details.setStyleSheet(
-            "QTextEdit { background-color: #f8f9fa; border: 1px solid #dee2e6; "
-            "border-radius: 4px; padding: 8px; font-family: monospace; }"
-        )
         layout.addWidget(self.backup_details)
 
         # Restore from list button
         self.restore_from_list_button = QPushButton("📥 Restore Selected Backup")
-        self.restore_from_list_button.setStyleSheet(
-            "QPushButton { background-color: #e74c3c; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #c0392b; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.restore_from_list_button.clicked.connect(self._on_restore_from_list)
         self.restore_from_list_button.setEnabled(False)
         layout.addWidget(self.restore_from_list_button)

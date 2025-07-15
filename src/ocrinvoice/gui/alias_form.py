@@ -93,104 +93,12 @@ class AliasForm(QWidget):
         self.canonical_name_combo.setMinimumWidth(
             300
         )  # Same size as company name field
-        self.canonical_name_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         form_layout.addRow("Canonical Name:", self.canonical_name_combo)
 
         # Match Type field
         self.match_type_combo = QComboBox()
         self.match_type_combo.addItems(["Exact", "Partial", "Fuzzy"])
         self.match_type_combo.setToolTip("Type of matching to use for this alias")
-        self.match_type_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         form_layout.addRow("Match Type:", self.match_type_combo)
 
         # Options group
@@ -220,9 +128,6 @@ class AliasForm(QWidget):
 
         self.preview_label = QLabel("Preview will appear here when you enter data...")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setStyleSheet(
-            "color: #666; font-style: italic; padding: 10px;"
-        )
         preview_layout.addWidget(self.preview_label)
 
         layout.addWidget(preview_group)
@@ -232,20 +137,9 @@ class AliasForm(QWidget):
         button_layout.addStretch()
 
         self.cancel_button = QPushButton("Cancel")
-        self.cancel_button.setStyleSheet(
-            "QPushButton { background-color: #95a5a6; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #7f8c8d; }"
-        )
         button_layout.addWidget(self.cancel_button)
 
         self.save_button = QPushButton("Save Alias")
-        self.save_button.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-            "QPushButton:disabled { background-color: #bdc3c7; }"
-        )
         self.save_button.setEnabled(False)
         button_layout.addWidget(self.save_button)
 
@@ -269,15 +163,9 @@ class AliasForm(QWidget):
     def _setup_validation(self) -> None:
         """Set up form validation."""
         # Add validation styles
-        self._valid_style = (
-            "border: 2px solid #27ae60; border-radius: 4px; padding: 4px;"
-        )
-        self._invalid_style = (
-            "border: 2px solid #e74c3c; border-radius: 4px; padding: 4px;"
-        )
-        self._normal_style = (
-            "border: 1px solid #bdc3c7; border-radius: 4px; padding: 4px;"
-        )
+        self._valid_style = ""
+        self._invalid_style = ""
+        self._normal_style = ""
 
     def _update_preview(self) -> None:
         """Update the preview section with current form data."""
@@ -295,16 +183,9 @@ class AliasForm(QWidget):
                 preview_text += "✓ Case sensitive matching\n"
 
             self.preview_label.setText(preview_text)
-            self.preview_label.setStyleSheet(
-                "color: #2c3e50; font-weight: bold; padding: 10px; "
-                "background-color: #ecf0f1; border-radius: 4px;"
-            )
         else:
             self.preview_label.setText(
                 "Preview will appear here when you enter data..."
-            )
-            self.preview_label.setStyleSheet(
-                "color: #666; font-style: italic; padding: 10px;"
             )
 
     def _validate_form(self) -> None:

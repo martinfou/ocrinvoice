@@ -46,12 +46,8 @@ class FileNamingWidget(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(8)
 
-        # Title with unified blue/gray theme
+        # Title
         title = QLabel("File Naming")
-        title.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-bottom: 15px; "
-            "color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;"
-        )
         layout.addWidget(title)
 
         # Template Builder Group
@@ -64,7 +60,7 @@ class FileNamingWidget(QWidget):
         self.template_input = QLineEdit()
         self.template_input.setPlaceholderText("Enter template format...")
         self.template_input.setText(
-            "{project}_{documentType}_{company}_{date}_$${total}.pdf"
+            "{project}_{documentType}_{company}_{date}_{total}.pdf"
         )
         format_layout.addWidget(format_label)
         format_layout.addWidget(self.template_input)
@@ -86,61 +82,10 @@ class FileNamingWidget(QWidget):
                 "Custom Text",
             ]
         )
-        self.field_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
 
         self.add_field_btn = QPushButton("Add")
         self.add_field_btn.setToolTip("Add the selected field to the template")
         self.add_field_btn.clicked.connect(self._add_template_field)
-        self.add_field_btn.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 6px 12px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-        )
 
         builder_layout.addWidget(builder_label)
         builder_layout.addWidget(self.field_combo)
@@ -154,60 +99,14 @@ class FileNamingWidget(QWidget):
         self.preset_combo = QComboBox()
         self.preset_combo.addItems(
             [
-                "Default: {project}_{documentType}_{company}_{date}_$${total}.pdf",
-                "Simple: {project}_{company}_{date}_$${total}.pdf",
-                "Detailed: {project}_{date}_{company}_{documentType}_$${total}_{invoice_number}.pdf",
-                "No Project: {documentType}_{company}_{date}_$${total}.pdf",
+                "Default: {project}_{documentType}_{company}_{date}_{total}.pdf",
+                "Simple: {project}_{company}_{date}_{total}.pdf",
+                "Detailed: {project}_{date}_{company}_{documentType}_{total}_{invoice_number}.pdf",
+                "No Project: {documentType}_{company}_{date}_{total}.pdf",
                 "Custom...",
             ]
         )
         self.preset_combo.currentTextChanged.connect(self._on_preset_changed)
-        self.preset_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         preset_layout.addWidget(preset_label)
         preset_layout.addWidget(self.preset_combo)
         preset_layout.addStretch()
@@ -224,52 +123,6 @@ class FileNamingWidget(QWidget):
         doc_type_label = QLabel("Document Type:")
         self.doc_type_combo = QComboBox()
         self.doc_type_combo.addItems(["facture", "relevé", "invoice", "statement"])
-        self.doc_type_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         doc_type_layout.addWidget(doc_type_label)
         doc_type_layout.addWidget(self.doc_type_combo)
         doc_type_layout.addStretch()
@@ -282,52 +135,6 @@ class FileNamingWidget(QWidget):
         self.project_combo.addItem("project")  # Default project
         self.project_combo.setEditable(True)
         self.project_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.project_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         project_layout.addWidget(project_label)
         project_layout.addWidget(self.project_combo)
         project_layout.addStretch()
@@ -378,9 +185,6 @@ class FileNamingWidget(QWidget):
         original_layout = QHBoxLayout()
         original_label = QLabel("Original:")
         self.original_filename_label = QLabel("No file selected")
-        self.original_filename_label.setStyleSheet(
-            "color: #2c3e50; font-style: italic;"
-        )
         self.original_filename_label.setToolTip("Click to see full path")
         self.original_filename_label.mousePressEvent = self._show_full_path
         original_layout.addWidget(original_label)
@@ -392,7 +196,6 @@ class FileNamingWidget(QWidget):
         new_layout = QHBoxLayout()
         new_label = QLabel("New Name:")
         self.new_filename_label = QLabel("No preview available")
-        self.new_filename_label.setStyleSheet("color: #2c3e50; font-style: italic;")
         self.new_filename_label.setToolTip("Click to see full path")
         self.new_filename_label.mousePressEvent = self._show_new_full_path
         new_layout.addWidget(new_label)
@@ -404,37 +207,22 @@ class FileNamingWidget(QWidget):
         self.preview_details = QTextEdit()
         self.preview_details.setMaximumHeight(80)
         self.preview_details.setReadOnly(True)
-        self.preview_details.setStyleSheet(
-            "background-color: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
         preview_layout.addWidget(self.preview_details)
 
         layout.addWidget(preview_group)
 
-        # Action buttons with unified blue/gray theme
+        # Action buttons
         action_layout = QHBoxLayout()
 
         self.rename_btn = QPushButton("Rename File")
         self.rename_btn.setEnabled(False)
         self.rename_btn.setToolTip("Rename the current file using the template")
         self.rename_btn.clicked.connect(self._rename_file)
-        self.rename_btn.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
-        )
 
         self.open_folder_btn = QPushButton("Open Folder")
         self.open_folder_btn.setEnabled(False)
         self.open_folder_btn.setToolTip("Open the folder containing the current file")
         self.open_folder_btn.clicked.connect(self._open_folder)
-        self.open_folder_btn.setStyleSheet(
-            "QPushButton { background-color: #5dade2; color: white; border: none; "
-            "padding: 8px 16px; border-radius: 4px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #3498db; }"
-            "QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }"
-        )
 
         action_layout.addWidget(self.rename_btn)
         action_layout.addWidget(self.open_folder_btn)
@@ -556,9 +344,7 @@ class FileNamingWidget(QWidget):
         if is_valid:
             self.template_input.setStyleSheet("")
         else:
-            self.template_input.setStyleSheet(
-                "border: 1px solid red; background-color: #fff0f0;"
-            )
+            self.template_input.setStyleSheet("")
 
         # Update preview
         self._update_preview()
@@ -668,11 +454,9 @@ class FileNamingWidget(QWidget):
 
             # Update filename label styling based on validation
             if is_valid:
-                self.new_filename_label.setStyleSheet(
-                    "color: #666; font-style: italic;"
-                )
+                self.new_filename_label.setStyleSheet("")
             else:
-                self.new_filename_label.setStyleSheet("color: red; font-style: italic;")
+                self.new_filename_label.setStyleSheet("")
 
             # Update preview details
             details = self._generate_preview_details()
@@ -685,7 +469,7 @@ class FileNamingWidget(QWidget):
 
         except Exception as e:
             self.new_filename_label.setText(f"Error: {str(e)}")
-            self.new_filename_label.setStyleSheet("color: red; font-style: italic;")
+            self.new_filename_label.setStyleSheet("")
             self.preview_details.clear()
 
     def _generate_preview_details(self) -> str:

@@ -19,7 +19,7 @@ class FileManager:
         self.rename_enabled = self.file_config.get("rename_files", False)
         # Update default template to include project and documentType
         self.rename_format = self.file_config.get(
-            "rename_format", "{project}_{documentType}_{company}_{date}_$${total}.pdf"
+            "rename_format", "{project}_{documentType}_{company}_{date}_{total}.pdf"
         )
         self.dry_run = self.file_config.get("rename_dry_run", False)
         self.backup_original = self.file_config.get("backup_original", False)

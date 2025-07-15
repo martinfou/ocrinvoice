@@ -36,7 +36,7 @@ output:
 # File Management Settings
 file_management:
   rename_files: false  # Enable automatic file renaming based on extracted data
-  rename_format: "{date}_{company}_{total}.pdf"  # Format: date_company_$total.pdf
+  rename_format: "{project}_{documentType}_{company}_{date}_{total}.pdf"  # Format: project_documentType_company_date_total.pdf
   rename_dry_run: false  # Preview rename operations without executing them
   backup_original: false  # Create backup of original files before renaming
 

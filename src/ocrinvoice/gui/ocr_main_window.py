@@ -192,27 +192,15 @@ class OCRMainWindow(QMainWindow):
         # Create file selection area
         file_layout = QVBoxLayout()
 
-        # Select PDF button with unified blue/gray theme
+        # Select PDF button
         self.select_pdf_btn = QPushButton("📁 Select PDF File")
         self.select_pdf_btn.setToolTip("Choose a PDF invoice to process")
         self.select_pdf_btn.clicked.connect(self._on_select_pdf)
-        self.select_pdf_btn.setStyleSheet(
-            "QPushButton { background-color: #3498db; color: white; border: none; "
-            "padding: 12px 24px; border-radius: 6px; font-size: 14px; "
-            "font-weight: bold; }"
-            "QPushButton:hover { background-color: #2980b9; }"
-            "QPushButton:pressed { background-color: #21618c; }"
-        )
         file_layout.addWidget(self.select_pdf_btn)
 
-        # Add drag and drop area with unified blue/gray theme
+        # Add drag and drop area
         self.drop_area = QLabel(
             "📄 Drag and drop PDF files here\nor click 'Select PDF File' above"
-        )
-        self.drop_area.setStyleSheet(
-            "border: 3px dashed #3498db; padding: 20px; background: #ecf0f1; "
-            "margin-top: 15px; border-radius: 8px; color: #2c3e50; "
-            "font-size: 13px; font-weight: bold;"
         )
         self.drop_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.drop_area.setFixedHeight(80)
@@ -221,25 +209,11 @@ class OCRMainWindow(QMainWindow):
 
         layout.addLayout(file_layout)
 
-        # Add OCR progress bar with unified blue/gray theme
+        # Add OCR progress bar
         self.ocr_progress = QProgressBar()
         self.ocr_progress.setVisible(False)
         self.ocr_progress.setRange(0, 100)  # Percentage-based progress
         self.ocr_progress.setFormat("🔄 Processing PDF with OCR... %p%")
-        self.ocr_progress.setStyleSheet(
-            "QProgressBar { "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 8px; "
-            "text-align: center; "
-            "font-weight: bold; "
-            "color: #2c3e50; "
-            "background-color: #ecf0f1; "
-            "}"
-            "QProgressBar::chunk { "
-            "background-color: #3498db; "
-            "border-radius: 6px; "
-            "}"
-        )
         layout.addWidget(self.ocr_progress)
 
         # Main content area: PDF preview and data panel side by side
@@ -285,7 +259,6 @@ class OCRMainWindow(QMainWindow):
 
         # Settings title
         title_label = QLabel("OCR Invoice Parser Settings")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px;")
         layout.addWidget(title_label)
 
         # OCR Settings Section
@@ -294,7 +267,6 @@ class OCRMainWindow(QMainWindow):
         ocr_layout = QVBoxLayout(ocr_group)
 
         ocr_title = QLabel("OCR Settings")
-        ocr_title.setStyleSheet("font-size: 14px; font-weight: bold;")
         ocr_layout.addWidget(ocr_title)
 
         # Language setting
@@ -303,52 +275,6 @@ class OCRMainWindow(QMainWindow):
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["eng", "fra", "spa", "deu"])
         self.lang_combo.setCurrentText("eng")
-        self.lang_combo.setStyleSheet(
-            "QComboBox { "
-            "padding: 6px 12px; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "font-size: 14px; "
-            "background-color: white; "
-            "color: #2c3e50; "
-            "}"
-            "QComboBox:focus { "
-            "border-color: #3498db; "
-            "}"
-            "QComboBox::drop-down { "
-            "border: none; "
-            "width: 20px; "
-            "}"
-            "QComboBox::down-arrow { "
-            "image: none; "
-            "border-left: 5px solid transparent; "
-            "border-right: 5px solid transparent; "
-            "border-top: 5px solid #7f8c8d; "
-            "margin-right: 8px; "
-            "}"
-            "QComboBox QAbstractItemView { "
-            "background-color: white; "
-            "border: 1px solid #bdc3c7; "
-            "border-radius: 4px; "
-            "selection-background-color: #3498db; "
-            "selection-color: white; "
-            "outline: none; "
-            "}"
-            "QComboBox QAbstractItemView::item { "
-            "padding: 8px 12px; "
-            "color: #2c3e50; "
-            "background-color: white; "
-            "}"
-            "QComboBox QAbstractItemView::item:hover { "
-            "background-color: #e74c3c; "
-            "color: white; "
-            "font-weight: bold; "
-            "}"
-            "QComboBox QAbstractItemView::item:selected { "
-            "background-color: #2980b9; "
-            "color: white; "
-            "}"
-        )
         lang_layout.addWidget(lang_label)
         lang_layout.addWidget(self.lang_combo)
         lang_layout.addStretch()
@@ -362,7 +288,6 @@ class OCRMainWindow(QMainWindow):
         output_layout = QVBoxLayout(output_group)
 
         output_title = QLabel("Output Settings")
-        output_title.setStyleSheet("font-size: 14px; font-weight: bold;")
         output_layout.addWidget(output_title)
 
         # Output directory setting
@@ -385,7 +310,6 @@ class OCRMainWindow(QMainWindow):
         business_layout = QVBoxLayout(business_group)
 
         business_title = QLabel("Business Settings")
-        business_title.setStyleSheet("font-size: 14px; font-weight: bold;")
         business_layout.addWidget(business_title)
 
         # Business alias file setting
@@ -644,20 +568,9 @@ class OCRMainWindow(QMainWindow):
         """Set up the status bar for user feedback."""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        self.status_bar.setStyleSheet(
-            "QStatusBar { "
-            "background-color: #34495e; "
-            "color: white; "
-            "font-weight: bold; "
-            "padding: 5px; "
-            "}"
-        )
-        self.status_bar.showMessage("✅ Ready - Select a PDF file to begin")
+        self.status_bar.showMessage("Ready - Select a PDF file to begin")
         # Add persistent new filename label
         self.filename_status_label = QLabel()
-        self.filename_status_label.setStyleSheet(
-            "color: #5dade2; font-weight: bold; padding-left: 20px;"
-        )
         self.status_bar.addPermanentWidget(self.filename_status_label)
         self._update_filename_status_label("")
 

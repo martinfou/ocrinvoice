@@ -51,23 +51,9 @@ class ProjectForm(QWidget):
         # Project Name
         name_layout = QVBoxLayout()
         name_label = QLabel("Project Name:")
-        name_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText(
             "Enter project name (e.g., Kitchen Renovation)"
-        )
-        self.name_edit.setStyleSheet(
-            """
-            QLineEdit {
-                padding: 8px;
-                border: 2px solid #bdc3c7;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border-color: #3498db;
-            }
-        """
         )
         name_layout.addWidget(name_label)
         name_layout.addWidget(self.name_edit)
@@ -76,23 +62,9 @@ class ProjectForm(QWidget):
         # Description
         desc_layout = QVBoxLayout()
         desc_label = QLabel("Description:")
-        desc_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
         self.desc_edit = QTextEdit()
         self.desc_edit.setPlaceholderText("Enter project description (optional)")
         self.desc_edit.setMaximumHeight(100)
-        self.desc_edit.setStyleSheet(
-            """
-            QTextEdit {
-                padding: 8px;
-                border: 2px solid #bdc3c7;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            QTextEdit:focus {
-                border-color: #3498db;
-            }
-        """
-        )
         desc_layout.addWidget(desc_label)
         desc_layout.addWidget(self.desc_edit)
         details_layout.addLayout(desc_layout)
@@ -104,16 +76,6 @@ class ProjectForm(QWidget):
             "💡 Tip: Project names with multiple words will be automatically "
             "converted to use hyphens (e.g., 'Kitchen Renovation' becomes 'kitchen-renovation')"
         )
-        help_text.setStyleSheet(
-            """
-            color: #7f8c8d;
-            font-style: italic;
-            padding: 8px;
-            background-color: #ecf0f1;
-            border-radius: 4px;
-            border-left: 4px solid #3498db;
-        """
-        )
         help_text.setWordWrap(True)
         layout.addWidget(help_text)
 
@@ -122,42 +84,8 @@ class ProjectForm(QWidget):
         button_layout.addStretch()
 
         self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #95a5a6;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #7f8c8d;
-            }
-        """
-        )
 
         self.save_btn = QPushButton("Save Project")
-        self.save_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-                color: #7f8c8d;
-            }
-        """
-        )
 
         button_layout.addWidget(self.cancel_btn)
         button_layout.addWidget(self.save_btn)

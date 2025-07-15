@@ -71,34 +71,7 @@ class ProjectTable(QTableWidget):
         # Set up vertical header
         self.verticalHeader().setVisible(False)
 
-        # Set table style
-        self.setStyleSheet(
-            """
-            QTableWidget {
-                background-color: white;
-                alternate-background-color: #f8f9fa;
-                gridline-color: #dee2e6;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-            }
-            QTableWidget::item {
-                padding: 8px;
-                border: none;
-            }
-            QTableWidget::item:selected {
-                background-color: #3498db;
-                color: white;
-            }
-            QHeaderView::section {
-                background-color: #f8f9fa;
-                padding: 8px;
-                border: none;
-                border-bottom: 2px solid #dee2e6;
-                font-weight: bold;
-                color: #495057;
-            }
-        """
-        )
+
 
     def _setup_connections(self) -> None:
         """Set up signal connections."""
