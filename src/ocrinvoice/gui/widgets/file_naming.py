@@ -29,6 +29,9 @@ class FileNamingWidget(QWidget):
 
     # Signal emitted when template changes
     template_changed = pyqtSignal(str)
+    
+    # Signal emitted when filename preview changes
+    filename_changed = pyqtSignal(str)  # Emits new filename
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -451,6 +454,9 @@ class FileNamingWidget(QWidget):
             # Update labels
             self.original_filename_label.setText(self.original_filename)
             self.new_filename_label.setText(preview_filename)
+
+            # Emit signal for filename change
+            self.filename_changed.emit(preview_filename)
 
             # Update filename label styling based on validation
             if is_valid:

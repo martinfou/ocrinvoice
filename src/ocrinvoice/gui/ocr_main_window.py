@@ -249,6 +249,9 @@ class OCRMainWindow(QMainWindow):
 
         # Connect template changes to config updates
         self.file_naming_widget.template_changed.connect(self._on_template_changed)
+        
+        # Connect filename changes to status bar updates
+        self.file_naming_widget.filename_changed.connect(self._update_filename_status_label)
 
         self.tab_widget.addTab(self.file_naming_widget, "File Naming")
 
@@ -861,9 +864,6 @@ class OCRMainWindow(QMainWindow):
             self.file_naming_widget.update_data(
                 updated_data, original_filename, self.current_pdf_path
             )
-            # Update persistent filename label after data update
-            new_filename = self.file_naming_widget.new_filename_label.text()
-            self._update_filename_status_label(new_filename)
 
         # Show status message indicating data was updated
         self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
