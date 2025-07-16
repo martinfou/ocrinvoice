@@ -76,7 +76,7 @@ def bump_version(current_version: str, bump_type: str) -> Union[str, None]:
 
 def update_version_in_file(file_path: Path, old_version: str, new_version: str) -> None:
     """Update version in a file."""
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Replace version in pyproject.toml
@@ -97,7 +97,7 @@ def update_version_in_file(file_path: Path, old_version: str, new_version: str) 
             content,
         )
 
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
 
 
