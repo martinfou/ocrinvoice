@@ -150,6 +150,12 @@ class ReleaseManager:
         """Commit version changes."""
         print("📝 Committing version changes...")
         
+        # Check if there are any changes to commit
+        result = self.run_command(["git", "status", "--porcelain"], check=False)
+        if not result.stdout.strip():
+            print("ℹ️  No changes to commit (version already up to date)")
+            return
+        
         # Add all modified files
         self.run_command(["git", "add", "."])
         
@@ -162,6 +168,13 @@ class ReleaseManager:
     def create_git_tag(self) -> None:
         """Create a Git tag for the release."""
         print(f"🏷️  Creating Git tag v{self.version}...")
+        
+        # Check if tag already exists
+        result = self.run_command(["git", "tag", "-l", f"v{self.version}"], check=False)
+        if result.stdout.strip():
+            print(f"ℹ️  Tag v{self.version} already exists")
+            return
+        
         self.run_command(["git", "tag", f"v{self.version}"])
         print("✅ Git tag created")
     
@@ -291,7 +304,7 @@ Please report any issues on the GitHub repository.
             # Step 4: Commit changes
             self.commit_version_changes()
             
-            # Step 5: Create Git tag
+            # Step 5: Create Git tag (only if we have changes or tag doesn't exist)
             self.create_git_tag()
             
             # Step 6: Push changes
