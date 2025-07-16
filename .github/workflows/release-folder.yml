@@ -142,6 +142,7 @@ jobs:
         chmod +x dist/OCRInvoiceParser/run.sh
 
     - name: Create README for package
+      shell: bash
       run: |
         cat > dist/OCRInvoiceParser/README.txt << 'EOF'
         OCR Invoice Parser - Package
