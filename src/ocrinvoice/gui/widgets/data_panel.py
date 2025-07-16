@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
+from .delegates import DateEditDelegate
 
 
 class EditableTableWidget(QTableWidget):
@@ -104,6 +105,10 @@ class DataPanelWidget(QWidget):
         self.data_table.itemSelectionChanged.connect(self._on_selection_changed)
 
         layout.addWidget(self.data_table)
+
+        # Assign DateEditDelegate to the Invoice Date row (row 2)
+        self.date_delegate = DateEditDelegate(self.data_table)
+        self.data_table.setItemDelegateForRow(2, self.date_delegate)
 
         # Action buttons
         button_layout = QHBoxLayout()
