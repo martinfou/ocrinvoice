@@ -51,21 +51,62 @@ jobs:
     - name: Copy Tesseract and Poppler binaries (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        # Copy Tesseract binaries
-        cp -r "C:\Program Files\Tesseract-OCR\*" dist/OCRInvoiceParser/
-        # Copy Poppler binaries
-        cp -r "C:\Program Files\poppler\bin\*" dist/OCRInvoiceParser/
+        # Copy Tesseract binaries if they exist
+        if [ -d "C:\Program Files\Tesseract-OCR" ]; then
+          echo "Copying Tesseract from C:\Program Files\Tesseract-OCR"
+          cp -r "C:\Program Files\Tesseract-OCR\*" dist/OCRInvoiceParser/
+        else
+          echo "Warning: Tesseract directory not found at C:\Program Files\Tesseract-OCR"
+        fi
+        
+        # Copy Poppler binaries if they exist
+        if [ -d "C:\Program Files\poppler\bin" ]; then
+          echo "Copying Poppler from C:\Program Files\poppler\bin"
+          cp -r "C:\Program Files\poppler\bin\*" dist/OCRInvoiceParser/
+        else
+          echo "Warning: Poppler directory not found at C:\Program Files\poppler\bin"
+        fi
 
     - name: Copy Tesseract and Poppler binaries (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        # Copy Tesseract binaries
-        cp -r /usr/local/bin/tesseract dist/OCRInvoiceParser/
-        cp -r /usr/local/share/tessdata dist/OCRInvoiceParser/
-        # Copy Poppler binaries
-        cp -r /usr/local/bin/pdf* dist/OCRInvoiceParser/
-        # Copy required libraries
-        cp -r /usr/local/lib/libpoppler* dist/OCRInvoiceParser/
+        # Find Tesseract installation path
+        TESSERACT_PATH=$(which tesseract)
+        if [ -z "$TESSERACT_PATH" ]; then
+          echo "Tesseract not found in PATH"
+          exit 1
+        fi
+        echo "Found Tesseract at: $TESSERACT_PATH"
+        
+        # Copy Tesseract binary
+        cp "$TESSERACT_PATH" dist/OCRInvoiceParser/
+        
+        # Find and copy tessdata
+        TESSDATA_PATH=$(tesseract --tessdata-dir 2>/dev/null || echo "/usr/local/share/tessdata")
+        if [ -d "$TESSDATA_PATH" ]; then
+          cp -r "$TESSDATA_PATH" dist/OCRInvoiceParser/
+        else
+          echo "Warning: tessdata directory not found at $TESSDATA_PATH"
+        fi
+        
+        # Find and copy Poppler binaries
+        for pdf_tool in pdfinfo pdftoppm pdftotext pdftocairo; do
+          PDF_TOOL_PATH=$(which $pdf_tool 2>/dev/null || echo "")
+          if [ -n "$PDF_TOOL_PATH" ]; then
+            echo "Found $pdf_tool at: $PDF_TOOL_PATH"
+            cp "$PDF_TOOL_PATH" dist/OCRInvoiceParser/
+          else
+            echo "Warning: $pdf_tool not found"
+          fi
+        done
+        
+        # Copy required libraries if they exist
+        for lib in /usr/local/lib/libpoppler* /opt/homebrew/lib/libpoppler*; do
+          if [ -f "$lib" ]; then
+            echo "Copying library: $lib"
+            cp "$lib" dist/OCRInvoiceParser/
+          fi
+        done
 
     - name: Create startup script (Windows)
       if: matrix.os == 'windows-latest'
