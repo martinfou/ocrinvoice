@@ -50,6 +50,7 @@ jobs:
 
     - name: Copy Tesseract and Poppler binaries (Windows)
       if: matrix.os == 'windows-latest'
+      shell: bash
       run: |
         # Copy Tesseract binaries if they exist
         if [ -d "C:\Program Files\Tesseract-OCR" ]; then
