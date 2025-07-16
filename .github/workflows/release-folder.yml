@@ -127,7 +127,9 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         echo '@echo off' > dist/OCRInvoiceParser/run.bat
+        echo 'setlocal' >> dist/OCRInvoiceParser/run.bat
         echo 'set PATH=%~dp0;%PATH%' >> dist/OCRInvoiceParser/run.bat
+        echo 'set TESSDATA_PREFIX=%~dp0\tessdata' >> dist/OCRInvoiceParser/run.bat
         echo 'OCRInvoiceParser.exe %*' >> dist/OCRInvoiceParser/run.bat
 
     - name: Create startup script (macOS)
@@ -135,6 +137,7 @@ jobs:
       run: |
         echo '#!/bin/bash' > dist/OCRInvoiceParser/run.sh
         echo 'export PATH="$(dirname "$0"):$PATH"' >> dist/OCRInvoiceParser/run.sh
+        echo 'export TESSDATA_PREFIX="$(dirname "$0")/tessdata"' >> dist/OCRInvoiceParser/run.sh
         echo '$(dirname "$0")/OCRInvoiceParser "$@"' >> dist/OCRInvoiceParser/run.sh
         chmod +x dist/OCRInvoiceParser/run.sh
 

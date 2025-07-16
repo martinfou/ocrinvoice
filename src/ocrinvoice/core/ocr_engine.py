@@ -6,6 +6,17 @@ import logging
 
 from PIL import Image
 
+# Import bundled binaries utility
+try:
+    from ..utils.bundled_binaries import configure_bundled_binaries, get_pdf2image_poppler_path
+except ImportError:
+    # Fallback if the utility module is not available
+    def configure_bundled_binaries():
+        pass
+    
+    def get_pdf2image_poppler_path():
+        return None
+
 # Conditional imports for optional dependencies
 try:
     import pytesseract
@@ -71,6 +82,9 @@ class OCREngine:
 
     def _configure_tesseract(self) -> None:
         """Configure Tesseract path and test installation."""
+        # Configure bundled binaries first
+        configure_bundled_binaries()
+        
         if self.tesseract_path:
             pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
             self.logger.info(f"Tesseract path configured: {self.tesseract_path}")
@@ -218,7 +232,16 @@ class OCREngine:
             Exception: If PDF to image conversion fails
         """
         try:
-            images = convert_from_path(pdf_path, dpi=self.pdf_dpi)
+            # Get bundled Poppler path for pdf2image
+            poppler_path = get_pdf2image_poppler_path()
+            
+            if poppler_path:
+                self.logger.info(f"Using bundled Poppler at: {poppler_path}")
+                images = convert_from_path(pdf_path, dpi=self.pdf_dpi, poppler_path=poppler_path)
+            else:
+                self.logger.info("Using system Poppler (bundled not found)")
+                images = convert_from_path(pdf_path, dpi=self.pdf_dpi)
+                
             self.logger.info(f"Converted PDF to {len(images)} images: {pdf_path}")
             return images
         except Exception as e:

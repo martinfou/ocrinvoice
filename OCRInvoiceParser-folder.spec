@@ -25,6 +25,7 @@ a = Analysis(
         'ocrinvoice.utils.ocr_corrections',
         'ocrinvoice.utils.file_manager',
         'ocrinvoice.utils.filename_utils',
+        'ocrinvoice.utils.bundled_binaries',
         'ocrinvoice.business.business_mapping_manager',
         'ocrinvoice.business.database',
         'PyQt6.QtCore',
