@@ -245,7 +245,13 @@ def main() -> None:
         sys.exit(1)
 
     # Commit changes
-    result = run_command(f'git add . && git commit -m "Bump version to {new_version}"')
+    commit_message = f"""release: bump version to {new_version}
+
+- Update version numbers across all configuration files
+- Prepare for release {new_version}
+- Automated version bump by release script"""
+    
+    result = run_command(f'git add . && git commit -m "{commit_message}"')
     if not result or result.returncode != 0:
         print("❌ Failed to commit version changes")
         sys.exit(1)
