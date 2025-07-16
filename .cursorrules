@@ -126,6 +126,18 @@ feat(gui): implement main window with basic table widget
 
 ```
 
+### Release Commit Messages
+**Release script now creates professional commit messages:**
+```
+release: bump version to X.Y.Z
+
+- Update version numbers across all configuration files
+- Prepare for release X.Y.Z
+- Automated version bump by release script
+```
+
+**Note:** These are automated CI commits and should be clear, informative, and professional. No longer uses generic "Bump version to X.Y.Z" messages.
+
 ## Release Management - CRITICAL REQUIREMENTS
 
 ### 🚀 RELEASE PROCESS WORKFLOW ⚠️
