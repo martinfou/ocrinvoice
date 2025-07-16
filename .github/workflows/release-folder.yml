@@ -176,6 +176,7 @@ jobs:
         EOF
 
     - name: Create ZIP archive
+      shell: bash
       run: |
         cd dist
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
