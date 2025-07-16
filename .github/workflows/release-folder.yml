@@ -55,7 +55,7 @@ jobs:
         # Copy Tesseract binaries if they exist
         if [ -d "C:\Program Files\Tesseract-OCR" ]; then
           echo "Copying Tesseract from C:\Program Files\Tesseract-OCR"
-          cp -r "C:\Program Files\Tesseract-OCR\*" dist/OCRInvoiceParser/
+          cp -r "C:\Program Files\Tesseract-OCR\*" dist/OCRInvoiceParser/ || echo "Warning: Failed to copy some Tesseract files"
         else
           echo "Warning: Tesseract directory not found at C:\Program Files\Tesseract-OCR"
         fi
@@ -63,9 +63,20 @@ jobs:
         # Copy Poppler binaries if they exist
         if [ -d "C:\Program Files\poppler\bin" ]; then
           echo "Copying Poppler from C:\Program Files\poppler\bin"
-          cp -r "C:\Program Files\poppler\bin\*" dist/OCRInvoiceParser/
+          cp -r "C:\Program Files\poppler\bin\*" dist/OCRInvoiceParser/ || echo "Warning: Failed to copy some Poppler files"
         else
           echo "Warning: Poppler directory not found at C:\Program Files\poppler\bin"
+        fi
+        
+        # Create placeholder files to indicate external dependencies needed
+        if [ ! -f "dist/OCRInvoiceParser/tesseract.exe" ]; then
+          echo "Note: Tesseract OCR not included - users will need to install it separately"
+          echo "Please install Tesseract OCR from: https://github.com/UB-Mannheim/tesseract/wiki" > dist/OCRInvoiceParser/TESSERACT_INSTALL_NOTE.txt
+        fi
+        
+        if [ ! -f "dist/OCRInvoiceParser/pdfinfo.exe" ]; then
+          echo "Note: Poppler utilities not included - users will need to install them separately"
+          echo "Please install Poppler from: https://poppler.freedesktop.org/" > dist/OCRInvoiceParser/POPPLER_INSTALL_NOTE.txt
         fi
 
     - name: Copy Tesseract and Poppler binaries (macOS)
@@ -127,10 +138,9 @@ jobs:
     - name: Create README for package
       run: |
         cat > dist/OCRInvoiceParser/README.txt << 'EOF'
-        OCR Invoice Parser - Standalone Package
+        OCR Invoice Parser - Package
         
-        This package contains everything needed to run the OCR Invoice Parser
-        without requiring separate installation of Tesseract OCR or Poppler.
+        This package contains the OCR Invoice Parser application.
         
         To run the application:
         
@@ -146,8 +156,16 @@ jobs:
         - Windows 10+ or macOS 10.14+
         - 4GB RAM recommended
         
-        Note: This package includes Tesseract OCR and Poppler binaries.
-        No additional software installation is required.
+        External Dependencies:
+        - Tesseract OCR (for text recognition)
+        - Poppler utilities (for PDF processing)
+        
+        If these are not included in the package, you'll need to install them:
+        - Tesseract: https://github.com/UB-Mannheim/tesseract/wiki
+        - Poppler: https://poppler.freedesktop.org/
+        
+        Check for TESSERACT_INSTALL_NOTE.txt or POPPLER_INSTALL_NOTE.txt
+        in this folder for more information.
         EOF
 
     - name: Create ZIP archive
