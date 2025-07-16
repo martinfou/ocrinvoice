@@ -963,7 +963,7 @@ PDF Preview (when focused):
             "OCR Invoice Parser GUI\n\n"
             "A desktop application for extracting structured data from PDF invoices "
             "using OCR.\n\n"
-            "Version: 1.2.4\n"
+            "Version: 1.2.5\n"
             "Development Phase: Sprint 4 - MVP Polish & Testing",
         )
 
@@ -1002,7 +1002,7 @@ def main() -> None:
 
     app = QApplication(sys.argv)
     app.setApplicationName("OCR Invoice Parser")
-    app.setApplicationVersion("1.2.4")
+    app.setApplicationVersion("1.2.5")
 
     # Set Qt application settings to ensure window size is respected
     # app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
