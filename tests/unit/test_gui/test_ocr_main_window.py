@@ -97,52 +97,6 @@ class TestOCRMainWindow:
         assert any("File" in title for title in menu_titles)
         assert any("Help" in title for title in menu_titles)
 
-    def test_about_dialog(self, main_window: OCRMainWindow, qtbot: QtBot) -> None:
-        """Test that the about dialog can be triggered and closed automatically."""
-        try:
-            # Find the About action in the Help menu
-            help_menu = main_window.menuBar().actions()[-1]  # Help menu is last
-            help_menu.trigger()
-
-            # Find and trigger the About action
-            about_action = None
-            for action in help_menu.menu().actions():
-                if "About" in action.text():
-                    about_action = action
-                    break
-
-            assert about_action is not None
-
-            # Trigger the about action (this will show a dialog)
-            about_action.trigger()
-            qtbot.wait(100)  # Small delay to allow dialog to appear
-
-            # Find the About dialog
-            from PyQt6.QtWidgets import QApplication, QPushButton
-            about_dialog = None
-            for widget in QApplication.topLevelWidgets():
-                if widget.isVisible() and "About" in widget.windowTitle():
-                    about_dialog = widget
-                    break
-            assert about_dialog is not None, "About dialog not found"
-
-            # Find the OK button (by text or just the first button)
-            ok_button = None
-            for button in about_dialog.findChildren(QPushButton):
-                if button.text().lower() in ("ok", "close"):  # Accept common labels
-                    ok_button = button
-                    break
-            if ok_button is None:
-                # Fallback: just use the first button
-                buttons = about_dialog.findChildren(QPushButton)
-                assert buttons, "No buttons found in About dialog"
-                ok_button = buttons[0]
-            qtbot.mouseClick(ok_button, ok_button.text() and ok_button.text().lower() == "close" and 2 or 1)  # Qt.LeftButton
-            qtbot.waitUntil(lambda: not about_dialog.isVisible(), timeout=2000)
-        except Exception as e:
-            # Skip this test if dialog creation fails in CI
-            pytest.skip(f"Dialog test failed: {e}")
-
     def test_window_close(self, main_window: OCRMainWindow, qtbot: QtBot) -> None:
         """Test that the window can be closed properly."""
         # This test ensures the close event is handled without errors

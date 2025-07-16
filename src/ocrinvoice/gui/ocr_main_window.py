@@ -36,6 +36,7 @@ from .widgets.file_naming import FileNamingWidget
 # Import OCR parsing functionality
 from ..parsers.invoice_parser import InvoiceParser
 from ..config import get_config
+from ..utils.pdf_metadata_manager import PDFMetadataManager
 
 
 class OCRProcessingThread(QThread):
@@ -141,6 +142,14 @@ class OCRMainWindow(QMainWindow):
             print("✅ Project manager initialized")
         except Exception as e:
             print(f"⚠️ Could not initialize project manager: {e}")
+
+        # Initialize PDF metadata manager
+        self.pdf_metadata_manager = None
+        try:
+            self.pdf_metadata_manager = PDFMetadataManager()
+            print("✅ PDF metadata manager initialized")
+        except Exception as e:
+            print(f"⚠️ Could not initialize PDF metadata manager: {e}")
 
         print("🎨 Setting up user interface...")
         # Set up the UI
@@ -629,7 +638,7 @@ class OCRMainWindow(QMainWindow):
             self._show_error_message(f"Error selecting PDF file: {str(e)}")
 
     def _load_and_process_pdf(self, pdf_path: str) -> None:
-        """Load PDF and start OCR processing."""
+        """Load PDF and check for metadata first, then start OCR processing if needed."""
         try:
             # Load PDF in preview widget
             if self.pdf_preview.load_pdf(pdf_path):
@@ -637,7 +646,17 @@ class OCRMainWindow(QMainWindow):
                 self.status_bar.showMessage(f"Loaded PDF: {pdf_path}")
                 self._show_success_message("PDF loaded successfully")
 
-                # Start OCR processing
+                # Check for saved metadata first
+                if self.pdf_metadata_manager and self.pdf_metadata_manager.has_saved_data(pdf_path):
+                    self.status_bar.showMessage("📋 Loading saved data from PDF metadata...")
+                    saved_data = self.pdf_metadata_manager.load_data_from_pdf(pdf_path)
+                    if saved_data:
+                        # Use saved data instead of running OCR
+                        self._on_ocr_finished(saved_data)
+                        self.status_bar.showMessage("✅ Loaded data from PDF metadata")
+                        return
+
+                # No saved data found, start OCR processing
                 self._start_ocr_processing(pdf_path)
             else:
                 self._show_error_message("Failed to load PDF file")
@@ -694,6 +713,19 @@ class OCRMainWindow(QMainWindow):
             # Update persistent filename label after data update
             new_filename = self.file_naming_widget.new_filename_label.text()
             self._update_filename_status_label(new_filename)
+
+        # Save extracted data to PDF metadata
+        if self.pdf_metadata_manager and self.current_pdf_path:
+            try:
+                success = self.pdf_metadata_manager.save_data_to_pdf(
+                    self.current_pdf_path, extracted_data
+                )
+                if success:
+                    print("✅ Successfully saved OCR data to PDF metadata")
+                else:
+                    print("⚠️ Failed to save OCR data to PDF metadata")
+            except Exception as e:
+                print(f"⚠️ Error saving OCR metadata: {e}")
 
         # Show success message with confidence indicator
         company = extracted_data.get("company", "Unknown")
@@ -865,8 +897,22 @@ class OCRMainWindow(QMainWindow):
                 updated_data, original_filename, self.current_pdf_path
             )
 
-        # Show status message indicating data was updated
-        self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
+        # Save updated data to PDF metadata
+        if self.pdf_metadata_manager and self.current_pdf_path:
+            try:
+                success = self.pdf_metadata_manager.save_data_to_pdf(
+                    self.current_pdf_path, updated_data
+                )
+                if success:
+                    self.status_bar.showMessage("✅ Data updated and saved to PDF metadata")
+                else:
+                    self.status_bar.showMessage("⚠️ Data updated but failed to save to PDF metadata")
+            except Exception as e:
+                print(f"⚠️ Error saving metadata: {e}")
+                self.status_bar.showMessage("⚠️ Data updated but failed to save to PDF metadata")
+        else:
+            # Show status message indicating data was updated
+            self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
 
     def _on_project_changed(self, project_name: str) -> None:
         """Handle project selection changes from the data panel."""
