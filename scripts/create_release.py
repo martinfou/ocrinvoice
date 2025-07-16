@@ -49,6 +49,7 @@ class ReleaseManager:
             (r'version\s*=\s*["\']([^"\']+)["\']', 'version = "{}"'),
             (r'Business Mappings Manager v([0-9]+\.[0-9]+\.[0-9]+)', 'Business Mappings Manager v{}'),
             (r'setApplicationVersion\(["\']([^"\']+)["\']\)', 'setApplicationVersion("{}")'),
+            (r'python_version\s*=\s*["\']([^"\']+)["\']', 'python_version = "{}"'),
         ]
     
     def run_command(self, command: List[str], check: bool = True) -> subprocess.CompletedProcess:
