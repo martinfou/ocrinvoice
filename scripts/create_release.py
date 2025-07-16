@@ -49,6 +49,7 @@ class ReleaseManager:
             (r'version\s*=\s*["\']([^"\']+)["\']', 'version = "{}"'),
             (r'Business Mappings Manager v([0-9]+\.[0-9]+\.[0-9]+)', 'Business Mappings Manager v{}'),
             (r'setApplicationVersion\(["\']([^"\']+)["\']\)', 'setApplicationVersion("{}")'),
+            (r'python_version\s*=\s*["\']([^"\']+)["\']', 'python_version = "{}"'),
         ]
     
     def run_command(self, command: List[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -129,12 +130,31 @@ class ReleaseManager:
             return
         
         print("🧪 Running tests...")
-        self.run_command(["python", "-m", "pytest", "tests/", "-v"])
+        # Run pytest without capturing output to allow proper terminal interaction
+        if self.dry_run:
+            print(f"   [DRY RUN] Would run: {sys.executable} -m pytest tests/ -v")
+            return
+        
+        print(f"🔄 Running: {sys.executable} -m pytest tests/ -v")
+        result = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-v"], 
+                              cwd=self.project_root, 
+                              capture_output=False)
+        
+        if result.returncode != 0:
+            print(f"❌ Tests failed with exit code {result.returncode}")
+            sys.exit(1)
+        
         print("✅ All tests passed")
     
     def commit_version_changes(self) -> None:
         """Commit version changes."""
         print("📝 Committing version changes...")
+        
+        # Check if there are any changes to commit
+        result = self.run_command(["git", "status", "--porcelain"], check=False)
+        if not result.stdout.strip():
+            print("ℹ️  No changes to commit (version already up to date)")
+            return
         
         # Add all modified files
         self.run_command(["git", "add", "."])
@@ -148,6 +168,13 @@ class ReleaseManager:
     def create_git_tag(self) -> None:
         """Create a Git tag for the release."""
         print(f"🏷️  Creating Git tag v{self.version}...")
+        
+        # Check if tag already exists
+        result = self.run_command(["git", "tag", "-l", f"v{self.version}"], check=False)
+        if result.stdout.strip():
+            print(f"ℹ️  Tag v{self.version} already exists")
+            return
+        
         self.run_command(["git", "tag", f"v{self.version}"])
         print("✅ Git tag created")
     
@@ -162,8 +189,8 @@ class ReleaseManager:
         """Build the release packages."""
         print("🔨 Building release packages...")
         
-        # Run PyInstaller build
-        self.run_command(["python", "-m", "PyInstaller", "OCRInvoiceParser.spec"])
+        # Run PyInstaller build using the current Python interpreter
+        self.run_command([sys.executable, "-m", "PyInstaller", "OCRInvoiceParser.spec"])
         
         print("✅ Release packages built")
     
@@ -277,7 +304,7 @@ Please report any issues on the GitHub repository.
             # Step 4: Commit changes
             self.commit_version_changes()
             
-            # Step 5: Create Git tag
+            # Step 5: Create Git tag (only if we have changes or tag doesn't exist)
             self.create_git_tag()
             
             # Step 6: Push changes

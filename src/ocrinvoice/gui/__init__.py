@@ -5,7 +5,7 @@ PyQt6-based desktop application for managing business aliases
 used by the OCR invoice parser.
 """
 
-__version__ = "1.2.1"
+__version__ = "1.2.6"
 __author__ = "OCR Invoice Parser Team"
 
 from .main_window import MainWindow

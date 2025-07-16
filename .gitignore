@@ -204,3 +204,4 @@ config.ini
 # PDF processing temporary files
 pdf_temp/
 converted_images/
+config/backups/
