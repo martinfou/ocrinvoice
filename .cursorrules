@@ -126,6 +126,77 @@ feat(gui): implement main window with basic table widget
 
 ```
 
+## Release Management - CRITICAL REQUIREMENTS
+
+### 🚀 RELEASE PROCESS WORKFLOW ⚠️
+
+**When user asks for a release, follow this EXACT process:**
+
+1. **ALWAYS use the release script**: `python scripts/create_release.py --version X.Y.Z`
+2. **NEVER manually update version numbers** - the script handles this automatically
+3. **ALWAYS run tests** before creating a release (unless `--skip-tests` is specified)
+4. **ALWAYS check Git status** - repository must be clean before release
+5. **ALWAYS create a draft release** first for review
+
+### Release Script Usage
+```bash
+# Create a new release (recommended)
+python scripts/create_release.py --version 1.2.1
+
+# Dry run to see what would be done
+python scripts/create_release.py --version 1.2.1 --dry-run
+
+# Skip tests (use with caution)
+python scripts/create_release.py --version 1.2.1 --skip-tests
+```
+
+### Version Management
+The release script automatically updates version numbers in:
+- `src/ocrinvoice/gui/__init__.py` (__version__)
+- `src/ocrinvoice/gui/ocr_main_window.py` (About dialog + setApplicationVersion)
+- `src/ocrinvoice/gui/main_window.py` (About dialog + setApplicationVersion)
+- `pyproject.toml` (if present)
+- `README.md` (if version references exist)
+
+### Release Process Steps
+1. **Check Git status** - ensure clean repository
+2. **Update version numbers** across all files
+3. **Run test suite** to ensure everything works
+4. **Commit version changes** with proper message
+5. **Create Git tag** (vX.Y.Z format)
+6. **Push changes and tag** to remote
+7. **Build release packages** using PyInstaller
+8. **Create GitHub release** (draft for review)
+
+### Post-Release Tasks
+After the release script completes:
+1. **Review the draft release** on GitHub
+2. **Publish the release** when ready
+3. **Update documentation** if needed
+4. **Announce the release** to users
+
+### Release Notes Template
+The script generates release notes automatically, but you can customize them to include:
+- What's new in this version
+- Bug fixes and improvements
+- Installation instructions
+- Requirements and dependencies
+- Changelog references
+
+### Version Numbering
+- Use semantic versioning: MAJOR.MINOR.PATCH (e.g., 1.2.1)
+- MAJOR: Breaking changes
+- MINOR: New features, backward compatible
+- PATCH: Bug fixes, backward compatible
+
+### Emergency Release Process
+If urgent fixes are needed:
+1. Create hotfix branch from main
+2. Apply fixes
+3. Test thoroughly
+4. Use release script with patch version bump
+5. Merge back to main after release
+
 ## Important Notes
 - Always consider the user experience
 - Maintain backward compatibility with CLI
@@ -137,6 +208,8 @@ feat(gui): implement main window with basic table widget
 - **NEVER commit without user review of commit message**
 - **NEVER assume approval - always ask explicitly**
 - **ALWAYS show the commit message first, then ask for approval**
+- **ALWAYS use the release script for version management**
+- **NEVER manually update version numbers**
 
 ## ASCII Art Standards
 - **Always ensure all lines align properly** when creating ASCII art mockups
