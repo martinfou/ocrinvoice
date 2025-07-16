@@ -50,34 +50,37 @@ jobs:
 
     - name: Copy Tesseract and Poppler binaries (Windows)
       if: matrix.os == 'windows-latest'
-      shell: bash
+      shell: pwsh
       run: |
-        # Copy Tesseract binaries if they exist
-        if [ -d "C:\Program Files\Tesseract-OCR" ]; then
-          echo "Copying Tesseract from C:\Program Files\Tesseract-OCR"
-          cp -r "C:\Program Files\Tesseract-OCR\*" dist/OCRInvoiceParser/ || echo "Warning: Failed to copy some Tesseract files"
-        else
-          echo "Warning: Tesseract directory not found at C:\Program Files\Tesseract-OCR"
-        fi
-        
-        # Copy Poppler binaries if they exist
-        if [ -d "C:\Program Files\poppler\bin" ]; then
-          echo "Copying Poppler from C:\Program Files\poppler\bin"
-          cp -r "C:\Program Files\poppler\bin\*" dist/OCRInvoiceParser/ || echo "Warning: Failed to copy some Poppler files"
-        else
-          echo "Warning: Poppler directory not found at C:\Program Files\poppler\bin"
-        fi
-        
+        # Find Tesseract
+        $tess = Get-Command tesseract.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+        if ($tess) {
+          $tessDir = Split-Path $tess
+          Write-Host "Found Tesseract at $tessDir"
+          Copy-Item "$tessDir\*" "dist\OCRInvoiceParser\" -Recurse -Force
+        } else {
+          Write-Host "Tesseract not found in PATH"
+        }
+
+        # Find Poppler (look for pdfinfo.exe as a marker)
+        $poppler = Get-Command pdfinfo.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+        if ($poppler) {
+          $popplerDir = Split-Path $poppler
+          Write-Host "Found Poppler at $popplerDir"
+          Copy-Item "$popplerDir\*" "dist\OCRInvoiceParser\" -Recurse -Force
+        } else {
+          Write-Host "Poppler not found in PATH"
+        }
+
         # Create placeholder files to indicate external dependencies needed
-        if [ ! -f "dist/OCRInvoiceParser/tesseract.exe" ]; then
-          echo "Note: Tesseract OCR not included - users will need to install it separately"
-          echo "Please install Tesseract OCR from: https://github.com/UB-Mannheim/tesseract/wiki" > dist/OCRInvoiceParser/TESSERACT_INSTALL_NOTE.txt
-        fi
-        
-        if [ ! -f "dist/OCRInvoiceParser/pdfinfo.exe" ]; then
-          echo "Note: Poppler utilities not included - users will need to install them separately"
-          echo "Please install Poppler from: https://poppler.freedesktop.org/" > dist/OCRInvoiceParser/POPPLER_INSTALL_NOTE.txt
-        fi
+        if (-not (Test-Path "dist/OCRInvoiceParser/tesseract.exe")) {
+          Write-Host "Note: Tesseract OCR not included - users will need to install it separately"
+          "Please install Tesseract OCR from: https://github.com/UB-Mannheim/tesseract/wiki" | Out-File dist/OCRInvoiceParser/TESSERACT_INSTALL_NOTE.txt
+        }
+        if (-not (Test-Path "dist/OCRInvoiceParser/pdfinfo.exe")) {
+          Write-Host "Note: Poppler utilities not included - users will need to install them separately"
+          "Please install Poppler from: https://poppler.freedesktop.org/" | Out-File dist/OCRInvoiceParser/POPPLER_INSTALL_NOTE.txt
+        }
 
     - name: Copy Tesseract and Poppler binaries (macOS)
       if: matrix.os == 'macos-latest'
