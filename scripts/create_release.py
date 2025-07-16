@@ -176,8 +176,8 @@ class ReleaseManager:
         """Build the release packages."""
         print("🔨 Building release packages...")
         
-        # Run PyInstaller build
-        self.run_command(["python", "-m", "PyInstaller", "OCRInvoiceParser.spec"])
+        # Run PyInstaller build using the current Python interpreter
+        self.run_command([sys.executable, "-m", "PyInstaller", "OCRInvoiceParser.spec"])
         
         print("✅ Release packages built")
     
