@@ -132,11 +132,11 @@ class ReleaseManager:
         print("🧪 Running tests...")
         # Run pytest without capturing output to allow proper terminal interaction
         if self.dry_run:
-            print(f"   [DRY RUN] Would run: python -m pytest tests/ -v")
+            print(f"   [DRY RUN] Would run: {sys.executable} -m pytest tests/ -v")
             return
         
-        print("🔄 Running: python -m pytest tests/ -v")
-        result = subprocess.run(["python", "-m", "pytest", "tests/", "-v"], 
+        print(f"🔄 Running: {sys.executable} -m pytest tests/ -v")
+        result = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-v"], 
                               cwd=self.project_root, 
                               capture_output=False)
         
