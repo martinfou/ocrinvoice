@@ -270,8 +270,8 @@ python scripts/release.py minor    # 1.0.0 -> 1.1.0
 python scripts/release.py major    # 1.0.0 -> 2.0.0
 
 # Manual release
-git tag v1.2.2
-git push origin v1.2.2
+git tag v1.2.3
+git push origin v1.2.3
 ```
 
 For detailed release instructions, see [Release Guide](docs/developer/release_guide.md).

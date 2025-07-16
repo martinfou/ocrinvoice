@@ -130,7 +130,20 @@ class ReleaseManager:
             return
         
         print("🧪 Running tests...")
-        self.run_command(["python", "-m", "pytest", "tests/", "-v"])
+        # Run pytest without capturing output to allow proper terminal interaction
+        if self.dry_run:
+            print(f"   [DRY RUN] Would run: python -m pytest tests/ -v")
+            return
+        
+        print("🔄 Running: python -m pytest tests/ -v")
+        result = subprocess.run(["python", "-m", "pytest", "tests/", "-v"], 
+                              cwd=self.project_root, 
+                              capture_output=False)
+        
+        if result.returncode != 0:
+            print(f"❌ Tests failed with exit code {result.returncode}")
+            sys.exit(1)
+        
         print("✅ All tests passed")
     
     def commit_version_changes(self) -> None:
