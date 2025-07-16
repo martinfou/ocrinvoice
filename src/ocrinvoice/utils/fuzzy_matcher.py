@@ -406,3 +406,26 @@ class FuzzyMatcher:
             Dictionary with cache statistics
         """
         return {"cache_size": len(self.cache), "threshold": self.threshold}
+
+    @staticmethod
+    def fuzzy_match(
+        target: str, candidates: List[str], threshold: float = 0.8
+    ) -> Optional[str]:
+        """Static method for fuzzy matching (for backward compatibility).
+
+        Args:
+            target: String to find a match for
+            candidates: List of candidate strings to match against
+            threshold: Minimum similarity threshold (0.0 to 1.0)
+
+        Returns:
+            Best matching candidate or None if no match above threshold
+        """
+        if not target or not candidates:
+            return None
+
+        # Create a temporary FuzzyMatcher instance
+        matcher = FuzzyMatcher({"threshold": threshold})
+        best_match, score = matcher.find_best_match(target, candidates)
+        
+        return best_match if score >= threshold else None
