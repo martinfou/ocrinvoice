@@ -169,16 +169,6 @@ class AliasTable(QTableWidget):
                 match_type_item.flags() | Qt.ItemFlag.ItemIsEditable
             )
 
-            # Color code match types
-            if match_type == "Exact":
-                match_type_item.setBackground(QColor(200, 255, 200))  # Light green
-            elif match_type == "Partial":
-                match_type_item.setBackground(QColor(255, 255, 200))  # Light yellow
-            elif match_type == "Fuzzy":
-                match_type_item.setBackground(QColor(255, 200, 200))  # Light red
-            else:
-                match_type_item.setBackground(QColor(240, 240, 240))  # Light gray
-
             self.setItem(row, 2, match_type_item)
 
             # Usage Count (read-only)

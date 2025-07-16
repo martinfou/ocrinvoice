@@ -226,13 +226,13 @@ class DataPanelWidget(QWidget):
             for col in range(self.data_table.columnCount()):
                 item = self.data_table.item(row, col)
                 if item and col == 1:  # Value column
-                    # Ensure editable items always have dark text
-                    item.setForeground(QColor("#2c3e50"))
+                    pass
 
     def _show_placeholder(self) -> None:
         """Show placeholder text when no data is available."""
         self.data_table.setRowCount(1)
         self.data_table.setColumnCount(3)
+        self.data_table.setHorizontalHeaderLabels(["Field", "Value", "Confidence"])
         placeholder_item = QTableWidgetItem("No data extracted yet")
         placeholder_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.data_table.setItem(0, 0, placeholder_item)
@@ -255,8 +255,9 @@ class DataPanelWidget(QWidget):
         self.data_table.clear()
         # Clear any existing spans by setting row count to 0 first
         self.data_table.setRowCount(0)
-        # Ensure table has proper column count
+        # Ensure table has proper column count and headers
         self.data_table.setColumnCount(3)
+        self.data_table.setHorizontalHeaderLabels(["Field", "Value", "Confidence"])
 
         # Define the fields to display and their display names
         fields = [
@@ -313,8 +314,6 @@ class DataPanelWidget(QWidget):
             # Set value - make it editable
             value_item = QTableWidgetItem(value)
             value_item.setFlags(value_item.flags() | Qt.ItemFlag.ItemIsEditable)
-            # Set text color to ensure visibility during editing
-            value_item.setForeground(QColor("#2c3e50"))
             self.data_table.setItem(row, 1, value_item)
 
             # Confidence indicator (if available) - make non-editable
