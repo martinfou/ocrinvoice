@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
-from .delegates import DateEditDelegate
+from .delegates import DateEditDelegate, BusinessComboDelegate
 
 
 class EditableTableWidget(QTableWidget):
@@ -47,9 +47,10 @@ class DataPanelWidget(QWidget):
     # Signal emitted when project selection changes
     project_changed = pyqtSignal(str)  # Emits selected project name
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent=None, business_names=None) -> None:
         super().__init__(parent)
         self.current_data: Dict[str, Any] = {}
+        self.business_names = business_names or []
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -106,9 +107,11 @@ class DataPanelWidget(QWidget):
 
         layout.addWidget(self.data_table)
 
-        # Assign DateEditDelegate to the Invoice Date row (row 2)
+        # Assign delegates
         self.date_delegate = DateEditDelegate(self.data_table)
         self.data_table.setItemDelegateForRow(2, self.date_delegate)
+        self.business_delegate = BusinessComboDelegate(self.business_names, self.data_table)
+        self.data_table.setItemDelegateForRow(0, self.business_delegate)
 
         # Action buttons
         button_layout = QHBoxLayout()

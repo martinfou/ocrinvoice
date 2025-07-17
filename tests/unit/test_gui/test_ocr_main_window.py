@@ -102,3 +102,50 @@ class TestOCRMainWindow:
         # This test ensures the close event is handled without errors
         main_window.close()
         qtbot.wait(100)  # Small delay to allow close processing
+
+    def test_edit_business_field_in_single_pdf_table(self, main_window: OCRMainWindow, qtbot: QtBot) -> None:
+        """Test editing the business field in the single PDF table, including adding a new business."""
+        # Switch to Single PDF tab
+        tab_names = [main_window.tab_widget.tabText(i) for i in range(main_window.tab_widget.count())]
+        single_pdf_index = tab_names.index("Single PDF")
+        main_window.tab_widget.setCurrentIndex(single_pdf_index)
+        qtbot.wait(100)
+
+        # Simulate loading extracted data with a known business
+        extracted_data = {
+            "company": "Hydro Quebec",
+            "total": 123.45,
+            "date": "2024-07-16",
+            "invoice_number": "INV-001",
+            "parser_type": "invoice",
+            "is_valid": True,
+            "confidence": 0.95,
+        }
+        main_window.data_panel.update_data(extracted_data)
+        qtbot.wait(100)
+
+        # Find the business field cell (row 0, column 1)
+        table = main_window.data_panel.data_table
+        business_item = table.item(0, 1)
+        assert business_item is not None
+
+        # Double-click to edit (should show combo box)
+        table.editItem(business_item)
+        qtbot.wait(100)
+
+        # Simulate selecting an existing business
+        business_delegate = main_window.data_panel.business_delegate
+        editor = business_delegate.createEditor(table, None, table.model().index(0, 1))
+        editor.setCurrentText("Hydro Quebec")
+        business_delegate.setModelData(editor, table.model(), table.model().index(0, 1))
+        qtbot.wait(100)
+        assert table.item(0, 1).text() == "Hydro Quebec"
+
+        # Simulate adding a new business
+        new_business = "New Test Business"
+        editor.setCurrentText(new_business)
+        # Simulate user confirming addition
+        business_delegate._check_add_new(editor)  # Normally triggered by editingFinished
+        business_delegate.setModelData(editor, table.model(), table.model().index(0, 1))
+        qtbot.wait(100)
+        assert table.item(0, 1).text() == new_business

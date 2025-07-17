@@ -233,7 +233,10 @@ class OCRMainWindow(QMainWindow):
         content_splitter.addWidget(self.pdf_preview)
 
         # Data Panel (right side)
-        self.data_panel = DataPanelWidget()
+        business_names = []
+        if self.business_mapping_manager:
+            business_names = self.business_mapping_manager.get_all_business_names()
+        self.data_panel = DataPanelWidget(business_names=business_names)
         self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
         # Connect data changes to file naming updates
         self.data_panel.data_changed.connect(self._on_data_changed)
