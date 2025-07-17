@@ -146,6 +146,16 @@ def build_installer():
         print("NSIS not available. Skipping installer creation.")
         return False
     
+    # Before running NSIS, check for setup.ico
+    nsis_icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'setup.ico'))
+    print(f"Checking for NSIS icon at: {nsis_icon_path}")
+    if not os.path.exists(nsis_icon_path):
+        print(f"ERROR: Required NSIS icon file not found: {nsis_icon_path}")
+        print("Please add a valid setup.ico file to the installer directory.")
+        sys.exit(1)
+    else:
+        print("NSIS icon file found.")
+
     # Build the installer
     result = run_command("makensis installer/installer.nsi")
     if result.returncode != 0:
