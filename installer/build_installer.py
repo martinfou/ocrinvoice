@@ -41,25 +41,28 @@ def run_command(command, cwd=None, check=True):
 
 
 def check_dependencies():
-    """Check if required tools are installed."""
+    """Check if required dependencies are installed."""
     print("Checking dependencies...")
     
     # Check PyInstaller
     result = run_command("pyinstaller --version", check=False)
     if result.returncode != 0:
-        print("❌ PyInstaller not found. Installing...")
-        run_command("pip install pyinstaller")
+        print("PyInstaller not found. Installing...")
+        result = run_command("pip install pyinstaller")
+        if result.returncode != 0:
+            print("Failed to install PyInstaller")
+            return False
     else:
-        print("✅ PyInstaller found")
+        print("PyInstaller found")
     
     # Check NSIS (optional, will warn if not found)
     result = run_command("makensis /VERSION", check=False)
     if result.returncode != 0:
-        print("⚠️  NSIS not found. Please install NSIS to create the installer.")
+        print("NSIS not found. Please install NSIS to create the installer.")
         print("   Download from: https://nsis.sourceforge.io/Download")
         return False
     else:
-        print("✅ NSIS found")
+        print("NSIS found")
         return True
 
 
@@ -97,10 +100,10 @@ def build_executable():
         )
     
     if result.returncode != 0:
-        print("❌ PyInstaller build failed")
+        print("PyInstaller build failed")
         return False
     
-    print("✅ Executable built successfully")
+    print("Executable built successfully")
     return True
 
 
@@ -121,7 +124,7 @@ def create_installer_assets():
     for asset, description in assets.items():
         asset_path = installer_dir / asset
         if not asset_path.exists():
-            print(f"   ⚠️  {asset} not found - {description}")
+            print(f"   {asset} not found - {description}")
             print(f"      Please create this file for a complete installer")
     
     # Create LICENSE file if it doesn't exist
@@ -140,16 +143,16 @@ def build_installer():
     # Check if NSIS is available
     result = run_command("makensis /VERSION", check=False)
     if result.returncode != 0:
-        print("❌ NSIS not available. Skipping installer creation.")
+        print("NSIS not available. Skipping installer creation.")
         return False
     
     # Build the installer
     result = run_command("makensis installer/installer.nsi")
     if result.returncode != 0:
-        print("❌ NSIS installer build failed")
+        print("NSIS installer build failed")
         return False
     
-    print("✅ Installer built successfully")
+    print("Installer built successfully")
     return True
 
 
@@ -159,7 +162,7 @@ def update_version_in_installer(version):
     
     installer_script = Path("installer/installer.nsi")
     if not installer_script.exists():
-        print("❌ Installer script not found")
+        print("Installer script not found")
         return False
     
     # Read the script
@@ -178,7 +181,7 @@ def update_version_in_installer(version):
     with open(installer_script, "w", encoding="utf-8") as f:
         f.write(content)
     
-    print(f"✅ Updated installer version to {version}")
+    print(f"Updated installer version to {version}")
     return True
 
 
@@ -190,7 +193,7 @@ def get_current_version():
             data = toml.load(f)
         return data["project"]["version"]
     except Exception as e:
-        print(f"⚠️  Could not read version from pyproject.toml: {e}")
+        print(f"Could not read version from pyproject.toml: {e}")
         return "1.3.0"  # Default version
 
 
@@ -203,7 +206,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Windows Installer Build Script")
+    print("Windows Installer Build Script")
     print("=" * 50)
     
     # Get version
@@ -225,18 +228,18 @@ def main():
     
     # Build executable
     if not build_executable():
-        print("❌ Build failed")
+        print("Build failed")
         sys.exit(1)
     
     # Build installer (if NSIS is available and not skipped)
     if nsis_available and not args.skip_nsis:
         if not build_installer():
-            print("❌ Installer build failed")
+            print("Installer build failed")
             sys.exit(1)
     else:
-        print("⚠️  Skipping installer creation")
+        print("Skipping installer creation")
     
-    print("\n🎉 Build completed successfully!")
+    print("\nBuild completed successfully!")
     print(f"Executable: dist/OCRInvoiceParser.exe")
     if nsis_available and not args.skip_nsis:
         print(f"Installer: OCRInvoiceParser-Setup-{version}.exe")

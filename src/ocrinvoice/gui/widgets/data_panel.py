@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 from .delegates import DateEditDelegate, BusinessComboDelegate
+from ...business.business_mapping_manager import BusinessMappingManager
 
 
 class EditableTableWidget(QTableWidget):
@@ -51,7 +52,10 @@ class DataPanelWidget(QWidget):
         super().__init__(parent)
         self.current_data: Dict[str, Any] = {}
         self.business_names = business_names or []
+        self.mapping_manager = BusinessMappingManager()
         self._setup_ui()
+        # Connect businessAdded signal
+        self.business_delegate.businessAdded.connect(self._on_business_added)
 
     def _setup_ui(self) -> None:
         """Set up the user interface."""
@@ -377,3 +381,18 @@ class DataPanelWidget(QWidget):
     def _on_rename_requested(self) -> None:
         """Handle rename button click."""
         self.rename_requested.emit()
+
+    def _on_business_added(self, business_name: str) -> None:
+        """Handle a new business being added via the delegate."""
+        print(f"[DEBUG] DataPanelWidget: Adding new business '{business_name}' to mapping manager.")
+        added = self.mapping_manager.add_official_name(business_name)
+        if added:
+            print(f"[DEBUG] DataPanelWidget: Successfully added '{business_name}' to mapping manager.")
+            # Also add a self-referencing alias mapping (business name as both key and value)
+            self.mapping_manager.add_mapping(business_name, business_name, "exact_matches")
+            print(f"[DEBUG] DataPanelWidget: Added self-referencing alias mapping for '{business_name}'.")
+            # Reload business names from mapping manager
+            self.business_names = self.mapping_manager.get_all_business_names()
+            self.business_delegate.business_list = self.business_names
+        else:
+            print(f"[DEBUG] DataPanelWidget: '{business_name}' already exists in mapping manager.")

@@ -1,18 +1,20 @@
 {
     "official_names": [
-        "pharmacie",
-        "gary-chartran",
         "taxes-scolaires",
-        "rona",
-        "desjardins",
-        "test-official-name",
-        "bmr",
-        "banque-td",
-        "hydro-québec",
-        "gagnon",
-        "la-forfaiterie",
+        "banque-scotia",
         "test-official-with-aliases",
-        "banque-scotia"
+        "desjardins",
+        "hydro-québec",
+        "Deneigement",
+        "New Test Business",
+        "gagnon",
+        "pharmacie",
+        "banque-td",
+        "gary-chartran",
+        "rona",
+        "bmr",
+        "test-official-name",
+        "la-forfaiterie"
     ],
     "exact_matches": {
         "bmr": "bmr",
@@ -29,7 +31,8 @@
         "rona": "rona",
         "gagnon": "gagnon",
         "test2": "test2",
-        "test-company-exact": "test-official-with-aliases"
+        "test-company-exact": "test-official-with-aliases",
+        "New Test Business": "New Test Business"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",
