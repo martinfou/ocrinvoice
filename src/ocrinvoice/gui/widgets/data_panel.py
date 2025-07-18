@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 from .delegates import DateEditDelegate, BusinessComboDelegate
-from ...business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
 
 class EditableTableWidget(QTableWidget):

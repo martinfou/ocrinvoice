@@ -29,14 +29,14 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent, QPixmap, QFont
 
-from .widgets.pdf_preview import PDFPreviewWidget
-from .widgets.data_panel import DataPanelWidget
-from .widgets.file_naming import FileNamingWidget
+from ocrinvoice.gui.widgets.pdf_preview import PDFPreviewWidget
+from ocrinvoice.gui.widgets.data_panel import DataPanelWidget
+from ocrinvoice.gui.widgets.file_naming import FileNamingWidget
 
 # Import OCR parsing functionality
-from ..parsers.invoice_parser import InvoiceParser
-from ..config import get_config
-from ..utils.pdf_metadata_manager import PDFMetadataManager
+from ocrinvoice.parsers.invoice_parser import InvoiceParser
+from ocrinvoice.config import get_config
+from ocrinvoice.utils.pdf_metadata_manager import PDFMetadataManager
 
 
 class OCRProcessingThread(QThread):
@@ -126,7 +126,7 @@ class OCRMainWindow(QMainWindow):
         # Initialize business mapping manager for backups
         self.business_mapping_manager = None
         try:
-            from ..business.business_mapping_manager import BusinessMappingManager
+            from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
             self.business_mapping_manager = BusinessMappingManager()
             print("✅ Business mapping manager initialized")
@@ -136,7 +136,7 @@ class OCRMainWindow(QMainWindow):
         # Initialize project manager
         self.project_manager = None
         try:
-            from ..business.project_manager import ProjectManager
+            from ocrinvoice.business.project_manager import ProjectManager
 
             self.project_manager = ProjectManager()
             print("✅ Project manager initialized")

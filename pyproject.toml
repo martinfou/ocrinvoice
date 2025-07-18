@@ -34,7 +34,8 @@ dev = [
     "flake8",
     "mypy",
     "pre-commit",
-    "pyinstaller"
+    "pyinstaller",
+    "toml"
 ]
 
 [project.scripts]

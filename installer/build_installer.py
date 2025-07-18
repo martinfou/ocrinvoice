@@ -107,6 +107,34 @@ def build_executable():
     return True
 
 
+def prepare_tesseract():
+    """Prepare Tesseract OCR for inclusion in the installer."""
+    print("Preparing Tesseract OCR...")
+    
+    installer_dir = Path("installer")
+    tesseract_dir = installer_dir / "tesseract"
+    
+    # Check if Tesseract is already prepared
+    if tesseract_dir.exists() and (tesseract_dir / "tesseract-installer.exe").exists():
+        print("   Tesseract OCR already prepared")
+        return True
+    
+    # Try to run the Tesseract download script
+    try:
+        result = run_command("python installer/download_tesseract.py", check=False)
+        if result and result.returncode == 0:
+            print("   Tesseract OCR prepared successfully")
+            return True
+        else:
+            print("   Warning: Could not prepare Tesseract OCR automatically")
+            print("   The installer will prompt users to install Tesseract manually")
+            return False
+    except Exception as e:
+        print(f"   Warning: Error preparing Tesseract OCR: {e}")
+        print("   The installer will prompt users to install Tesseract manually")
+        return False
+
+
 def create_installer_assets():
     """Create installer assets (icons, images, etc.)."""
     print("Creating installer assets...")
@@ -201,10 +229,28 @@ def get_current_version():
         import toml
         with open("pyproject.toml", "r", encoding="utf-8") as f:
             data = toml.load(f)
-        return data["project"]["version"]
+        version = data["project"]["version"]
+        print(f"✅ Read version from pyproject.toml: {version}")
+        return version
+    except ImportError:
+        print("⚠️  toml package not found, trying alternative methods...")
+        # Try reading with regex as fallback
+        try:
+            import re
+            with open("pyproject.toml", "r", encoding="utf-8") as f:
+                content = f.read()
+            match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+            if match:
+                version = match.group(1)
+                print(f"✅ Read version with regex: {version}")
+                return version
+        except Exception as e:
+            print(f"⚠️  Regex fallback failed: {e}")
     except Exception as e:
-        print(f"Could not read version from pyproject.toml: {e}")
-        return "1.3.0"  # Default version
+        print(f"⚠️  Could not read version from pyproject.toml: {e}")
+    
+    print("❌ Using default version: 1.3.0")
+    return "1.3.0"  # Default version
 
 
 def main():
@@ -232,6 +278,9 @@ def main():
     
     # Create installer assets
     create_installer_assets()
+    
+    # Prepare Tesseract OCR
+    prepare_tesseract()
     
     # Update version in installer
     update_version_in_installer(version)

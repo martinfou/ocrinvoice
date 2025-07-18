@@ -25,7 +25,7 @@ from PyQt6.QtGui import QFont
 
 from .project_table import ProjectTable
 from .project_form import ProjectForm
-from ..business.project_manager import ProjectManager
+from ocrinvoice.business.project_manager import ProjectManager
 
 
 class ProjectManagerThread(QThread):

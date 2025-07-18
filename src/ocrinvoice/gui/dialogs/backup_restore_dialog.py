@@ -33,7 +33,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QThread, QTimer
 from PyQt6.QtGui import QFont, QIcon
 
-from ...business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
 
 class BackupRestoreThread(QThread):

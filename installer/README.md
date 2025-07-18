@@ -132,6 +132,17 @@ To customize the installer appearance:
 4. Verify registry entries
 5. Check file associations (if configured)
 
+### Testing Uninstallation
+
+The installer includes robust uninstallation that:
+- Removes all application files and directories
+- Removes Start Menu shortcuts
+- Removes desktop shortcuts (with multiple fallback methods)
+- Cleans up registry entries
+- Removes Tesseract OCR (if installed by this installer)
+
+**Note**: If desktop shortcuts persist after uninstallation, run `cleanup_desktop_shortcuts.bat` to manually remove them.
+
 ### Testing on Different Windows Versions
 
 Test the installer on:
@@ -162,6 +173,11 @@ Test the installer on:
    - Install Tesseract manually
    - Add to system PATH
    - Test with: `tesseract --version`
+
+5. **Desktop shortcuts remain after uninstall**
+   - Run `cleanup_desktop_shortcuts.bat` to manually remove them
+   - Refresh desktop (F5) or restart Windows Explorer
+   - Check both user and public desktop folders
 
 ### Debug Mode
 

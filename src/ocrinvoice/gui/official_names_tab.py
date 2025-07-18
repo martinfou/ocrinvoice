@@ -26,7 +26,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSignal as Signal
 from PyQt6.QtGui import QFont
 
 from .official_names_table import OfficialNamesTable
-from ..business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
 
 class OfficialNamesManagerThread(QThread):

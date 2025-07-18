@@ -9,7 +9,7 @@
 
 ; Define application information
 !define APP_NAME "OCR Invoice Parser"
-!define APP_VERSION "v1.3.2"
+!define APP_VERSION "1.3.4"
 !define APP_PUBLISHER "OCR Invoice Parser Team"
 !define APP_EXE "OCRInvoiceParser.exe"
 !define APP_ICON "installer\icon.ico"
@@ -29,15 +29,16 @@ SetCompressor /SOLID lzma
 
 ; Interface Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "${SETUP_ICON}"
-!define MUI_UNICON "${SETUP_ICON}"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "installer\welcome.bmp"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "installer\welcome.bmp"
+; !define MUI_ICON "${SETUP_ICON}"
+; !define MUI_UNICON "${SETUP_ICON}"
+; !define MUI_WELCOMEFINISHPAGE_BITMAP "installer\welcome.bmp"
+; !define MUI_UNWELCOMEFINISHPAGE_BITMAP "installer\welcome.bmp"
 
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "LICENSE"
+!insertmacro MUI_PAGE_LICENSE "../LICENSE"
 !insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -65,15 +66,15 @@ Section "Main Application" SecMain
     SetOutPath "$INSTDIR"
     
     ; Copy main executable and dependencies
-    File /r "dist\OCRInvoiceParser\*.*"
+    File "..\dist\OCRInvoiceParser.exe"
     
     ; Copy configuration files
     SetOutPath "$INSTDIR\config"
-    File /r "config\*.*"
+    File /r "..\config\*.*"
     
     ; Copy documentation
     SetOutPath "$INSTDIR\docs"
-    File /r "docs\*.*"
+    File /r "..\docs\*.*"
     
     ; Create uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -101,20 +102,31 @@ SectionEnd
 
 Section "Desktop Shortcut" SecDesktop
     CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\${APP_EXE}" 0
+    
+    ; Store the desktop shortcut path in registry for uninstaller
+    WriteRegStr HKLM "Software\${APP_NAME}" "DesktopShortcut" "$DESKTOP\${APP_NAME}.lnk"
 SectionEnd
 
 Section "Tesseract OCR" SecTesseract
     ; Check if Tesseract is already installed
     ReadRegStr $0 HKLM "SOFTWARE\Tesseract-OCR" "InstallDir"
     ${If} $0 == ""
-        ; Tesseract not found, offer to download
-        MessageBox MB_YESNO "Tesseract OCR is required for this application but was not found on your system.$\n$\nWould you like to download and install Tesseract OCR now?" IDYES install_tesseract IDNO skip_tesseract
-        install_tesseract:
-            ExecWait '"$TEMP\tesseract-installer.exe" /S'
-            Goto tesseract_done
-        skip_tesseract:
-            MessageBox MB_OK "You will need to install Tesseract OCR manually.$\n$\nPlease visit: https://github.com/UB-Mannheim/tesseract/wiki"
-        tesseract_done:
+        ; Tesseract not found, install it silently
+        DetailPrint "Installing Tesseract OCR..."
+        
+        ; Extract Tesseract files to temporary directory
+        SetOutPath "$TEMP\tesseract"
+        File /r "..\installer\tesseract\*.*"
+        
+        ; Run Tesseract installer silently with /SILENT flag to avoid prompts
+        ExecWait '"$TEMP\tesseract\tesseract-installer.exe" /SILENT /NORESTART'
+        
+        ; Clean up temporary files
+        RMDir /r "$TEMP\tesseract"
+        
+        DetailPrint "Tesseract OCR installation completed"
+    ${Else}
+        DetailPrint "Tesseract OCR is already installed - skipping installation"
     ${EndIf}
 SectionEnd
 
@@ -133,8 +145,16 @@ Section "Uninstall"
     Delete "$SMPROGRAMS\${APP_NAME}\Documentation.lnk"
     RMDir "$SMPROGRAMS\${APP_NAME}"
     
-    ; Remove desktop shortcut
+    ; Remove desktop shortcut using stored registry value
+    ReadRegStr $0 HKLM "Software\${APP_NAME}" "DesktopShortcut"
+    ${If} $0 != ""
+        Delete "$0"
+    ${EndIf}
+    
+    ; Also try common desktop shortcut names as fallback
     Delete "$DESKTOP\${APP_NAME}.lnk"
+    Delete "$DESKTOP\OCR Invoice Parser.lnk"
+    Delete "$DESKTOP\OCRInvoiceParser.lnk"
     
     ; Remove registry keys
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
@@ -145,7 +165,13 @@ SectionEnd
 Function CheckTesseract
     ReadRegStr $0 HKLM "SOFTWARE\Tesseract-OCR" "InstallDir"
     ${If} $0 != ""
-        SectionSetFlags ${SecTesseract} ${SF_RO}
+        ; Tesseract is already installed, unselect the section
+        SectionSetFlags ${SecTesseract} 0
+        SectionSetText ${SecTesseract} "Tesseract OCR (Already Installed)"
+    ${Else}
+        ; Tesseract not installed, select the section
+        SectionSetFlags ${SecTesseract} ${SF_SELECTED}
+        SectionSetText ${SecTesseract} "Tesseract OCR (Required)"
     ${EndIf}
 FunctionEnd
 

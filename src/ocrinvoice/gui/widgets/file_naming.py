@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal
 
-from ...utils.file_manager import FileManager
+from ocrinvoice.utils.file_manager import FileManager
 
 
 class FileNamingWidget(QWidget):

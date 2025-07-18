@@ -25,7 +25,7 @@ from PyQt6.QtGui import QFont
 
 from .alias_table import AliasTable
 from .alias_form import AliasForm
-from ..business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
 
 class AliasManagerThread(QThread):

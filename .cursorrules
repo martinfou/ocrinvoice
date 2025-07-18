@@ -85,7 +85,7 @@ docs/
 - ❌ User says "it works fine commit" → immediately run git commit
 - ❌ User says "go ahead" → immediately run git commit
 - ❌ Any variation without showing the message first
-
+- ❌ never use relative import 
 **EXAMPLES OF WHAT TO DO:**
 - ✅ Show full commit message → "Please review this commit message and approve if correct"
 - ✅ Wait for user to say "approved" or "looks good" → then commit

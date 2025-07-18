@@ -22,7 +22,7 @@ from PyQt6.QtGui import QAction, QKeySequence, QCloseEvent
 
 from .mapping_table import MappingTable
 from .mapping_form import MappingForm
-from ..business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
 
 
 class MainWindow(QMainWindow):
