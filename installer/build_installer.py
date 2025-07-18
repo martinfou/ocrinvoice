@@ -218,7 +218,7 @@ def update_version_in_installer(version):
     # Update VIProductVersion to use correct 4-number format
     content = re.sub(
         r'VIProductVersion "[\d.]+"',
-        f'VIProductVersion "{version}.0.0"',
+        f'VIProductVersion "{version}.0"',
         content
     )
     
