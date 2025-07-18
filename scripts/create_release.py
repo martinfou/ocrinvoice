@@ -38,7 +38,8 @@ class ReleaseManager:
             "src/ocrinvoice/gui/ocr_main_window.py", 
             "src/ocrinvoice/gui/main_window.py",
             "pyproject.toml",
-            "README.md"
+            "README.md",
+            "installer/installer.nsi"
         ]
         
         # Version patterns to update
@@ -50,6 +51,8 @@ class ReleaseManager:
             (r'Business Mappings Manager v([0-9]+\.[0-9]+\.[0-9]+)', 'Business Mappings Manager v{}'),
             (r'setApplicationVersion\(["\']([^"\']+)["\']\)', 'setApplicationVersion("{}")'),
             (r'python_version\s*=\s*["\']([^"\']+)["\']', 'python_version = "{}"'),
+            (r'!define APP_VERSION "([0-9]+\.[0-9]+\.[0-9]+)"', '!define APP_VERSION "{}"'),
+            (r'VIProductVersion "([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"', 'VIProductVersion "{}.0.0"'),
         ]
     
     def run_command(self, command: List[str], check: bool = True) -> subprocess.CompletedProcess:
