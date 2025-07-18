@@ -215,6 +215,13 @@ def update_version_in_installer(version):
         content
     )
     
+    # Update VIProductVersion to use correct 4-number format
+    content = re.sub(
+        r'VIProductVersion "[\d.]+"',
+        f'VIProductVersion "{version}.0.0"',
+        content
+    )
+    
     # Write back
     with open(installer_script, "w", encoding="utf-8") as f:
         f.write(content)
