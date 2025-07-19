@@ -648,6 +648,9 @@ class OCRMainWindow(QMainWindow):
                     self.status_bar.showMessage("📋 Loading saved data from PDF metadata...")
                     saved_data = self.pdf_metadata_manager.load_data_from_pdf(pdf_path)
                     if saved_data:
+                        print(f"📋 [PDF METADATA LOADED] File: {pdf_path}")
+                        print(f"📋 [PDF METADATA LOADED] Data: {saved_data}")
+                        print(f"📋 [PDF METADATA LOADED] Fields: {list(saved_data.keys())}")
                         # Use saved data instead of running OCR
                         self._on_ocr_finished(saved_data)
                         self.status_bar.showMessage("✅ Loaded data from PDF metadata")
@@ -732,6 +735,10 @@ class OCRMainWindow(QMainWindow):
         # Save extracted data to PDF metadata
         if self.pdf_metadata_manager and self.current_pdf_path:
             try:
+                print(f"💾 [PDF METADATA SAVING] File: {self.current_pdf_path}")
+                print(f"💾 [PDF METADATA SAVING] Data: {extracted_data}")
+                print(f"💾 [PDF METADATA SAVING] Fields: {list(extracted_data.keys())}")
+                
                 success = self.pdf_metadata_manager.save_data_to_pdf(
                     self.current_pdf_path, extracted_data
                 )
@@ -948,6 +955,9 @@ class OCRMainWindow(QMainWindow):
                 updated_data = self.extracted_data.copy()
                 updated_data["selected_project"] = project_name
                 
+                print(f"💾 [PDF METADATA UPDATE] Project selection: '{project_name}'")
+                print(f"💾 [PDF METADATA UPDATE] Updated data: {updated_data}")
+                
                 success = self.pdf_metadata_manager.save_data_to_pdf(
                     self.current_pdf_path, updated_data
                 )
@@ -973,6 +983,9 @@ class OCRMainWindow(QMainWindow):
                 # Add document type to extracted data
                 updated_data = self.extracted_data.copy()
                 updated_data["selected_document_type"] = document_type
+                
+                print(f"💾 [PDF METADATA UPDATE] Document type selection: '{document_type}'")
+                print(f"💾 [PDF METADATA UPDATE] Updated data: {updated_data}")
                 
                 success = self.pdf_metadata_manager.save_data_to_pdf(
                     self.current_pdf_path, updated_data
