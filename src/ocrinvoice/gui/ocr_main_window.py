@@ -919,6 +919,10 @@ class OCRMainWindow(QMainWindow):
 
     def _on_project_changed(self, project_name: str) -> None:
         """Handle project selection changes from the data panel."""
+        # Update the file naming widget with the selected project
+        if self.file_naming_widget:
+            self.file_naming_widget.set_project(project_name)
+        
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
 

@@ -432,7 +432,7 @@ class FileNamingWidget(QWidget):
         try:
             # Add project data to extracted data for filename generation
             preview_data = self.extracted_data.copy()
-            preview_data["project"] = "project"  # Default project value
+            preview_data["project"] = getattr(self, 'current_project', "project")  # Use current project or default
 
             # Generate preview filename
             preview_filename = self.file_manager.format_filename(preview_data)
@@ -477,7 +477,7 @@ class FileNamingWidget(QWidget):
 
         # Show available data
         data_mapping = {
-            "project": "project",  # Default project value
+            "project": getattr(self, 'current_project', "project"),  # Use current project or default
             "documentType": self.doc_type_combo.currentText(),
             "company": self.extracted_data.get("company", "unknown"),
             "date": self.extracted_data.get("date", "unknown"),
@@ -701,5 +701,11 @@ class FileNamingWidget(QWidget):
     def get_config(self) -> Dict[str, Any]:
         """Get the current configuration."""
         return self.config
+
+    def set_project(self, project_name: str) -> None:
+        """Set the current project for filename generation."""
+        self.current_project = project_name
+        # Update the preview to reflect the new project
+        self._update_preview()
 
 
