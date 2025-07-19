@@ -208,7 +208,7 @@ jobs:
         find . -name "OCRInvoiceParser-*.zip" -exec mv {} . \;
         
         # Find the Windows installer
-        find . -name "OCRInvoiceParser-Setup-*.exe" -exec mv {} . \;
+        find . -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \;
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -217,21 +217,21 @@ jobs:
         files: |
           OCRInvoiceParser-Windows.zip
           OCRInvoiceParser-macOS.zip
-          OCRInvoiceParser-Setup-*.exe
+          OCRInvoiceParser-Windows-Setup-*.exe
         body: |
           # OCR Invoice Parser v${{ github.ref_name }}
 
           ## 🎉 Release
 
           ### 📦 Downloads
-          - **Windows Installer**: OCRInvoiceParser-Setup-${{ github.ref_name }}.exe (Recommended)
+          - **Windows Installer**: OCRInvoiceParser-Windows-Setup-${{ github.ref_name }}.exe (Recommended)
           - **Windows Portable**: OCRInvoiceParser-Windows.zip
           - **macOS**: OCRInvoiceParser-macOS.zip
 
           ### 🚀 Quick Start
           
           **Windows Users (Recommended):**
-          1. Download `OCRInvoiceParser-Setup-${{ github.ref_name }}.exe`
+          1. Download `OCRInvoiceParser-Windows-Setup-${{ github.ref_name }}.exe`
           2. Run the installer and follow the setup wizard
           3. Launch from Start Menu or Desktop shortcut
           
@@ -301,11 +301,5 @@ jobs:
         id: find_installer
         shell: pwsh
         run: |
-          $file = Get-ChildItem -Path . -Recurse -Filter "OCRInvoiceParser-Setup-*.exe" | Select-Object -First 1
-          echo "INSTALLER_PATH=$($file.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Upload installer as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: ${{ env.INSTALLER_PATH }} 
+          $file = Get-ChildItem -Path . -Recurse -Filter "OCRInvoiceParser-Windows-Setup-*.exe" | Select-Object -First 1
+          echo "INSTALLER_PATH=$($file.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append 

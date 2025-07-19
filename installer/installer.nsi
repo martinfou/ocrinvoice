@@ -17,7 +17,7 @@
 
 ; Define installer properties
 Name "${APP_NAME}"
-OutFile "OCRInvoiceParser-Setup-${APP_VERSION}.exe"
+OutFile "OCRInvoiceParser-Windows-Setup-${APP_VERSION}.exe"
 InstallDir "$PROGRAMFILES64\${APP_NAME}"
 InstallDirRegKey HKLM "Software\${APP_NAME}" "Install_Dir"
 

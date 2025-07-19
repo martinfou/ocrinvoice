@@ -312,12 +312,12 @@ def main():
     print("\nBuild completed successfully!")
     print(f"Executable: dist/OCRInvoiceParser.exe")
     if nsis_available and not args.skip_nsis:
-        print(f"Installer: OCRInvoiceParser-Setup-{version}.exe")
+        print(f"Installer: OCRInvoiceParser-Windows-Setup-{version}.exe")
     
     print("\nNext steps:")
     print("1. Test the executable: dist/OCRInvoiceParser.exe")
     if nsis_available and not args.skip_nsis:
-        print("2. Test the installer: OCRInvoiceParser-Setup-{version}.exe")
+        print("2. Test the installer: OCRInvoiceParser-Windows-Setup-{version}.exe")
     print("3. Distribute the files to users")
 
 
