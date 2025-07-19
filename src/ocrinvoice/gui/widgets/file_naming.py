@@ -131,17 +131,7 @@ class FileNamingWidget(QWidget):
         doc_type_layout.addStretch()
         options_layout.addLayout(doc_type_layout)
 
-        # Project selection
-        project_layout = QHBoxLayout()
-        project_label = QLabel("Project:")
-        self.project_combo = QComboBox()
-        self.project_combo.addItem("project")  # Default project
-        self.project_combo.setEditable(True)
-        self.project_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        project_layout.addWidget(project_label)
-        project_layout.addWidget(self.project_combo)
-        project_layout.addStretch()
-        options_layout.addLayout(project_layout)
+
 
         # File management options
         self.rename_enabled_cb = QCheckBox("Enable file renaming")
@@ -237,7 +227,6 @@ class FileNamingWidget(QWidget):
         """Set up signal connections."""
         self.template_input.textChanged.connect(self._on_template_changed)
         self.doc_type_combo.currentTextChanged.connect(self._update_preview)
-        self.project_combo.currentTextChanged.connect(self._update_preview)
         self.rename_enabled_cb.toggled.connect(self._update_preview)
         self.backup_original_cb.toggled.connect(self._update_preview)
         self.dry_run_cb.toggled.connect(self._update_preview)
@@ -443,7 +432,7 @@ class FileNamingWidget(QWidget):
         try:
             # Add project data to extracted data for filename generation
             preview_data = self.extracted_data.copy()
-            preview_data["project"] = self.project_combo.currentText()
+            preview_data["project"] = "project"  # Default project value
 
             # Generate preview filename
             preview_filename = self.file_manager.format_filename(preview_data)
@@ -488,7 +477,7 @@ class FileNamingWidget(QWidget):
 
         # Show available data
         data_mapping = {
-            "project": self.project_combo.currentText(),
+            "project": "project",  # Default project value
             "documentType": self.doc_type_combo.currentText(),
             "company": self.extracted_data.get("company", "unknown"),
             "date": self.extracted_data.get("date", "unknown"),
@@ -713,44 +702,4 @@ class FileNamingWidget(QWidget):
         """Get the current configuration."""
         return self.config
 
-    def update_projects(self, project_names: List[str]) -> None:
-        """
-        Update the project combo box with available projects.
 
-        Args:
-            project_names: List of project names to add to the combo box
-        """
-        current_text = self.project_combo.currentText()
-
-        # Clear and add default project
-        self.project_combo.clear()
-        self.project_combo.addItem("project")  # Default project
-
-        # Add available projects
-        for project_name in project_names:
-            self.project_combo.addItem(project_name)
-
-        # Restore current selection if it still exists
-        index = self.project_combo.findText(current_text)
-        if index >= 0:
-            self.project_combo.setCurrentIndex(index)
-        else:
-            # If current text not found, set to default
-            self.project_combo.setCurrentText("project")
-
-    def set_project(self, project_name: str) -> None:
-        """Set the selected project in the dropdown."""
-        if project_name:
-            index = self.project_combo.findText(project_name)
-            if index >= 0:
-                self.project_combo.setCurrentIndex(index)
-            else:
-                # If project not found, add it and select it
-                self.project_combo.addItem(project_name)
-                self.project_combo.setCurrentText(project_name)
-        else:
-            # Set to default project
-            self.project_combo.setCurrentText("project")
-
-        # Update the preview when project changes
-        self._update_preview()

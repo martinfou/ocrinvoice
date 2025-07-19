@@ -473,15 +473,7 @@ class OCRMainWindow(QMainWindow):
         # Refresh the project dropdown in the data panel
         self._update_project_dropdown()
 
-        # Update file naming widget with new projects
-        if self.project_manager and self.file_naming_widget:
-            try:
-                projects = self.project_manager.get_project_names()
-                self.file_naming_widget.update_projects(projects)
-            except Exception as e:
-                print(f"⚠️ Could not update file naming widget projects: {e}")
-
-        self.status_bar.showMessage("Projects updated - File naming refreshed")
+        self.status_bar.showMessage("Projects updated")
 
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar with enhanced menu items and keyboard shortcuts."""
@@ -919,10 +911,6 @@ class OCRMainWindow(QMainWindow):
 
     def _on_project_changed(self, project_name: str) -> None:
         """Handle project selection changes from the data panel."""
-        # Update the file naming widget with the selected project
-        if self.file_naming_widget:
-            self.file_naming_widget.set_project(project_name)
-
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
 
