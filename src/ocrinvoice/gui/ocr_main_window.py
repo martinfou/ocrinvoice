@@ -242,6 +242,8 @@ class OCRMainWindow(QMainWindow):
         self.data_panel.data_changed.connect(self._on_data_changed)
         # Connect project selection changes
         self.data_panel.project_changed.connect(self._on_project_changed)
+        # Connect document type selection changes
+        self.data_panel.document_type_changed.connect(self._on_document_type_changed)
         content_splitter.addWidget(self.data_panel)
 
         # Set initial splitter sizes (60% PDF, 40% data)
@@ -892,6 +894,12 @@ class OCRMainWindow(QMainWindow):
                 updated_data, original_filename, self.current_pdf_path
             )
 
+        # Update file naming widget with document type from data panel
+        if self.data_panel and self.file_naming_widget:
+            document_type = self.data_panel.get_selected_document_type()
+            if document_type:
+                self.file_naming_widget.doc_type_combo.setCurrentText(document_type)
+
         # Save updated data to PDF metadata
         if self.pdf_metadata_manager and self.current_pdf_path:
             try:
@@ -913,6 +921,15 @@ class OCRMainWindow(QMainWindow):
         """Handle project selection changes from the data panel."""
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
+
+    def _on_document_type_changed(self, document_type: str) -> None:
+        """Handle document type selection changes from the data panel."""
+        # Update the file naming widget with the selected document type
+        if self.file_naming_widget:
+            self.file_naming_widget.doc_type_combo.setCurrentText(document_type)
+        
+        # Update the status bar
+        self.status_bar.showMessage(f"Document type selected: {document_type}")
 
     def _update_project_dropdown(self) -> None:
         """Update the project dropdown with available projects."""

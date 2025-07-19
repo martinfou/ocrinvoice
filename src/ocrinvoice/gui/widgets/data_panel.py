@@ -47,6 +47,9 @@ class DataPanelWidget(QWidget):
 
     # Signal emitted when project selection changes
     project_changed = pyqtSignal(str)  # Emits selected project name
+    
+    # Signal emitted when document type selection changes
+    document_type_changed = pyqtSignal(str)  # Emits selected document type
 
     def __init__(self, parent=None, business_names=None) -> None:
         super().__init__(parent)
@@ -69,7 +72,7 @@ class DataPanelWidget(QWidget):
         )
         layout.addWidget(title)
 
-        # Project selection section
+        # Project and Document Type selection section
         project_layout = QHBoxLayout()
 
         project_label = QLabel("📁 Project:")
@@ -79,6 +82,17 @@ class DataPanelWidget(QWidget):
         self.project_combo.setPlaceholderText("Select a project...")
         self.project_combo.currentTextChanged.connect(self._on_project_changed)
         project_layout.addWidget(self.project_combo)
+
+        # Add some spacing between project and document type
+        project_layout.addSpacing(20)
+
+        document_type_label = QLabel("📄 Document Type:")
+        project_layout.addWidget(document_type_label)
+
+        self.document_type_combo = QComboBox()
+        self.document_type_combo.addItems(["facture", "relevé", "invoice", "statement"])
+        self.document_type_combo.currentTextChanged.connect(self._on_document_type_changed)
+        project_layout.addWidget(self.document_type_combo)
 
         project_layout.addStretch()
         layout.addLayout(project_layout)
@@ -150,6 +164,11 @@ class DataPanelWidget(QWidget):
         if project_name:
             self.project_changed.emit(project_name)
 
+    def _on_document_type_changed(self, document_type: str) -> None:
+        """Handle document type selection change."""
+        if document_type:
+            self.document_type_changed.emit(document_type)
+
     def update_projects(self, projects: List[str]) -> None:
         """Update the project dropdown with available projects."""
         self.project_combo.clear()
@@ -165,6 +184,16 @@ class DataPanelWidget(QWidget):
     def get_selected_project(self) -> str:
         """Get the currently selected project."""
         return self.project_combo.currentText()
+
+    def get_selected_document_type(self) -> str:
+        """Get the currently selected document type."""
+        return self.document_type_combo.currentText()
+
+    def set_selected_document_type(self, document_type: str) -> None:
+        """Set the selected document type in the dropdown."""
+        index = self.document_type_combo.findText(document_type)
+        if index >= 0:
+            self.document_type_combo.setCurrentIndex(index)
 
     def _on_cell_changed(self, item: QTableWidgetItem) -> None:
         """Handle cell content changes in the data table."""
