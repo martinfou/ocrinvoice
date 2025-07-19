@@ -1,0 +1,14 @@
+{
+  "company": "Gagnon",
+  "total": 29.99,
+  "date": "2025-07-10",
+  "invoice_number": "1311",
+  "raw_text": "APR RER\n\nGAGNON &A GRANDE QUINCATLLERIE\n\n950 \"BERNIER\nST-JEAN-SUR-RICHELIEU , QUEBEC\nJ2W OH4\n450-359-1311\nNO TPS : R100570381\n\nNO TVQ: 1000811501T00001\n\nARR OR OO EEE PER\n999999\nCOMPTANT / CASH\n\nFACTURE CAISSE: TB] DATE: 10/07/25\n0002844 COMMIS: 067 HEURE: 18:40:45\nMOULEE À POULET GOLD'N PONTE (26750001)\n25KG PURINA #6025\n\n1.000 CH @ $29.99 $29.99 E\nS. TOTAL: $29.99\nTOTAL: $29.99\nMONNATE: CA\nMASTERCARD $29,99\nCHANGE $0.00\nAPP RRA REE RARER RARE ARE RE EERE ERE\n\nCONSERVEZ VOTRE FACTURE\n\nDELAI DE RETOUR-45 JOURS DE L'ACHAT\nDES EXCEPTIONS PEUVENT S'APPLIQUER\nRARE RER EERERREIHERR\n",
+  "parser_type": "invoice",
+  "parsed_at": "2025-07-17T11:04:50.173394",
+  "confidence": 0.725,
+  "is_valid": true,
+  "extraction_methods": {},
+  "selected_document_type": "invoice",
+  "selected_project": "des-ecluses"
+}

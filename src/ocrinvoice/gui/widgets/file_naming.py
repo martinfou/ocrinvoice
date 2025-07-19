@@ -121,18 +121,6 @@ class FileNamingWidget(QWidget):
         options_group = QGroupBox("Options")
         options_layout = QVBoxLayout(options_group)
 
-        # Document type selection
-        doc_type_layout = QHBoxLayout()
-        doc_type_label = QLabel("Document Type:")
-        self.doc_type_combo = QComboBox()
-        self.doc_type_combo.addItems(["facture", "relevé", "invoice", "statement"])
-        doc_type_layout.addWidget(doc_type_label)
-        doc_type_layout.addWidget(self.doc_type_combo)
-        doc_type_layout.addStretch()
-        options_layout.addLayout(doc_type_layout)
-
-
-
         # File management options
         self.rename_enabled_cb = QCheckBox("Enable file renaming")
         self.rename_enabled_cb.setChecked(True)
@@ -226,7 +214,6 @@ class FileNamingWidget(QWidget):
     def _setup_connections(self) -> None:
         """Set up signal connections."""
         self.template_input.textChanged.connect(self._on_template_changed)
-        self.doc_type_combo.currentTextChanged.connect(self._update_preview)
         self.rename_enabled_cb.toggled.connect(self._update_preview)
         self.backup_original_cb.toggled.connect(self._update_preview)
         self.dry_run_cb.toggled.connect(self._update_preview)
@@ -369,12 +356,6 @@ class FileNamingWidget(QWidget):
         )
         self.template_input.setText(template_format)
 
-        # Set document type
-        doc_type = file_config.get("document_type", "facture")
-        index = self.doc_type_combo.findText(doc_type)
-        if index >= 0:
-            self.doc_type_combo.setCurrentIndex(index)
-
         # Set options
         self.rename_enabled_cb.setChecked(file_config.get("rename_files", True))
         self.backup_original_cb.setChecked(file_config.get("backup_original", False))
@@ -407,7 +388,6 @@ class FileNamingWidget(QWidget):
             "rename_format": self.template_input.text(),
             "rename_dry_run": self.dry_run_cb.isChecked(),
             "backup_original": self.backup_original_cb.isChecked(),
-            "document_type": self.doc_type_combo.currentText(),
         }
 
         # Update main config
@@ -433,6 +413,19 @@ class FileNamingWidget(QWidget):
             # Add project data to extracted data for filename generation
             preview_data = self.extracted_data.copy()
             preview_data["project"] = getattr(self, 'current_project', "project")  # Use current project or default
+            
+            # Get document type from main window's data panel
+            document_type = "unknown"
+            main_window = self.parent()
+            while main_window and not hasattr(main_window, "data_panel"):
+                main_window = main_window.parent()
+            if main_window and hasattr(main_window, "data_panel"):
+                document_type = main_window.data_panel.get_selected_document_type()
+            else:
+                pass  # Could not find main window or data panel for filename generation
+            
+            # Add document type to preview data
+            preview_data["documentType"] = document_type
 
             # Generate preview filename
             preview_filename = self.file_manager.format_filename(preview_data)
@@ -475,10 +468,18 @@ class FileNamingWidget(QWidget):
         details = []
         details.append("Template Variables:")
 
+        # Get document type from main window's data panel
+        document_type = "unknown"
+        main_window = self.parent()
+        while main_window and not hasattr(main_window, "data_panel"):
+            main_window = main_window.parent()
+        if main_window and hasattr(main_window, "data_panel"):
+            document_type = main_window.data_panel.get_selected_document_type()
+
         # Show available data
         data_mapping = {
             "project": getattr(self, 'current_project', "project"),  # Use current project or default
-            "documentType": self.doc_type_combo.currentText(),
+            "documentType": document_type,
             "company": self.extracted_data.get("company", "unknown"),
             "date": self.extracted_data.get("date", "unknown"),
             "total": self.extracted_data.get("total", "unknown"),
@@ -550,49 +551,37 @@ class FileNamingWidget(QWidget):
             original_path = Path(self.full_file_path)
             new_path = original_path.parent / new_filename
 
-            # Show confirmation with full paths
-            reply = QMessageBox.question(
-                self,
-                "Confirm Rename",
-                f"Rename file?\n\n" f"From: {original_path}\n" f"To: {new_path}",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
+            # No confirmation dialog - proceed directly with rename
+            # Create backup if enabled
+            if self.backup_original_cb.isChecked():
+                backup_path = original_path.parent / f"backup_{original_path.name}"
+                shutil.copy2(original_path, backup_path)
 
-            if reply == QMessageBox.StandardButton.Yes:
-                # Create backup if enabled
-                if self.backup_original_cb.isChecked():
-                    backup_path = original_path.parent / f"backup_{original_path.name}"
-                    shutil.copy2(original_path, backup_path)
+            # Perform the rename
+            if self.dry_run_cb.isChecked():
+                QMessageBox.information(
+                    self,
+                    "Dry Run",
+                    f"DRY RUN - Would rename:\n{original_path}\n→\n{new_path}",
+                )
+            else:
+                original_path.rename(new_path)
+                
+                # Save current project and document type selections to PDF metadata AFTER rename
+                # Use the new file path since the file has been moved
+                self._save_selections_to_metadata_after_rename(str(new_path))
 
-                # Perform the rename
-                if self.dry_run_cb.isChecked():
-                    QMessageBox.information(
-                        self,
-                        "Dry Run",
-                        f"DRY RUN - Would rename:\n{original_path}\n→\n{new_path}",
-                    )
-                else:
-                    original_path.rename(new_path)
-                    QMessageBox.information(
-                        self,
-                        "Success",
-                        f"File renamed successfully!\n\n"
-                        f"From: {original_path}\n"
-                        f"To: {new_path}",
-                    )
+                # Update the stored path
+                self.full_file_path = str(new_path)
+                self.original_filename = new_path.name
+                self.original_filename_label.setText(self.original_filename)
 
-                    # Update the stored path
-                    self.full_file_path = str(new_path)
-                    self.original_filename = new_path.name
-                    self.original_filename_label.setText(self.original_filename)
-
-                    # Update status in main window
-                    parent = self.parent()
-                    while parent and not hasattr(parent, "status_bar"):
-                        parent = parent.parent()
-                    if parent and hasattr(parent, "status_bar"):
-                        parent.status_bar.showMessage(f"✅ File renamed: {new_path}")
+                # Show success message in status bar (non-intrusive)
+                parent = self.parent()
+                while parent and not hasattr(parent, "status_bar"):
+                    parent = parent.parent()
+                if parent and hasattr(parent, "status_bar"):
+                    parent.status_bar.showMessage(f"✅ File renamed successfully: {new_path.name}", 5000)  # Show for 5 seconds
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to rename file:\n{str(e)}")
@@ -707,5 +696,103 @@ class FileNamingWidget(QWidget):
         self.current_project = project_name
         # Update the preview to reflect the new project
         self._update_preview()
+
+    def _save_selections_to_metadata(self) -> None:
+        """Save current project and document type selections to PDF metadata."""
+        try:
+            # Get the main window to access the PDF metadata manager
+            main_window = self.parent()
+            while main_window and not hasattr(main_window, "pdf_metadata_manager"):
+                main_window = main_window.parent()
+            
+            if not main_window or not hasattr(main_window, "pdf_metadata_manager"):
+                print("⚠️ Could not find PDF metadata manager")
+                return
+            
+            if not main_window.pdf_metadata_manager or not main_window.extracted_data:
+                print("⚠️ PDF metadata manager or extracted data not available")
+                return
+            
+            # Get current selections
+            current_project = getattr(self, 'current_project', '')
+            current_document_type = main_window.data_panel.get_selected_document_type() if hasattr(main_window, "data_panel") else ""
+            
+            # Update the extracted data with current selections
+            updated_data = main_window.extracted_data.copy()
+            if current_project:
+                updated_data["selected_project"] = current_project
+            if current_document_type:
+                updated_data["selected_document_type"] = current_document_type
+            
+            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}'")
+            print(f"💾 [RENAME METADATA] Updated data: {updated_data}")
+            
+            # IMPORTANT: Use the ORIGINAL file path (self.full_file_path) before rename
+            # Don't use main_window.current_pdf_path as it might be updated to the new path
+            original_file_path = self.full_file_path
+            print(f"💾 [RENAME METADATA] Saving to original file: {original_file_path}")
+            
+            # Save to PDF metadata using the original file path
+            success = main_window.pdf_metadata_manager.save_data_to_pdf(
+                original_file_path, updated_data
+            )
+            
+            if success:
+                print(f"✅ Successfully saved selections to PDF metadata during rename")
+                # Update the main window's extracted data
+                main_window.extracted_data = updated_data
+            else:
+                print("⚠️ Failed to save selections to PDF metadata during rename")
+                
+        except Exception as e:
+            print(f"⚠️ Error saving selections to metadata during rename: {e}")
+
+    def _save_selections_to_metadata_after_rename(self, new_file_path: str) -> None:
+        """Save current project and document type selections to PDF metadata after rename."""
+        try:
+            # Get the main window to access the PDF metadata manager
+            main_window = self.parent()
+            while main_window and not hasattr(main_window, "pdf_metadata_manager"):
+                main_window = main_window.parent()
+            
+            if not main_window or not hasattr(main_window, "pdf_metadata_manager"):
+                print("⚠️ Could not find PDF metadata manager")
+                return
+            
+            if not main_window.pdf_metadata_manager or not main_window.extracted_data:
+                print("⚠️ PDF metadata manager or extracted data not available")
+                return
+            
+            # Get current selections
+            current_project = getattr(self, 'current_project', '')
+            current_document_type = main_window.data_panel.get_selected_document_type() if hasattr(main_window, "data_panel") else ""
+            
+            # Update the extracted data with current selections
+            updated_data = main_window.extracted_data.copy()
+            if current_project:
+                updated_data["selected_project"] = current_project
+            if current_document_type:
+                updated_data["selected_document_type"] = current_document_type
+            
+            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}'")
+            print(f"💾 [RENAME METADATA] Updated data: {updated_data}")
+            
+            # IMPORTANT: Use the NEW file path after rename
+            print(f"💾 [RENAME METADATA] Saving to new file: {new_file_path}")
+            
+            # Save to PDF metadata using the new file path
+            success = main_window.pdf_metadata_manager.save_data_to_pdf(
+                new_file_path, updated_data
+            )
+            
+            if success:
+                print(f"✅ Successfully saved selections to PDF metadata after rename")
+                # Update the main window's extracted data
+                main_window.extracted_data = updated_data
+            else:
+                print("⚠️ Failed to save selections to PDF metadata after rename")
+                
+        except Exception as e:
+            print(f"⚠️ Error saving selections to metadata after rename: {e}")
 
 

@@ -53,7 +53,8 @@ class FileManager:
         company = extracted_data.get("company", "unknown")
         total = extracted_data.get("total")
         date_str = extracted_data.get("date", "unknown")
-        document_type = self.document_type or "unknown"
+        # Use documentType from extracted data, fallback to config, then "unknown"
+        document_type = extracted_data.get("documentType", self.document_type or "unknown")
         project = extracted_data.get("project", "project")  # Default to "project"
 
         # Handle missing or invalid data

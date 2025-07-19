@@ -716,8 +716,6 @@ class OCRMainWindow(QMainWindow):
         # Set document type selection if found in metadata
         if selected_document_type:
             self.data_panel.set_selected_document_type(selected_document_type)
-            if self.file_naming_widget:
-                self.file_naming_widget.doc_type_combo.setCurrentText(selected_document_type)
             print(f"✅ Restored document type selection: {selected_document_type}")
 
         # Update file naming widget with extracted data
@@ -918,12 +916,9 @@ class OCRMainWindow(QMainWindow):
             self.file_naming_widget.update_data(
                 updated_data, original_filename, self.current_pdf_path
             )
-
-        # Update file naming widget with document type from data panel
-        if self.data_panel and self.file_naming_widget:
-            document_type = self.data_panel.get_selected_document_type()
-            if document_type:
-                self.file_naming_widget.doc_type_combo.setCurrentText(document_type)
+            # Update persistent filename label after data update
+            new_filename = self.file_naming_widget.new_filename_label.text()
+            self._update_filename_status_label(new_filename)
 
         # Save updated data to PDF metadata
         if self.pdf_metadata_manager and self.current_pdf_path:
@@ -948,54 +943,14 @@ class OCRMainWindow(QMainWindow):
         if self.file_naming_widget:
             self.file_naming_widget.set_project(project_name)
         
-        # Save project selection to PDF metadata
-        if self.pdf_metadata_manager and self.current_pdf_path and self.extracted_data:
-            try:
-                # Add project to extracted data
-                updated_data = self.extracted_data.copy()
-                updated_data["selected_project"] = project_name
-                
-                print(f"💾 [PDF METADATA UPDATE] Project selection: '{project_name}'")
-                print(f"💾 [PDF METADATA UPDATE] Updated data: {updated_data}")
-                
-                success = self.pdf_metadata_manager.save_data_to_pdf(
-                    self.current_pdf_path, updated_data
-                )
-                if success:
-                    print(f"✅ Saved project selection '{project_name}' to PDF metadata")
-                else:
-                    print("⚠️ Failed to save project selection to PDF metadata")
-            except Exception as e:
-                print(f"⚠️ Error saving project selection to metadata: {e}")
-        
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
 
     def _on_document_type_changed(self, document_type: str) -> None:
         """Handle document type selection changes from the data panel."""
-        # Update the file naming widget with the selected document type
+        # Update the file naming widget's preview to reflect the new document type
         if self.file_naming_widget:
-            self.file_naming_widget.doc_type_combo.setCurrentText(document_type)
-        
-        # Save document type selection to PDF metadata
-        if self.pdf_metadata_manager and self.current_pdf_path and self.extracted_data:
-            try:
-                # Add document type to extracted data
-                updated_data = self.extracted_data.copy()
-                updated_data["selected_document_type"] = document_type
-                
-                print(f"💾 [PDF METADATA UPDATE] Document type selection: '{document_type}'")
-                print(f"💾 [PDF METADATA UPDATE] Updated data: {updated_data}")
-                
-                success = self.pdf_metadata_manager.save_data_to_pdf(
-                    self.current_pdf_path, updated_data
-                )
-                if success:
-                    print(f"✅ Saved document type selection '{document_type}' to PDF metadata")
-                else:
-                    print("⚠️ Failed to save document type selection to PDF metadata")
-            except Exception as e:
-                print(f"⚠️ Error saving document type selection to metadata: {e}")
+            self.file_naming_widget._update_preview()
         
         # Update the status bar
         self.status_bar.showMessage(f"Document type selected: {document_type}")
@@ -1017,10 +972,7 @@ class OCRMainWindow(QMainWindow):
             )
             return
 
-        # Switch to File Naming tab and trigger rename
-        self.tab_widget.setCurrentIndex(1)  # Switch to File Naming tab
-
-        # Trigger the rename in the file naming widget
+        # Trigger the rename in the file naming widget without switching tabs
         if hasattr(self.file_naming_widget, "_rename_file"):
             self.file_naming_widget._rename_file()
 
