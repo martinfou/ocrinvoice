@@ -213,6 +213,7 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
+        draft: false
         files: |
           OCRInvoiceParser-Windows.zip
           OCRInvoiceParser-macOS.zip
