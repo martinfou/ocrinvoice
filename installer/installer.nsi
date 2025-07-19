@@ -9,7 +9,7 @@
 
 ; Define application information
 !define APP_NAME "OCR Invoice Parser"
-!define APP_VERSION "1.3.12"
+!define APP_VERSION "1.3.14"
 !define APP_PUBLISHER "OCR Invoice Parser Team"
 !define APP_EXE "OCRInvoiceParser.exe"
 !define APP_ICON "installer\icon.ico"
