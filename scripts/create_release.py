@@ -27,7 +27,8 @@ class ReleaseManager:
     """Manages the release process for OCR Invoice Parser."""
     
     def __init__(self, version: str, dry_run: bool = False, skip_tests: bool = False):
-        self.version = version
+        # Clean version by removing 'v' prefix if present
+        self.version = version.lstrip('v')
         self.dry_run = dry_run
         self.skip_tests = skip_tests
         self.project_root = Path(__file__).parent.parent
@@ -52,7 +53,7 @@ class ReleaseManager:
             (r'setApplicationVersion\(["\']([^"\']+)["\']\)', 'setApplicationVersion("{}")'),
             (r'python_version\s*=\s*["\']([^"\']+)["\']', 'python_version = "{}"'),
             (r'!define APP_VERSION "([0-9]+\.[0-9]+\.[0-9]+)"', '!define APP_VERSION "{}"'),
-            (r'VIProductVersion "([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"', 'VIProductVersion "{}.0.0"'),
+            (r'VIProductVersion "([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"', 'VIProductVersion "{}.0"'),
         ]
     
     def run_command(self, command: List[str], check: bool = True) -> subprocess.CompletedProcess:
