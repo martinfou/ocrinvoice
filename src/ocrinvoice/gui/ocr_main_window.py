@@ -699,6 +699,24 @@ class OCRMainWindow(QMainWindow):
         # Update data panel
         self.data_panel.update_data(extracted_data)
 
+        # Restore project and document type selections from metadata
+        selected_project = extracted_data.get("selected_project", "")
+        selected_document_type = extracted_data.get("selected_document_type", "")
+        
+        # Set project selection if found in metadata
+        if selected_project:
+            self.data_panel.set_selected_project(selected_project)
+            if self.file_naming_widget:
+                self.file_naming_widget.set_project(selected_project)
+            print(f"✅ Restored project selection: {selected_project}")
+        
+        # Set document type selection if found in metadata
+        if selected_document_type:
+            self.data_panel.set_selected_document_type(selected_document_type)
+            if self.file_naming_widget:
+                self.file_naming_widget.doc_type_combo.setCurrentText(selected_document_type)
+            print(f"✅ Restored document type selection: {selected_document_type}")
+
         # Update file naming widget with extracted data
         if self.current_pdf_path:
             from pathlib import Path
@@ -923,6 +941,23 @@ class OCRMainWindow(QMainWindow):
         if self.file_naming_widget:
             self.file_naming_widget.set_project(project_name)
         
+        # Save project selection to PDF metadata
+        if self.pdf_metadata_manager and self.current_pdf_path and self.extracted_data:
+            try:
+                # Add project to extracted data
+                updated_data = self.extracted_data.copy()
+                updated_data["selected_project"] = project_name
+                
+                success = self.pdf_metadata_manager.save_data_to_pdf(
+                    self.current_pdf_path, updated_data
+                )
+                if success:
+                    print(f"✅ Saved project selection '{project_name}' to PDF metadata")
+                else:
+                    print("⚠️ Failed to save project selection to PDF metadata")
+            except Exception as e:
+                print(f"⚠️ Error saving project selection to metadata: {e}")
+        
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
 
@@ -931,6 +966,23 @@ class OCRMainWindow(QMainWindow):
         # Update the file naming widget with the selected document type
         if self.file_naming_widget:
             self.file_naming_widget.doc_type_combo.setCurrentText(document_type)
+        
+        # Save document type selection to PDF metadata
+        if self.pdf_metadata_manager and self.current_pdf_path and self.extracted_data:
+            try:
+                # Add document type to extracted data
+                updated_data = self.extracted_data.copy()
+                updated_data["selected_document_type"] = document_type
+                
+                success = self.pdf_metadata_manager.save_data_to_pdf(
+                    self.current_pdf_path, updated_data
+                )
+                if success:
+                    print(f"✅ Saved document type selection '{document_type}' to PDF metadata")
+                else:
+                    print("⚠️ Failed to save document type selection to PDF metadata")
+            except Exception as e:
+                print(f"⚠️ Error saving document type selection to metadata: {e}")
         
         # Update the status bar
         self.status_bar.showMessage(f"Document type selected: {document_type}")
