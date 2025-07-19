@@ -203,6 +203,10 @@ def update_version_in_installer(version):
         print("Installer script not found")
         return False
     
+    # Clean version by removing 'v' prefix if present
+    clean_version = version.lstrip('v')
+    print(f"Cleaned version: {clean_version}")
+    
     # Read the script
     with open(installer_script, "r", encoding="utf-8") as f:
         content = f.read()
@@ -211,14 +215,14 @@ def update_version_in_installer(version):
     import re
     content = re.sub(
         r'!define APP_VERSION "[\d.]+"',
-        f'!define APP_VERSION "{version}"',
+        f'!define APP_VERSION "{clean_version}"',
         content
     )
     
     # Update VIProductVersion to use correct 4-number format
     content = re.sub(
         r'VIProductVersion "[\d.]+"',
-        f'VIProductVersion "{version}.0"',
+        f'VIProductVersion "{clean_version}.0"',
         content
     )
     
@@ -226,7 +230,7 @@ def update_version_in_installer(version):
     with open(installer_script, "w", encoding="utf-8") as f:
         f.write(content)
     
-    print(f"Updated installer version to {version}")
+    print(f"Updated installer version to {clean_version}")
     return True
 
 
