@@ -9,7 +9,7 @@
 
 ; Define application information
 !define APP_NAME "OCR Invoice Parser"
-!define APP_VERSION "1.3.18"
+!define APP_VERSION "1.3.19"
 !define APP_PUBLISHER "OCR Invoice Parser Team"
 !define APP_EXE "OCRInvoiceParser.exe"
 !define APP_ICON "installer\icon.ico"
@@ -52,7 +52,7 @@ SetCompressor /SOLID lzma
 !insertmacro MUI_LANGUAGE "English"
 
 ; Version information
-VIProductVersion "1.3.18.0"
+VIProductVersion "1.3.19.0"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "${APP_PUBLISHER}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright (c) 2024 ${APP_PUBLISHER}"
