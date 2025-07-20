@@ -1,6 +1,6 @@
 {
     "version": "2.0",
-    "updated": "2025-07-20T12:08:05.738673",
+    "updated": "2025-07-20T11:52:22.416537",
     "businesses": [
         {
             "id": "gagnon",
@@ -539,42 +539,6 @@
                 "created": "2025-07-20T11:52:22.411854",
                 "added_via_gui": true,
                 "updated": "2025-07-20T11:52:22.416456"
-            }
-        },
-        {
-            "id": "xxxx",
-            "business_name": "xxxx",
-            "keywords": [
-                {
-                    "keyword": "xxxx",
-                    "match_type": "exact",
-                    "case_sensitive": false,
-                    "fuzzy_matching": true
-                }
-            ],
-            "indicators": [],
-            "metadata": {
-                "created": "2025-07-20T12:01:29.185539",
-                "added_via_gui": true,
-                "updated": "2025-07-20T12:01:29.188155"
-            }
-        },
-        {
-            "id": "www",
-            "business_name": "www",
-            "keywords": [
-                {
-                    "keyword": "www",
-                    "match_type": "exact",
-                    "case_sensitive": false,
-                    "fuzzy_matching": true
-                }
-            ],
-            "indicators": [],
-            "metadata": {
-                "created": "2025-07-20T12:08:05.735501",
-                "added_via_gui": true,
-                "updated": "2025-07-20T12:08:05.738654"
             }
         }
     ],

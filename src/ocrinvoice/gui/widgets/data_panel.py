@@ -18,8 +18,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
-from .delegates import DateEditDelegate, BusinessComboDelegate
-from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
+from .delegates import DateEditDelegate, BusinessComboDelegate, CategoryComboDelegate
+from ocrinvoice.business.business_mapping_manager_v2 import BusinessMappingManagerV2 as BusinessMappingManager
 import re
 
 
@@ -52,14 +52,26 @@ class DataPanelWidget(QWidget):
     # Signal emitted when document type selection changes
     document_type_changed = pyqtSignal(str)  # Emits selected document type
 
-    def __init__(self, parent=None, business_names=None) -> None:
+    # Signal emitted when category selection changes
+    category_changed = pyqtSignal(str)  # Emits selected category
+
+    # Signal emitted when a new business is added
+    business_added = pyqtSignal(str)  # Emits the business name that was added
+
+    def __init__(self, parent=None, business_names=None, category_names=None, mapping_manager=None) -> None:
         super().__init__(parent)
         self.current_data: Dict[str, Any] = {}
         self.business_names = business_names or []
-        self.mapping_manager = BusinessMappingManager()
+        self.category_names = category_names or []
+        # Use shared mapping manager if provided, otherwise create new instance
+        self.mapping_manager = mapping_manager or BusinessMappingManager()
         self._setup_ui()
         # Connect businessAdded signal
         self.business_delegate.businessAdded.connect(self._on_business_added)
+        # Connect categoryAdded signal
+        self.category_delegate.categoryAdded.connect(self._on_category_added)
+        # Load categories into combo
+        self.update_categories(self.category_names)
 
     def _setup_ui(self) -> None:
         """Set up the user interface."""
@@ -96,6 +108,17 @@ class DataPanelWidget(QWidget):
             self._on_document_type_changed
         )
         project_layout.addWidget(self.document_type_combo)
+
+        # Add some spacing between document type and category
+        project_layout.addSpacing(20)
+
+        category_label = QLabel("📊 Category:")
+        project_layout.addWidget(category_label)
+
+        self.category_combo = QComboBox()
+        self.category_combo.setPlaceholderText("Select a category...")
+        self.category_combo.currentTextChanged.connect(self._on_category_changed)
+        project_layout.addWidget(self.category_combo)
 
         project_layout.addStretch()
         layout.addLayout(project_layout)
@@ -135,6 +158,10 @@ class DataPanelWidget(QWidget):
             self.business_names, self.data_table
         )
         self.data_table.setItemDelegateForRow(0, self.business_delegate)
+        self.category_delegate = CategoryComboDelegate(
+            self.category_names, self.data_table
+        )
+        self.data_table.setItemDelegateForRow(3, self.category_delegate)  # Category field
 
         # Action buttons
         button_layout = QHBoxLayout()
@@ -167,12 +194,32 @@ class DataPanelWidget(QWidget):
     def _on_project_changed(self, project_name: str) -> None:
         """Handle project selection change."""
         if project_name:
+            # Update the current data with the selected project
+            self.current_data["project"] = project_name
+            # Emit the updated data
+            self.data_changed.emit(self.current_data.copy())
+            # Emit the project change signal
             self.project_changed.emit(project_name)
 
     def _on_document_type_changed(self, document_type: str) -> None:
         """Handle document type selection change."""
         if document_type:
+            # Update the current data with the selected document type
+            self.current_data["documentType"] = document_type
+            # Emit the updated data
+            self.data_changed.emit(self.current_data.copy())
+            # Emit the document type change signal
             self.document_type_changed.emit(document_type)
+
+    def _on_category_changed(self, category: str) -> None:
+        """Handle category selection change."""
+        if category:
+            # Update the current data with the selected category
+            self.current_data["category"] = category
+            # Emit the updated data
+            self.data_changed.emit(self.current_data.copy())
+            # Emit the category change signal
+            self.category_changed.emit(category)
 
     def update_projects(self, projects: List[str]) -> None:
         """Update the project dropdown with available projects."""
@@ -199,6 +246,22 @@ class DataPanelWidget(QWidget):
         index = self.document_type_combo.findText(document_type)
         if index >= 0:
             self.document_type_combo.setCurrentIndex(index)
+
+    def update_categories(self, categories: List[str]) -> None:
+        """Update the category dropdown with available categories."""
+        self.category_combo.clear()
+        self.category_combo.addItem("")  # Empty option
+        self.category_combo.addItems(categories)
+
+    def set_selected_category(self, category: str) -> None:
+        """Set the selected category in the dropdown."""
+        index = self.category_combo.findText(category)
+        if index >= 0:
+            self.category_combo.setCurrentIndex(index)
+
+    def get_selected_category(self) -> str:
+        """Get the currently selected category."""
+        return self.category_combo.currentText()
 
     def _recalculate_confidence(self, field_key: str) -> None:
         """Recalculate confidence for a specific field when its value changes."""
@@ -550,22 +613,40 @@ class DataPanelWidget(QWidget):
         print(
             f"[DEBUG] DataPanelWidget: Adding new business '{business_name}' to mapping manager."
         )
+        # Add the canonical name
         added = self.mapping_manager.add_canonical_name(business_name)
         if added:
             print(
                 f"[DEBUG] DataPanelWidget: Successfully added '{business_name}' to mapping manager."
             )
-            # Also add a self-referencing alias mapping (business name as both key and value)
-            self.mapping_manager.add_mapping(
-                business_name, business_name, "exact_matches"
-            )
-            print(
-                f"[DEBUG] DataPanelWidget: Added self-referencing alias mapping for '{business_name}'."
-            )
+            # Get the business and add a self-referencing keyword
+            business = self.mapping_manager.get_business_by_name(business_name)
+            if business:
+                self.mapping_manager.add_keyword(business["id"], business_name, "exact")  # Changed from add_alias
+                print(
+                    f"[DEBUG] DataPanelWidget: Added self-referencing keyword mapping for '{business_name}'."
+                )
             # Reload business names from mapping manager
-            self.business_names = self.mapping_manager.get_all_business_names()
+            self.business_names = self.mapping_manager.get_all_dropdown_names()
             self.business_delegate.business_list = self.business_names
+            self.business_added.emit(business_name) # Emit the new signal
         else:
             print(
                 f"[DEBUG] DataPanelWidget: '{business_name}' already exists in mapping manager."
+            )
+
+    def _on_category_added(self, category_name: str) -> None:
+        """Handle a new category being added via the delegate."""
+        print(
+            f"[DEBUG] DataPanelWidget: Adding new category '{category_name}' to category list."
+        )
+        if category_name not in self.category_names:
+            self.category_names.append(category_name)
+            self.category_delegate.category_list = self.category_names
+            print(
+                f"[DEBUG] DataPanelWidget: Successfully added '{category_name}' to category list."
+            )
+        else:
+            print(
+                f"[DEBUG] DataPanelWidget: '{category_name}' already exists in category list."
             )

@@ -63,7 +63,7 @@ class FileNamingWidget(QWidget):
         self.template_input = QLineEdit()
         self.template_input.setPlaceholderText("Enter template format...")
         self.template_input.setText(
-            "{project}_{documentType}_{company}_{date}_{total}.pdf"
+            "{project}_{documentType}_{category}_{company}_{date}_{total}.pdf"
         )
         format_layout.addWidget(format_label)
         format_layout.addWidget(self.template_input)
@@ -78,6 +78,7 @@ class FileNamingWidget(QWidget):
             [
                 "Project",
                 "Document Type",
+                "Category",
                 "Company Name",
                 "Date",
                 "Total Amount",
@@ -102,10 +103,11 @@ class FileNamingWidget(QWidget):
         self.preset_combo = QComboBox()
         self.preset_combo.addItems(
             [
-                "Default: {project}_{documentType}_{company}_{date}_{total}.pdf",
+                "Default: {project}_{documentType}_{category}_{company}_{date}_{total}.pdf",
                 "Simple: {project}_{company}_{date}_{total}.pdf",
-                "Detailed: {project}_{date}_{company}_{documentType}_{total}_{invoice_number}.pdf",
+                "Detailed: {project}_{date}_{company}_{documentType}_{category}_{total}_{invoice_number}.pdf",
                 "No Project: {documentType}_{company}_{date}_{total}.pdf",
+                "Category First: {category}_{project}_{company}_{date}_{total}.pdf",
                 "Custom...",
             ]
         )
@@ -226,6 +228,7 @@ class FileNamingWidget(QWidget):
         field_map = {
             "Project": "{project}",
             "Document Type": "{documentType}",
+            "Category": "{category}",
             "Company Name": "{company}",
             "Date": "{date}",
             "Total Amount": "{total}",
@@ -716,6 +719,7 @@ class FileNamingWidget(QWidget):
             # Get current selections
             current_project = getattr(self, 'current_project', '')
             current_document_type = main_window.data_panel.get_selected_document_type() if hasattr(main_window, "data_panel") else ""
+            current_category = main_window.data_panel.get_selected_category() if hasattr(main_window, "data_panel") else ""
             
             # Update the extracted data with current selections
             updated_data = main_window.extracted_data.copy()
@@ -723,8 +727,10 @@ class FileNamingWidget(QWidget):
                 updated_data["selected_project"] = current_project
             if current_document_type:
                 updated_data["selected_document_type"] = current_document_type
+            if current_category:
+                updated_data["selected_category"] = current_category
             
-            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}'")
+            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}', category: '{current_category}'")
             print(f"💾 [RENAME METADATA] Updated data: {updated_data}")
             
             # IMPORTANT: Use the ORIGINAL file path (self.full_file_path) before rename
@@ -766,6 +772,7 @@ class FileNamingWidget(QWidget):
             # Get current selections
             current_project = getattr(self, 'current_project', '')
             current_document_type = main_window.data_panel.get_selected_document_type() if hasattr(main_window, "data_panel") else ""
+            current_category = main_window.data_panel.get_selected_category() if hasattr(main_window, "data_panel") else ""
             
             # Update the extracted data with current selections
             updated_data = main_window.extracted_data.copy()
@@ -773,8 +780,10 @@ class FileNamingWidget(QWidget):
                 updated_data["selected_project"] = current_project
             if current_document_type:
                 updated_data["selected_document_type"] = current_document_type
+            if current_category:
+                updated_data["selected_category"] = current_category
             
-            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}'")
+            print(f"💾 [RENAME METADATA] Saving project: '{current_project}', document type: '{current_document_type}', category: '{current_category}'")
             print(f"💾 [RENAME METADATA] Updated data: {updated_data}")
             
             # IMPORTANT: Use the NEW file path after rename

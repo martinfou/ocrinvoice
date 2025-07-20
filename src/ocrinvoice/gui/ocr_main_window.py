@@ -37,6 +37,9 @@ from ocrinvoice.gui.widgets.file_naming import FileNamingWidget
 from ocrinvoice.parsers.invoice_parser import InvoiceParser
 from ocrinvoice.config import get_config
 from ocrinvoice.utils.pdf_metadata_manager import PDFMetadataManager
+from ocrinvoice.business.business_mapping_manager_v2 import BusinessMappingManagerV2
+from ocrinvoice.business.project_manager import ProjectManager
+from ocrinvoice.business.category_manager import CategoryManager
 
 
 class OCRProcessingThread(QThread):
@@ -106,55 +109,38 @@ class OCRMainWindow(QMainWindow):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        print("🔧 Loading configuration...")
-        # Load configuration
-        self.config = get_config()
+        # Initialize configuration
+        self.config = self._load_config()
 
-        print("🤖 Initializing OCR parser...")
+        # Initialize managers with shared instances
+        self.business_mapping_manager = BusinessMappingManagerV2()
+        self.project_manager = ProjectManager()
+        self.category_manager = CategoryManager()
+        self.pdf_metadata_manager = PDFMetadataManager()
+
         # Initialize OCR parser
-        self.ocr_parser = InvoiceParser(self.config)
-
-        # OCR processing thread
-        self.ocr_thread: Optional[OCRProcessingThread] = None
-
-        # Current PDF path
-        self.current_pdf_path: Optional[str] = None
-
-        # Extracted data
-        self.extracted_data: Optional[Dict[str, Any]] = None
-
-        # Initialize business mapping manager for backups
-        self.business_mapping_manager = None
         try:
-            from ocrinvoice.business.business_mapping_manager import (
-                BusinessMappingManager,
-            )
-
-            self.business_mapping_manager = BusinessMappingManager()
+            self.ocr_parser = InvoiceParser(self.config)
             print("✅ Business mapping manager initialized")
         except Exception as e:
             print(f"⚠️ Could not initialize business mapping manager: {e}")
+            self.ocr_parser = None
 
-        # Initialize project manager
-        self.project_manager = None
-        try:
-            from ocrinvoice.business.project_manager import ProjectManager
+        print("✅ Project manager initialized")
+        print("✅ Category manager initialized")
+        print("✅ PDF metadata manager initialized")
 
-            self.project_manager = ProjectManager()
-            print("✅ Project manager initialized")
-        except Exception as e:
-            print(f"⚠️ Could not initialize project manager: {e}")
+        # Initialize OCR processing thread
+        self.ocr_thread = None
 
-        # Initialize PDF metadata manager
-        self.pdf_metadata_manager = None
-        try:
-            self.pdf_metadata_manager = PDFMetadataManager()
-            print("✅ PDF metadata manager initialized")
-        except Exception as e:
-            print(f"⚠️ Could not initialize PDF metadata manager: {e}")
+        # Current PDF path
+        self.current_pdf_path = None
 
+        # Extracted data
+        self.extracted_data = None
+
+        # Set up the user interface
         print("🎨 Setting up user interface...")
-        # Set up the UI
         self._setup_ui()
         self._setup_menu_bar()
         self._setup_status_bar()
@@ -170,6 +156,10 @@ class OCRMainWindow(QMainWindow):
         self._create_startup_backup()
 
         print("✅ Main window initialization complete")
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration for the application."""
+        return get_config()
 
     def _setup_ui(self) -> None:
         """Set up the main user interface components."""
@@ -192,6 +182,7 @@ class OCRMainWindow(QMainWindow):
         self._create_file_naming_tab()
         self._create_project_tab()
         self._create_business_aliases_tab()
+        self._create_category_tab()
         self._create_settings_tab()
 
     def _create_single_pdf_tab(self) -> None:
@@ -223,7 +214,7 @@ class OCRMainWindow(QMainWindow):
         self.ocr_progress = QProgressBar()
         self.ocr_progress.setVisible(False)
         self.ocr_progress.setRange(0, 100)  # Percentage-based progress
-        self.ocr_progress.setFormat("🔄 Processing PDF with OCR... %p%")
+        self.ocr_progress.setFormat("🔄 Processing PDF... %p%")
         layout.addWidget(self.ocr_progress)
 
         # Main content area: PDF preview and data panel side by side
@@ -238,8 +229,15 @@ class OCRMainWindow(QMainWindow):
         # Data Panel (right side)
         business_names = []
         if self.business_mapping_manager:
-            business_names = self.business_mapping_manager.get_all_business_names()
-        self.data_panel = DataPanelWidget(business_names=business_names)
+            business_names = self.business_mapping_manager.get_all_dropdown_names()
+        category_names = []
+        if self.category_manager:
+            category_names = self.category_manager.get_category_names()
+        self.data_panel = DataPanelWidget(
+            business_names=business_names, 
+            category_names=category_names,
+            mapping_manager=self.business_mapping_manager
+        )
         self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
         # Connect data changes to file naming updates
         self.data_panel.data_changed.connect(self._on_data_changed)
@@ -247,6 +245,10 @@ class OCRMainWindow(QMainWindow):
         self.data_panel.project_changed.connect(self._on_project_changed)
         # Connect document type selection changes
         self.data_panel.document_type_changed.connect(self._on_document_type_changed)
+        # Connect category selection changes
+        self.data_panel.category_changed.connect(self._on_category_changed)
+        # Connect business added signal to refresh business tab
+        self.data_panel.business_added.connect(self._on_business_added)
         content_splitter.addWidget(self.data_panel)
 
         # Set initial splitter sizes (60% PDF, 40% data)
@@ -366,13 +368,13 @@ class OCRMainWindow(QMainWindow):
         try:
             from .business_alias_tab import BusinessAliasTab
 
-            business_aliases_widget = BusinessAliasTab()
+            self.business_aliases_widget = BusinessAliasTab(mapping_manager=self.business_mapping_manager)
 
             # Connect alias update signal to refresh OCR data if needed
-            business_aliases_widget.alias_updated.connect(self._on_aliases_updated)
+            self.business_aliases_widget.alias_updated.connect(self._on_aliases_updated)
 
             # Add to tab widget
-            self.tab_widget.addTab(business_aliases_widget, "Business")
+            self.tab_widget.addTab(self.business_aliases_widget, "Business")
 
         except ImportError:
             # Fallback if business alias components are not available
@@ -439,6 +441,42 @@ class OCRMainWindow(QMainWindow):
         self._update_project_dropdown()
 
         self.status_bar.showMessage("Projects updated")
+
+    def _create_category_tab(self) -> None:
+        """Create the Categories tab."""
+        try:
+            from .category_tab import CategoryTab
+
+            category_widget = CategoryTab()
+
+            # Connect category update signal to refresh if needed
+            category_widget.category_updated.connect(self._on_categories_updated)
+
+            # Add to tab widget
+            self.tab_widget.addTab(category_widget, "Categories")
+
+        except ImportError:
+            # Fallback if category components are not available
+            fallback_widget = QWidget()
+            layout = QVBoxLayout(fallback_widget)
+
+            fallback_title = QLabel("Categories")
+            title_font = QFont()
+            title_font.setBold(True)
+            title_font.setPointSize(16)
+            fallback_title.setFont(title_font)
+            fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_title)
+
+            fallback_content = QLabel("Category management is not available.")
+            fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_content)
+
+            self.tab_widget.addTab(fallback_widget, "Categories")
+
+    def _on_categories_updated(self) -> None:
+        """Handle categories updates."""
+        self.status_bar.showMessage("Categories updated")
 
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar with enhanced menu items and keyboard shortcuts."""
@@ -508,6 +546,12 @@ class OCRMainWindow(QMainWindow):
         projects_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(4))
         view_menu.addAction(projects_action)
 
+        categories_action = QAction("&Categories", self)
+        categories_action.setShortcut(QKeySequence("Ctrl+6"))
+        categories_action.setStatusTip("Switch to Categories management tab")
+        categories_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(5))
+        view_menu.addAction(categories_action)
+
         # Help menu
         help_menu = menubar.addMenu("&Help")
 
@@ -569,6 +613,10 @@ class OCRMainWindow(QMainWindow):
             self.status_bar.showMessage(
                 "🏢 Business - Manage company name mappings for improved OCR accuracy"
             )
+        elif tab_name == "Categories":
+            self.status_bar.showMessage(
+                "📊 Categories - Manage CRA expense categories for tax purposes"
+            )
         else:
             self.status_bar.showMessage(f"Switched to {tab_name} tab")
 
@@ -593,13 +641,21 @@ class OCRMainWindow(QMainWindow):
     def _load_and_process_pdf(self, pdf_path: str, force_ocr: bool = False) -> None:
         """Load PDF and check for metadata first, then start OCR processing if needed."""
         try:
+            # Ensure window stays visible during PDF loading
+            self.raise_()
+            self.activateWindow()
+            
             # Load PDF in preview widget
             if self.pdf_preview.load_pdf(pdf_path):
                 self.current_pdf_path = pdf_path
                 self.status_bar.showMessage(f"Loaded PDF: {pdf_path}")
                 self._show_success_message("PDF loaded successfully")
                 
-
+                # Show progress bar for any processing (OCR or metadata loading)
+                self.ocr_progress.setVisible(True)
+                self.ocr_progress.setValue(0)
+                self.select_pdf_btn.setEnabled(False)
+                self.pdf_preview.force_ocr_btn.setEnabled(False)
 
                 # Check for saved metadata first (unless force_ocr is True)
                 if (
@@ -610,6 +666,8 @@ class OCRMainWindow(QMainWindow):
                     self.status_bar.showMessage(
                         "📋 Loading saved data from PDF metadata..."
                     )
+                    self.ocr_progress.setValue(50)  # Show progress for metadata loading
+                    
                     saved_data = self.pdf_metadata_manager.load_data_from_pdf(pdf_path)
                     if saved_data:
                         print(f"📋 [PDF METADATA LOADED] File: {pdf_path}")
@@ -618,6 +676,7 @@ class OCRMainWindow(QMainWindow):
                             f"📋 [PDF METADATA LOADED] Fields: {list(saved_data.keys())}"
                         )
                         # Use saved data instead of running OCR
+                        self.ocr_progress.setValue(100)  # Complete the progress
                         self._on_ocr_finished(saved_data)
                         self.status_bar.showMessage("✅ Loaded data from PDF metadata")
                         return
@@ -625,6 +684,8 @@ class OCRMainWindow(QMainWindow):
                 # No saved data found or force_ocr is True, start OCR processing
                 if force_ocr:
                     self.status_bar.showMessage("🔄 Force OCR: Processing PDF with fresh OCR...")
+                else:
+                    self.status_bar.showMessage("🔄 Processing PDF with OCR...")
                 self._start_ocr_processing(pdf_path)
             else:
                 self._show_error_message("Failed to load PDF file")
@@ -656,6 +717,10 @@ class OCRMainWindow(QMainWindow):
 
     def _on_ocr_finished(self, extracted_data: Dict[str, Any]) -> None:
         """Handle OCR processing finished successfully."""
+        # Ensure window stays visible after OCR processing
+        self.raise_()
+        self.activateWindow()
+        
         self.ocr_progress.setVisible(False)
         self.select_pdf_btn.setEnabled(True)
         self.pdf_preview.force_ocr_btn.setEnabled(True)
@@ -666,21 +731,45 @@ class OCRMainWindow(QMainWindow):
         # Update data panel
         self.data_panel.update_data(extracted_data)
 
-        # Restore project and document type selections from metadata
+        # Ensure dropdowns are populated before restoring selections
+        self._ensure_dropdowns_populated()
+
+        # Restore project, document type, and category selections from metadata
         selected_project = extracted_data.get("selected_project", "")
         selected_document_type = extracted_data.get("selected_document_type", "")
+        selected_category = extracted_data.get("selected_category", "")
+
+        print(f"🔍 [RESTORE SELECTIONS] Attempting to restore selections from metadata:")
+        print(f"🔍 [RESTORE SELECTIONS] Project: '{selected_project}'")
+        print(f"🔍 [RESTORE SELECTIONS] Document Type: '{selected_document_type}'")
+        print(f"🔍 [RESTORE SELECTIONS] Category: '{selected_category}'")
 
         # Set project selection if found in metadata
         if selected_project:
-            self.data_panel.set_selected_project(selected_project)
-            if self.file_naming_widget:
-                self.file_naming_widget.set_project(selected_project)
-            print(f"✅ Restored project selection: {selected_project}")
+            success = self._restore_project_selection(selected_project)
+            if success:
+                print(f"✅ Restored project selection: {selected_project}")
+                # Update file naming widget with the restored project
+                if self.file_naming_widget:
+                    self.file_naming_widget.set_project(selected_project)
+            else:
+                print(f"⚠️ Failed to restore project selection: {selected_project}")
 
         # Set document type selection if found in metadata
         if selected_document_type:
-            self.data_panel.set_selected_document_type(selected_document_type)
-            print(f"✅ Restored document type selection: {selected_document_type}")
+            success = self._restore_document_type_selection(selected_document_type)
+            if success:
+                print(f"✅ Restored document type selection: {selected_document_type}")
+            else:
+                print(f"⚠️ Failed to restore document type selection: {selected_document_type}")
+
+        # Set category selection if found in metadata
+        if selected_category:
+            success = self._restore_category_selection(selected_category)
+            if success:
+                print(f"✅ Restored category selection: {selected_category}")
+            else:
+                print(f"⚠️ Failed to restore category selection: {selected_category}")
 
         # Update file naming widget with extracted data
         if self.current_pdf_path:
@@ -746,6 +835,126 @@ class OCRMainWindow(QMainWindow):
 
         self.status_bar.showMessage(status_msg)
         self._show_success_message("OCR processing completed successfully")
+
+    def _ensure_dropdowns_populated(self) -> None:
+        """Ensure all dropdowns are properly populated before restoring selections."""
+        # Ensure project dropdown is populated
+        if self.project_manager and self.data_panel:
+            try:
+                projects = self.project_manager.get_project_names()
+                self.data_panel.update_projects(projects)
+                print(f"🔧 [DROPDOWN POPULATION] Project dropdown populated with {len(projects)} projects: {projects}")
+            except Exception as e:
+                print(f"⚠️ Could not populate project dropdown: {e}")
+
+        # Ensure category dropdown is populated
+        if self.category_manager and self.data_panel:
+            try:
+                categories = self.category_manager.get_category_names()
+                self.data_panel.update_categories(categories)
+                print(f"🔧 [DROPDOWN POPULATION] Category dropdown populated with {len(categories)} categories: {categories}")
+            except Exception as e:
+                print(f"⚠️ Could not populate category dropdown: {e}")
+
+    def _restore_project_selection(self, project_name: str) -> bool:
+        """Restore project selection, adding the project if it doesn't exist."""
+        if not project_name:
+            return False
+
+        # Try to set the selection
+        self.data_panel.set_selected_project(project_name)
+        
+        # Check if the selection was successful
+        current_selection = self.data_panel.get_selected_project()
+        if current_selection == project_name:
+            return True
+
+        # If the project doesn't exist, try to add it
+        print(f"🔧 [PROJECT RESTORE] Project '{project_name}' not found in dropdown, attempting to add it")
+        try:
+            if self.project_manager:
+                # Check if project exists in manager but not in dropdown
+                existing_projects = self.project_manager.get_project_names()
+                if project_name not in existing_projects:
+                    # Add the project to the manager
+                    self.project_manager.add_project(project_name, f"Auto-added from PDF metadata")
+                    print(f"✅ [PROJECT RESTORE] Added project '{project_name}' to project manager")
+                
+                # Refresh the dropdown
+                projects = self.project_manager.get_project_names()
+                self.data_panel.update_projects(projects)
+                
+                # Try to set the selection again
+                self.data_panel.set_selected_project(project_name)
+                current_selection = self.data_panel.get_selected_project()
+                
+                if current_selection == project_name:
+                    print(f"✅ [PROJECT RESTORE] Successfully restored project selection: {project_name}")
+                    return True
+                else:
+                    print(f"⚠️ [PROJECT RESTORE] Still failed to restore project selection: {project_name}")
+                    return False
+        except Exception as e:
+            print(f"⚠️ [PROJECT RESTORE] Error adding project '{project_name}': {e}")
+            return False
+
+    def _restore_document_type_selection(self, document_type: str) -> bool:
+        """Restore document type selection."""
+        if not document_type:
+            return False
+
+        # Try to set the selection
+        self.data_panel.set_selected_document_type(document_type)
+        
+        # Check if the selection was successful
+        current_selection = self.data_panel.get_selected_document_type()
+        if current_selection == document_type:
+            return True
+        else:
+            print(f"⚠️ [DOCUMENT TYPE RESTORE] Failed to restore document type selection: '{document_type}' (current: '{current_selection}')")
+            return False
+
+    def _restore_category_selection(self, category_name: str) -> bool:
+        """Restore category selection, adding the category if it doesn't exist."""
+        if not category_name:
+            return False
+
+        # Try to set the selection
+        self.data_panel.set_selected_category(category_name)
+        
+        # Check if the selection was successful
+        current_selection = self.data_panel.get_selected_category()
+        if current_selection == category_name:
+            return True
+
+        # If the category doesn't exist, try to add it
+        print(f"🔧 [CATEGORY RESTORE] Category '{category_name}' not found in dropdown, attempting to add it")
+        try:
+            if self.category_manager:
+                # Check if category exists in manager but not in dropdown
+                existing_categories = self.category_manager.get_category_names()
+                if category_name not in existing_categories:
+                    # Add the category to the manager
+                    self.category_manager.add_category(category_name, f"Auto-added from PDF metadata")
+                    print(f"✅ [CATEGORY RESTORE] Added category '{category_name}' to category manager")
+                
+                # Refresh the dropdown
+                categories = self.category_manager.get_category_names()
+                self.data_panel.update_categories(categories)
+                
+                # Try to set the selection again
+                self.data_panel.set_selected_category(category_name)
+                current_selection = self.data_panel.get_selected_category()
+                
+                if current_selection == category_name:
+                    print(f"✅ [CATEGORY RESTORE] Successfully restored category selection: {category_name}")
+                    return True
+                else:
+                    print(f"⚠️ [CATEGORY RESTORE] Still failed to restore category selection: {category_name}")
+                    return False
+        except Exception as e:
+            print(f"⚠️ [CATEGORY RESTORE] Error adding category '{category_name}': {e}")
+            return False
 
     def _on_ocr_error(self, error_message: str) -> None:
         """Handle OCR processing error."""
@@ -926,6 +1135,22 @@ class OCRMainWindow(QMainWindow):
         # Update the status bar
         self.status_bar.showMessage(f"Document type selected: {document_type}")
 
+    def _on_category_changed(self, category: str) -> None:
+        """Handle category selection changes from the data panel."""
+        # Update the file naming widget's preview to reflect the new category
+        if self.file_naming_widget:
+            self.file_naming_widget._update_preview()
+
+        # Update the status bar
+        self.status_bar.showMessage(f"Category selected: {category}")
+
+    def _on_business_added(self) -> None:
+        """Handle business added signal from data panel."""
+        # Refresh the business aliases tab to show the new business
+        if hasattr(self, "business_aliases_widget") and self.business_aliases_widget:
+            self.business_aliases_widget.refresh_aliases()
+        self.status_bar.showMessage("Business added - Business tab refreshed")
+
     def _update_project_dropdown(self) -> None:
         """Update the project dropdown with available projects."""
         if self.project_manager and self.data_panel:
@@ -975,6 +1200,7 @@ Navigation:
   Ctrl+3          Switch to Settings tab
   Ctrl+4          Switch to Business tab
   Ctrl+5          Switch to Projects tab
+  Ctrl+6          Switch to Categories tab
 
 Help:
   F1              Show this help dialog
@@ -1095,13 +1321,14 @@ def main() -> None:
     )
     app.processEvents()
 
+    # Ensure window is visible and not minimized
     window.show()
-
-    def force_window_size():
-        window.resize(900, 800)
-        window.move(100, 100)
-
-    QTimer.singleShot(0, force_window_size)
+    window.raise_()
+    window.activateWindow()
+    
+    # Set window size and position without forcing it
+    window.resize(1800, 800)
+    window.move(100, 100)
 
     splash.finish(window)
 

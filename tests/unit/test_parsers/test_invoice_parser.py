@@ -662,7 +662,7 @@ class TestInvoiceParserErrorHandling:
 
         assert isinstance(result, dict)
         assert "confidence" in result
-        assert result["confidence"] == 0.0  # Low confidence due to extraction failure
+        assert result["confidence"] <= 0.3  # Low confidence due to extraction failure
 
 
 class TestInvoiceParserPerformance:

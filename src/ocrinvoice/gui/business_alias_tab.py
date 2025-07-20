@@ -84,18 +84,19 @@ class AliasManagerThread(QThread):
         businesses = self.mapping_manager.get_all_businesses()
         
         for business in businesses:
-            canonical_name = business["canonical_name"]
+            # Handle both old and new field names for backward compatibility
+            business_name = business.get("business_name") or business.get("canonical_name", "")
+            keywords = business.get("keywords") or business.get("aliases", [])
             
-            # Add all aliases for this business
-            for alias in business["aliases"]:
+            for keyword in keywords:
                 alias_data = {
-                    "company_name": alias["keyword"],
-                    "canonical_name": canonical_name,
-                    "match_type": alias["match_type"].title(),  # Convert to title case
+                    "company_name": keyword["keyword"],
+                    "canonical_name": business_name,  # Keep canonical_name for table compatibility
+                    "match_type": keyword["match_type"].title(),  # Convert to title case
                     "usage_count": 0,  # TODO: Implement usage tracking
                     "last_used": "",
-                    "fuzzy_matching": alias.get("fuzzy_matching", True),
-                    "case_sensitive": alias.get("case_sensitive", False),
+                    "fuzzy_matching": keyword.get("fuzzy_matching", True),
+                    "case_sensitive": keyword.get("case_sensitive", False),
                     "business_id": business["id"],  # Add business ID for reference
                 }
                 aliases.append(alias_data)
@@ -103,43 +104,47 @@ class AliasManagerThread(QThread):
         return aliases
 
     def _save_alias_to_manager(self, alias_data: Dict[str, Any]):
-        """Save an alias to the business mapping manager."""
+        """Save a keyword to the business mapping manager."""
         company_name = alias_data["company_name"]
         canonical_name = alias_data["canonical_name"]
         match_type = alias_data["match_type"].lower()  # Convert to lowercase for new structure
 
-        # First, ensure the canonical name exists
+        # First, ensure the business name exists
         if canonical_name not in self.mapping_manager.canonical_names:
             self.mapping_manager.add_canonical_name(canonical_name)
 
-        # Find the business by canonical name
+        # Find the business by business name
         business = self.mapping_manager.get_business_by_name(canonical_name)
         if business:
-            # Add the alias to the business
-            self.mapping_manager.add_alias(business["id"], company_name, match_type)
+            # Add the keyword to the business
+            self.mapping_manager.add_keyword(business["id"], company_name, match_type)  # Changed from add_alias
         else:
-            # This shouldn't happen since we just added the canonical name
-            print(f"Warning: Could not find business for canonical name: {canonical_name}")
+            # This shouldn't happen since we just added the business name
+            print(f"Warning: Could not find business for business name: {canonical_name}")
 
     def _delete_alias_from_manager(self, company_name: str):
-        """Delete an alias from the business mapping manager."""
-        # Find the business that contains this alias
+        """Delete a keyword from the business mapping manager."""
+        # Find the business that contains this keyword
         for business in self.mapping_manager.get_all_businesses():
-            for alias in business["aliases"]:
-                if alias["keyword"] == company_name:
-                    # Remove the alias from the business
-                    self.mapping_manager.remove_alias(business["id"], company_name, alias["match_type"])
+            # Handle both old and new field names for backward compatibility
+            keywords = business.get("keywords") or business.get("aliases", [])
+            business_name = business.get("business_name") or business.get("canonical_name", "")
+            
+            for keyword in keywords:
+                if keyword["keyword"] == company_name:
+                    # Remove the keyword from the business
+                    self.mapping_manager.remove_keyword(business["id"], company_name, keyword["match_type"])
                     
-                    # Check if this was the last alias for the business
-                    remaining_aliases = self.mapping_manager.get_business_aliases(business["id"])
-                    if not remaining_aliases:
-                        # Remove the business if it has no more aliases
-                        self.mapping_manager.remove_canonical_name(business["canonical_name"])
+                    # Check if this was the last keyword for the business
+                    remaining_keywords = self.mapping_manager.get_business_keywords(business["id"])
+                    if not remaining_keywords:
+                        # Remove the business if it has no more keywords
+                        self.mapping_manager.remove_canonical_name(business_name)
                     
                     return
         
-        # If we get here, the alias wasn't found
-        print(f"Warning: Could not find alias to delete: {company_name}")
+        # If we get here, the keyword wasn't found
+        print(f"Warning: Could not find keyword to delete: {company_name}")
 
 
 class NewBusinessDialog(QDialog):
@@ -247,11 +252,11 @@ class BusinessAliasTab(QWidget):
     # Custom signals
     alias_updated = pyqtSignal()  # Emitted when aliases are modified
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: Optional[QWidget] = None, mapping_manager: Optional[BusinessMappingManager] = None) -> None:
         super().__init__(parent)
 
-        # Initialize business mapping manager
-        self.mapping_manager = BusinessMappingManager()
+        # Use shared business mapping manager if provided, otherwise create new instance
+        self.mapping_manager = mapping_manager or BusinessMappingManager()
 
         # Background thread for operations
         self.alias_thread = AliasManagerThread(self.mapping_manager)
@@ -300,30 +305,25 @@ class BusinessAliasTab(QWidget):
         self.add_business_button.clicked.connect(self._on_add_new_business)
         toolbar_layout.addWidget(self.add_business_button)
 
-        # Add alias button
-        self.add_button = QPushButton("➕ Add Alias")
-        self.add_button.setToolTip("Add an alias for an existing business")
+        # Add keyword button
+        self.add_button = QPushButton("➕ Add Keyword")
+        self.add_button.setToolTip("Add a keyword for an existing business")
         self.add_button.clicked.connect(self._on_add_alias)
         toolbar_layout.addWidget(self.add_button)
 
         # Edit button
-        self.edit_button = QPushButton("✏️ Edit Alias")
+        self.edit_button = QPushButton("✏️ Edit Keyword")
         self.edit_button.clicked.connect(self._on_edit_alias)
         self.edit_button.setEnabled(False)
         toolbar_layout.addWidget(self.edit_button)
 
         # Delete button
-        self.delete_button = QPushButton("🗑️ Delete Alias")
+        self.delete_button = QPushButton("🗑️ Delete Keyword")
         self.delete_button.clicked.connect(self._on_delete_alias)
         self.delete_button.setEnabled(False)
         toolbar_layout.addWidget(self.delete_button)
 
         toolbar_layout.addStretch()
-
-        # Refresh button
-        self.refresh_button = QPushButton("🔄 Refresh")
-        self.refresh_button.clicked.connect(self._load_aliases)
-        toolbar_layout.addWidget(self.refresh_button)
 
         # Backup/Restore button
         self.backup_button = QPushButton("💾 Backup/Restore")
@@ -361,7 +361,7 @@ class BusinessAliasTab(QWidget):
         stats_group = QGroupBox("Statistics")
         stats_layout = QVBoxLayout(stats_group)
 
-        self.total_aliases_label = QLabel("Total Aliases: 0")
+        self.total_aliases_label = QLabel("Total Keywords: 0")
         self.exact_matches_label = QLabel("Exact Matches: 0")
         self.variant_matches_label = QLabel("Variant Matches: 0")
         self.fuzzy_matches_label = QLabel("Fuzzy Matches: 0")
@@ -399,9 +399,17 @@ class BusinessAliasTab(QWidget):
 
     def _on_aliases_loaded(self, aliases: List[Dict[str, Any]]) -> None:
         """Handle aliases loaded from the manager."""
+        # Clear any active search to ensure we see all data
+        self.search_edit.clear()
+        
+        # Load aliases into table
         self.alias_table.load_aliases(aliases)
+        
+        # Update statistics
         self._update_statistics(aliases)
-        self.status_bar.showMessage(f"Loaded {len(aliases)} aliases")
+        
+        # Update status
+        self.status_bar.showMessage(f"Loaded {len(aliases)} keywords")
 
     def _update_statistics(self, aliases: List[Dict[str, Any]]) -> None:
         """Update the statistics panel."""
@@ -410,7 +418,7 @@ class BusinessAliasTab(QWidget):
         variant = len([a for a in aliases if a.get("match_type") == "Variant"])
         fuzzy = len([a for a in aliases if a.get("match_type") == "Fuzzy"])
 
-        self.total_aliases_label.setText(f"Total Aliases: {total}")
+        self.total_aliases_label.setText(f"Total Keywords: {total}")
         self.exact_matches_label.setText(f"Exact Matches: {exact}")
         self.variant_matches_label.setText(f"Variant Matches: {variant}")
         self.fuzzy_matches_label.setText(f"Fuzzy Matches: {fuzzy}")
@@ -430,7 +438,7 @@ class BusinessAliasTab(QWidget):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             business_name = dialog.get_business_name()
             if business_name:
-                # Create alias data with business name as both keyword and canonical name
+                # Create keyword data with business name as both keyword and business name
                 alias_data = {
                     "company_name": business_name,  # This is the keyword
                     "canonical_name": business_name,  # This is the business name
@@ -443,21 +451,21 @@ class BusinessAliasTab(QWidget):
                 self.alias_thread.save_alias(alias_data)
 
     def _on_add_alias(self) -> None:
-        """Handle add alias button click."""
-        canonical_names = self.mapping_manager.get_canonical_names()
-        dialog = AliasDialog(self, official_names=canonical_names)
+        """Handle add keyword button click."""
+        business_names = self.mapping_manager.get_canonical_names()
+        dialog = AliasDialog(self, official_names=business_names)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             alias_data = dialog.get_alias_data()
             self.alias_thread.save_alias(alias_data)
 
     def _on_edit_alias(self, alias_data: Optional[Dict[str, Any]] = None) -> None:
-        """Handle edit alias button click."""
+        """Handle edit keyword button click."""
         if alias_data is None:
             alias_data = self.alias_table.get_selected_alias()
             if not alias_data:
                 return
-        canonical_names = self.mapping_manager.get_canonical_names()
-        dialog = AliasDialog(self, alias_data, official_names=canonical_names)
+        business_names = self.mapping_manager.get_canonical_names()
+        dialog = AliasDialog(self, alias_data, official_names=business_names)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             alias_data = dialog.get_alias_data()
             self.alias_thread.save_alias(alias_data)
@@ -490,19 +498,19 @@ class BusinessAliasTab(QWidget):
                     alias_data = self.alias_table.get_alias_at_row(row)
         
         if not alias_data:
-            QMessageBox.warning(self, "No Selection", "Please select an alias to delete.")
+            QMessageBox.warning(self, "No Selection", "Please select a keyword to delete.")
             return
 
         company_name = alias_data["company_name"]
-        canonical_name = alias_data["canonical_name"]
+        business_name = alias_data["canonical_name"]
         
         # Show more detailed confirmation message
         reply = QMessageBox.question(
             self,
             "Confirm Delete",
-            f"Are you sure you want to delete the alias?\n\n"
+            f"Are you sure you want to delete the keyword?\n\n"
             f"Keyword: '{company_name}'\n"
-            f"Business: '{canonical_name}'\n"
+            f"Business: '{business_name}'\n"
             f"Match Type: {alias_data.get('match_type', 'Unknown')}",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -512,17 +520,17 @@ class BusinessAliasTab(QWidget):
             self.alias_thread.delete_alias(company_name)
 
     def _on_delete_alias_requested(self, alias_data: Dict[str, Any]) -> None:
-        """Handle delete alias request from table context menu."""
+        """Handle delete keyword request from table context menu."""
         company_name = alias_data["company_name"]
-        canonical_name = alias_data["canonical_name"]
+        business_name = alias_data["canonical_name"]
         
         # Show more detailed confirmation message
         reply = QMessageBox.question(
             self,
             "Confirm Delete",
-            f"Are you sure you want to delete the alias?\n\n"
+            f"Are you sure you want to delete the keyword?\n\n"
             f"Keyword: '{company_name}'\n"
-            f"Business: '{canonical_name}'\n"
+            f"Business: '{business_name}'\n"
             f"Match Type: {alias_data.get('match_type', 'Unknown')}",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -533,7 +541,7 @@ class BusinessAliasTab(QWidget):
 
     def _on_alias_saved(self, alias_data: Dict[str, Any]) -> None:
         """Handle alias saved."""
-        self.status_bar.showMessage(f"Alias saved: {alias_data['company_name']}")
+        self.status_bar.showMessage(f"Keyword saved: {alias_data['company_name']}")
         self.alias_updated.emit()
 
         # Add a small delay to ensure file is saved before reloading
@@ -543,7 +551,7 @@ class BusinessAliasTab(QWidget):
 
     def _on_alias_deleted(self, company_name: str) -> None:
         """Handle alias deleted."""
-        self.status_bar.showMessage(f"Alias deleted: {company_name}")
+        self.status_bar.showMessage(f"Keyword deleted: {company_name}")
         self.alias_updated.emit()
 
         # Clear the table selection and disable buttons
@@ -579,9 +587,9 @@ class BusinessAliasTab(QWidget):
                 "Reload Error",
                 f"Failed to reload data after deletion: {str(e)}\n\nTrying to recover...",
             )
-            # Try to recover by forcing a full refresh
+            # Try to recover by forcing a reload
             try:
-                self.refresh_data()
+                self._load_aliases()
             except Exception as e2:
                 QMessageBox.critical(
                     self,
@@ -594,21 +602,6 @@ class BusinessAliasTab(QWidget):
         QMessageBox.critical(self, "Error", f"An error occurred: {error_message}")
         self.status_bar.showMessage("Error occurred")
 
-    def refresh_data(self) -> None:
-        """Refresh the alias data."""
-        try:
-            # For v2, just reload aliases directly
-            self._load_aliases()
-        except Exception as e:
-            # If refresh fails, show error and try to recover
-            QMessageBox.warning(
-                self,
-                "Refresh Error",
-                f"Failed to refresh data: {str(e)}\n\nTrying to recover...",
-            )
-            # Try to load without reloading config
-            self._load_aliases()
-
     def _on_backup_restore(self) -> None:
         """Handle backup/restore button click."""
         try:
@@ -616,7 +609,7 @@ class BusinessAliasTab(QWidget):
 
             dialog = BackupRestoreDialog(self, self.mapping_manager)
             if dialog.exec() == QDialog.DialogCode.Accepted:
-                # Refresh data after backup/restore operations
+                # Reload data after backup/restore operations
                 self._load_aliases()
         except ImportError as e:
             QMessageBox.warning(

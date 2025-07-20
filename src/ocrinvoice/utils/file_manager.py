@@ -17,9 +17,9 @@ class FileManager:
         self.config = config
         self.file_config = config.get("file_management", {})
         self.rename_enabled = self.file_config.get("rename_files", False)
-        # Update default template to include project and documentType
+        # Update default template to include project, documentType, and category
         self.rename_format = self.file_config.get(
-            "rename_format", "{project}_{documentType}_{company}_{date}_{total}.pdf"
+            "rename_format", "{project}_{documentType}_{category}_{company}_{date}_{total}.pdf"
         )
         self.dry_run = self.file_config.get("rename_dry_run", False)
         self.backup_original = self.file_config.get("backup_original", False)
@@ -56,6 +56,7 @@ class FileManager:
         # Use documentType from extracted data, fallback to config, then "unknown"
         document_type = extracted_data.get("documentType", self.document_type or "unknown")
         project = extracted_data.get("project", "project")  # Default to "project"
+        category = extracted_data.get("category", "unknown")  # Default to "unknown"
 
         # Handle missing or invalid data
         if not company or company == "unknown":
@@ -64,6 +65,8 @@ class FileManager:
             document_type = "unknown"
         if not project:
             project = "project"
+        if not category or category == "unknown":
+            category = "unknown-category"
         if not total:
             total = "unknown"
         else:
@@ -86,6 +89,7 @@ class FileManager:
         filename = self.rename_format.format(
             project=project,
             documentType=document_type,
+            category=category,
             date=date_str,
             company=company,
             total=total,

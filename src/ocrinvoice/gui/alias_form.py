@@ -141,6 +141,7 @@ class AliasForm(QWidget):
 
         self.save_button = QPushButton("Save Alias")
         self.save_button.setEnabled(False)
+        self.save_button.setDefault(True)  # Make save button the default
         button_layout.addWidget(self.save_button)
 
         layout.addLayout(button_layout)
@@ -212,6 +213,11 @@ class AliasForm(QWidget):
 
         # Enable/disable save button
         self.save_button.setEnabled(is_valid)
+        
+        # Ensure save button remains the default when valid
+        if is_valid:
+            self.save_button.setDefault(True)
+            self.cancel_button.setDefault(False)
 
     def _on_save(self) -> None:
         """Handle save button click."""

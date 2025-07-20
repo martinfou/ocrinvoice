@@ -422,10 +422,6 @@ class AliasTable(QTableWidget):
         """Get currently filtered aliases."""
         return self._filtered_aliases.copy()
 
-    def refresh_display(self) -> None:
-        """Refresh the table display."""
-        self._populate_table()
-
     def select_alias(self, company_name: str) -> bool:
         """
         Select an alias by company name.

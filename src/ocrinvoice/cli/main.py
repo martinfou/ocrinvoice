@@ -462,9 +462,9 @@ def list_mappings():
 
         # Canonical business names
         click.echo("\n🏢 Canonical Business Names:")
-        canonical_names = manager.get_canonical_names()
-        if canonical_names:
-            for name in canonical_names:
+        business_names = manager.get_business_names()
+        if business_names:
+            for name in business_names:
                 click.echo(f"  • {name}")
         else:
             click.echo("  (none defined)")

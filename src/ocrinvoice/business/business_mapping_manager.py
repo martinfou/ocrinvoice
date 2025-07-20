@@ -41,12 +41,12 @@ class BusinessMappingManager:
         self.mapping_file = self._resolve_mapping_file_path(mapping_file)
         self.config = self._load_config()
 
-        # Load canonical business names
-        self.canonical_names = set(self.config.get("canonical_names", []))
-        if not self.canonical_names:
-            print("Warning: No canonical business names defined in configuration.")
+        # Load business names
+        self.business_names = set(self.config.get("business_names", []))
+        if not self.business_names:
+            print("Warning: No business names defined in configuration.")
 
-        # Validate that all mappings resolve to a canonical name
+        # Validate that all mappings resolve to a business name
         self._validate_mappings()
 
     def _resolve_mapping_file_path(self, mapping_file: Optional[str]) -> str:
@@ -88,7 +88,7 @@ class BusinessMappingManager:
         if not os.path.exists(self.mapping_file):
             # Return default empty config if file doesn't exist
             return {
-                "canonical_names": [],
+                "business_names": [],
                 "exact_matches": {},
                 "partial_matches": {},
                 "fuzzy_candidates": [],
@@ -104,10 +104,18 @@ class BusinessMappingManager:
             with open(self.mapping_file, "r", encoding="utf-8") as f:
                 config = json.load(f)
 
-            # Migrate from old "official_names" to "canonical_names" if needed
-            if "official_names" in config and "canonical_names" not in config:
-                config["canonical_names"] = config.pop("official_names")
-                print("Migrated 'official_names' to 'canonical_names' in configuration")
+            # Migrate from old "official_names" to "business_names" if needed
+            if "official_names" in config and "business_names" not in config:
+                config["business_names"] = config.pop("official_names")
+                print("Migrated 'official_names' to 'business_names' in configuration")
+                # Save the migrated config
+                with open(self.mapping_file, "w", encoding="utf-8") as f:
+                    json.dump(config, f, indent=4, ensure_ascii=False)
+            
+            # Migrate from old "canonical_names" to "business_names" if needed
+            if "canonical_names" in config and "business_names" not in config:
+                config["business_names"] = config.pop("canonical_names")
+                print("Migrated 'canonical_names' to 'business_names' in configuration")
                 # Save the migrated config
                 with open(self.mapping_file, "w", encoding="utf-8") as f:
                     json.dump(config, f, indent=4, ensure_ascii=False)
@@ -117,7 +125,7 @@ class BusinessMappingManager:
             print(f"Warning: Could not load mapping file {self.mapping_file}: {e}")
             # Return default config instead of recursive call
             return {
-                "canonical_names": [],
+                "business_names": [],
                 "exact_matches": {},
                 "partial_matches": {},
                 "fuzzy_candidates": [],
@@ -130,11 +138,11 @@ class BusinessMappingManager:
             }
 
     def _validate_mappings(self) -> None:
-        """Validate that all mappings resolve to a canonical business name."""
+        """Validate that all mappings resolve to a business name."""
 
         def check_name(name: str) -> None:
-            if name not in self.canonical_names:
-                print(f"Warning: Mapping '{name}' is not in canonical_names list.")
+            if name not in self.business_names:
+                print(f"Warning: Mapping '{name}' is not in business_names list.")
 
         # Check exact_matches
         for mapping, business_name in self.config.get("exact_matches", {}).items():
@@ -146,73 +154,73 @@ class BusinessMappingManager:
         for business_name in self.config.get("fuzzy_candidates", []):
             check_name(business_name)
 
-    def get_canonical_names(self) -> List[str]:
-        """Return the list of canonical business names."""
-        return sorted(list(self.canonical_names))
+    def get_business_names(self) -> List[str]:
+        """Return the list of business names."""
+        return sorted(list(self.business_names))
 
-    def add_canonical_name(self, name: str) -> bool:
+    def add_business_name(self, name: str) -> bool:
         """
-        Add a new canonical business name.
+        Add a new business name.
 
         Args:
-            name: The canonical business name to add
+            name: The business name to add
 
         Returns:
             True if added successfully, False if already exists
         """
-        if name not in self.canonical_names:
-            self.canonical_names.add(name)
+        if name not in self.business_names:
+            self.business_names.add(name)
             # Preserve order by appending to the existing list instead of converting set to list
-            if "canonical_names" not in self.config:
-                self.config["canonical_names"] = []
-            if name not in self.config["canonical_names"]:
-                self.config["canonical_names"].append(name)
+            if "business_names" not in self.config:
+                self.config["business_names"] = []
+            if name not in self.config["business_names"]:
+                self.config["business_names"].append(name)
             self._save_config()
             return True
         return False
 
-    def remove_canonical_name(self, name: str) -> bool:
+    def remove_business_name(self, name: str) -> bool:
         """
-        Remove a canonical business name.
+        Remove a business name.
 
         Args:
-            name: The canonical business name to remove
+            name: The business name to remove
 
         Returns:
             True if removed successfully, False if not found
         """
-        if name in self.canonical_names:
-            self.canonical_names.remove(name)
+        if name in self.business_names:
+            self.business_names.remove(name)
             # Remove from the list while preserving order
-            if "canonical_names" in self.config and name in self.config["canonical_names"]:
-                self.config["canonical_names"].remove(name)
+            if "business_names" in self.config and name in self.config["business_names"]:
+                self.config["business_names"].remove(name)
             self._save_config()
             return True
         return False
 
-    def update_canonical_name(self, old_name: str, new_name: str) -> bool:
+    def update_business_name(self, old_name: str, new_name: str) -> bool:
         """
-        Update a canonical business name.
+        Update a business name.
 
         Args:
-            old_name: The current canonical business name
-            new_name: The new canonical business name
+            old_name: The current business name
+            new_name: The new business name
 
         Returns:
             True if updated successfully, False if old name not found or new name already exists
         """
-        if old_name not in self.canonical_names:
+        if old_name not in self.business_names:
             return False
-        if new_name in self.canonical_names and new_name != old_name:
+        if new_name in self.business_names and new_name != old_name:
             return False
 
         # Remove old name and add new name
-        self.canonical_names.remove(old_name)
-        self.canonical_names.add(new_name)
+        self.business_names.remove(old_name)
+        self.business_names.add(new_name)
         # Update the list while preserving order
-        if "canonical_names" in self.config and old_name in self.config["canonical_names"]:
-            old_index = self.config["canonical_names"].index(old_name)
-            self.config["canonical_names"][old_index] = new_name
+        if "business_names" in self.config and old_name in self.config["business_names"]:
+            old_index = self.config["business_names"].index(old_name)
+            self.config["business_names"][old_index] = new_name
 
         # Update all mappings that reference the old name
         exact_matches = self.config.get("exact_matches", {})
@@ -239,16 +247,16 @@ class BusinessMappingManager:
         self._save_config()
         return True
 
-    def is_canonical_name(self, name: str) -> bool:
-        """Check if a name is in the canonical business names list (case-insensitive)."""
+    def is_business_name(self, name: str) -> bool:
+        """Check if a name is in the business names list (case-insensitive)."""
         if not name:
             return False
-        # Normalize both the input name and canonical names to lowercase for case-insensitive comparison
+        # Normalize both the input name and business names to lowercase for case-insensitive comparison
         name_normalized = name.lower()
-        canonical_names_normalized = {
-            canonical.lower() for canonical in self.canonical_names
+        business_names_normalized = {
+            business.lower() for business in self.business_names
         }
-        return name_normalized in canonical_names_normalized
+        return name_normalized in business_names_normalized
 
     def find_business_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """
@@ -472,6 +480,19 @@ class BusinessMappingManager:
 
         return sorted(list(business_names))
 
+    def get_all_dropdown_names(self) -> List[str]:
+        """Get all names that should be available in dropdown (business names + keywords)."""
+        dropdown_names = set()
+
+        # Add business names
+        dropdown_names.update(self.business_names)
+
+        # Add all mapping keys (keywords)
+        dropdown_names.update(self.config.get("exact_matches", {}).keys())
+        dropdown_names.update(self.config.get("partial_matches", {}).keys())
+
+        return sorted(list(dropdown_names))
+
     def get_stats(self) -> Dict[str, int]:
         """Get statistics about the mapping configuration."""
         return {
@@ -479,7 +500,7 @@ class BusinessMappingManager:
             "partial_matches": len(self.config.get("partial_matches", {})),
             "fuzzy_candidates": len(self.config.get("fuzzy_candidates", [])),
             "total_businesses": len(self.get_all_business_names()),
-            "canonical_names": len(self.canonical_names),
+            "business_names": len(self.business_names),
         }
 
     def create_backup(

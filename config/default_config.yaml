@@ -18,6 +18,11 @@ business:
   use_database: false
   alias_file: config/business_aliases.json
   auto_save_aliases: true
+  backup:
+    max_backups_to_keep: 10  # Maximum number of backup files to keep
+    auto_cleanup: true  # Automatically clean up old backups
+    cleanup_on_startup: true  # Clean up old backups on startup
+    cleanup_on_shutdown: true  # Clean up old backups on shutdown
 
 # Logging Settings
 logging:
