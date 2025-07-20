@@ -194,21 +194,27 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [build, build-windows-installer]
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
+      with:
+        pattern: |
+          OCRInvoiceParser-*-folder
+          windows-installer
 
     - name: Prepare release files
       run: |
         # Find and rename the ZIP files
         find . -name "OCRInvoiceParser-*.zip" -exec mv {} . \;
         
-        # Find the Windows installer (if it exists)
-        if find . -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \; 2>/dev/null; then
+        # Find and move the Windows installer from the windows-installer artifact
+        if find . -path "*/windows-installer/*" -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \; 2>/dev/null; then
+          echo "Windows installer found and moved from artifact"
+        elif find . -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \; 2>/dev/null; then
           echo "Windows installer found and moved"
         else
           echo "Windows installer not found - will create release without it"
@@ -307,4 +313,10 @@ jobs:
         shell: pwsh
         run: |
           $file = Get-ChildItem -Path . -Recurse -Filter "OCRInvoiceParser-Windows-Setup-*.exe" | Select-Object -First 1
-          echo "INSTALLER_PATH=$($file.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append 
+          echo "INSTALLER_PATH=$($file.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: ${{ env.INSTALLER_PATH }} 
