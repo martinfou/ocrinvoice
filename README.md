@@ -6,9 +6,20 @@ A powerful command-line tool and desktop GUI that converts scanned PDF invoices 
 
 ## 🚀 Quick Start
 
+### 📥 Download Windows Installer
+
+**For Windows users, download the latest installer:**
+
+[![Download Windows Installer](https://img.shields.io/badge/Download-Windows%20Installer-blue?style=for-the-badge&logo=windows)](https://github.com/martinfou/ocrinvoice/releases/latest)
+
+*The installer includes everything you need: Python, dependencies, and Tesseract OCR.*
+
 ### Installation
 
-#### Option 1: From PyPI (Recommended)
+#### Option 1: Windows Installer (Easiest for Windows Users)
+Download and run the Windows installer from the link above. It includes everything you need.
+
+#### Option 2: From PyPI (Recommended for Developers)
 ```bash
 # Install the package
 pip install ocrinvoice
@@ -19,7 +30,7 @@ pip install ocrinvoice
 # Linux: sudo apt-get install tesseract-ocr
 ```
 
-#### Option 2: From Source
+#### Option 3: From Source
 ```bash
 # Clone and install
 git clone <repository-url>
@@ -34,7 +45,7 @@ sudo apt-get install tesseract-ocr  # Ubuntu/Debian
 # Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
 ```
 
-#### Option 3: Cross-Platform Setup Script
+#### Option 4: Cross-Platform Setup Script
 ```bash
 # Run the automated setup script
 python scripts/setup_cross_platform.py
@@ -252,7 +263,8 @@ See [Contributing Guidelines](docs/developer/contributing.md) for detailed instr
 ### Latest Release
 - **Version**: 1.0.0
 - **Platforms**: Windows, macOS, Linux
-- **Download**: [GitHub Releases](https://github.com/your-username/ocrinvoice/releases)
+- **Download**: [GitHub Releases](https://github.com/martinfou/ocrinvoice/releases)
+- **Latest Windows Installer**: [![Latest Release](https://img.shields.io/github/v/release/martinfou/ocrinvoice?label=Latest%20Release&color=blue)](https://github.com/martinfou/ocrinvoice/releases/latest)
 
 ### Automated Releases
 This project uses GitHub Actions for automated cross-platform releases:
