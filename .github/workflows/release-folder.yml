@@ -46,7 +46,21 @@ jobs:
 
     - name: Build folder package
       run: |
+        echo "Starting PyInstaller build..."
+        echo "Current directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo "Building with spec file: OCRInvoiceParser-folder.spec"
         pyinstaller OCRInvoiceParser-folder.spec
+        echo "Build completed. Checking dist directory:"
+        ls -la dist/
+        if [ -d "dist/OCRInvoiceParser" ]; then
+          echo "OCRInvoiceParser directory created successfully"
+          ls -la dist/OCRInvoiceParser/
+        else
+          echo "ERROR: OCRInvoiceParser directory not found"
+          exit 1
+        fi
 
     - name: Copy Tesseract and Poppler binaries (Windows)
       if: matrix.os == 'windows-latest'
@@ -186,6 +200,16 @@ jobs:
           zip -r OCRInvoiceParser-macOS.zip OCRInvoiceParser/
         fi
 
+    - name: Debug artifacts
+      run: |
+        echo "Preparing to upload artifacts..."
+        echo "Current directory: $(pwd)"
+        echo "Files in dist directory:"
+        ls -la dist/
+        echo "Looking for ZIP files:"
+        find dist/ -name "*.zip" -type f
+      shell: bash
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -205,6 +229,17 @@ jobs:
         pattern: |
           OCRInvoiceParser-*-folder
           windows-installer
+
+    - name: Debug downloaded artifacts
+      run: |
+        echo "Checking downloaded artifacts..."
+        echo "Current directory: $(pwd)"
+        echo "All files and directories:"
+        find . -type f -name "*.zip" -o -name "*.exe" | head -20
+        echo "Artifact directories:"
+        ls -la
+        echo "Looking for specific artifacts:"
+        find . -name "OCRInvoiceParser-*.zip" -o -name "OCRInvoiceParser-Windows-Setup-*.exe"
 
     - name: Prepare release files
       run: |
