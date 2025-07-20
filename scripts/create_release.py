@@ -2,12 +2,14 @@
 """
 OCR Invoice Parser - Release Creation Script
 
-This script automates the release process by:
+This script automates the release preparation process by:
 1. Updating version numbers across all relevant files
 2. Running tests to ensure everything works
-3. Creating a Git tag
-4. Building the release
-5. Creating a GitHub release
+3. Creating a Git tag and pushing to trigger GitHub Actions
+4. GitHub Actions automatically builds packages and creates the release
+
+The actual package building is handled by GitHub Actions for consistency
+and cross-platform compatibility.
 
 Usage:
     python scripts/create_release.py --version 1.2.1
@@ -193,10 +195,16 @@ class ReleaseManager:
         """Build the release packages."""
         print("🔨 Building release packages...")
         
-        # Run PyInstaller build using the current Python interpreter
-        self.run_command([sys.executable, "-m", "PyInstaller", "OCRInvoiceParser.spec"])
+        if self.dry_run:
+            print("   [DRY RUN] Would build release packages locally")
+            return
+            
+        print("⚠️  Local build skipped - packages will be built by GitHub Actions")
+        print("   The GitHub Actions workflow will build and upload the packages")
+        print("   when the tag is pushed to the repository.")
         
-        print("✅ Release packages built")
+        # Note: We're not building locally anymore since GitHub Actions handles this
+        # This prevents duplicate builds and ensures consistent CI/CD environment
     
     def create_github_release(self) -> None:
         """Create GitHub release using gh CLI."""
@@ -255,11 +263,12 @@ class ReleaseManager:
 
 ## 📦 Installation
 
-### Windows
-Download `OCRInvoiceParser.exe` from the assets below.
+### Windows Users (Recommended)
+Download `OCRInvoiceParser-Windows-Setup-v{self.version}.exe` for easy installation.
 
-### macOS
-Download `OCRInvoiceParser` from the assets below.
+### Portable Installation
+- **Windows**: Download `OCRInvoiceParser-Windows.zip`
+- **macOS**: Download `OCRInvoiceParser-macOS.zip`
 
 ### From Source
 ```bash
@@ -267,9 +276,15 @@ pip install ocrinvoice=={self.version}
 ```
 
 ## 🔧 Requirements
-- Python 3.8+
-- Tesseract OCR
-- See README.md for full installation instructions
+- Windows 10+ or macOS 10.14+
+- 4GB RAM recommended
+- No additional software installation required (Tesseract OCR included)
+
+## 🚀 Automated Build
+This release was automatically built and tested using GitHub Actions:
+- Cross-platform compatibility verified
+- All dependencies included
+- Consistent build environment
 
 ## 📝 Changelog
 For detailed changes, see the commit history and pull requests.
@@ -321,11 +336,14 @@ Please report any issues on the GitHub repository.
             self.create_github_release()
             
             print("=" * 60)
-            print(f"🎉 Release {self.version} completed successfully!")
+            print(f"🎉 Release {self.version} preparation completed!")
             print(f"📋 Next steps:")
-            print(f"   1. Review the draft release on GitHub")
-            print(f"   2. Publish the release when ready")
-            print(f"   3. Update any documentation if needed")
+            print(f"   1. GitHub Actions will automatically build the packages")
+            print(f"   2. Review the draft release on GitHub")
+            print(f"   3. Publish the release when ready")
+            print(f"   4. Update any documentation if needed")
+            print(f"")
+            print(f"🔗 GitHub Actions workflow: https://github.com/martinfou/ocrinvoice/actions")
             
         except Exception as e:
             print(f"❌ Release failed: {e}")
