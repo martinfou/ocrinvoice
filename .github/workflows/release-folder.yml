@@ -45,6 +45,7 @@ jobs:
         pip install pyinstaller
 
     - name: Build folder package
+      shell: bash
       run: |
         echo "Starting PyInstaller build..."
         echo "Current directory: $(pwd)"
@@ -201,6 +202,7 @@ jobs:
         fi
 
     - name: Debug artifacts
+      shell: bash
       run: |
         echo "Preparing to upload artifacts..."
         echo "Current directory: $(pwd)"
@@ -208,7 +210,6 @@ jobs:
         ls -la dist/
         echo "Looking for ZIP files:"
         find dist/ -name "*.zip" -type f
-      shell: bash
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -231,6 +232,7 @@ jobs:
           windows-installer
 
     - name: Debug downloaded artifacts
+      shell: bash
       run: |
         echo "Checking downloaded artifacts..."
         echo "Current directory: $(pwd)"
@@ -242,6 +244,7 @@ jobs:
         find . -name "OCRInvoiceParser-*.zip" -o -name "OCRInvoiceParser-Windows-Setup-*.exe"
 
     - name: Prepare release files
+      shell: bash
       run: |
         # Find and rename the ZIP files
         find . -name "OCRInvoiceParser-*.zip" -exec mv {} . \;
