@@ -246,10 +246,10 @@ jobs:
     - name: Prepare release files
       shell: bash
       run: |
-        # Find and rename the ZIP files
-        find . -name "OCRInvoiceParser-*.zip" -exec mv {} . \;
-        
-        # Find and move the Windows installer from the windows-installer artifact
+        # Move all ZIP files from artifact subdirectories to root
+        find . -type f -name "OCRInvoiceParser-*.zip" -exec mv {} . \;
+
+        # Move the Windows installer from the windows-installer artifact
         if find . -path "*/windows-installer/*" -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \; 2>/dev/null; then
           echo "Windows installer found and moved from artifact"
         elif find . -name "OCRInvoiceParser-Windows-Setup-*.exe" -exec mv {} . \; 2>/dev/null; then
@@ -257,6 +257,9 @@ jobs:
         else
           echo "Windows installer not found - will create release without it"
         fi
+
+        # List files for debugging
+        ls -l
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
