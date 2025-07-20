@@ -348,7 +348,7 @@ Statistics:
             self,
             "About Business Mappings Manager",
             """
-Business Mappings Manager v1.3.16
+Business Mappings Manager v1.3.17
 
 A PyQt6 desktop application for managing business name mappings
 used by the OCR invoice parser.
@@ -406,7 +406,7 @@ def main() -> None:
     """Main entry point for the GUI application."""
     app = QApplication(sys.argv)
     app.setApplicationName("Business Mappings Manager")
-    app.setApplicationVersion("1.3.16")
+    app.setApplicationVersion("1.3.17")
 
     window = MainWindow()
     window.show()
