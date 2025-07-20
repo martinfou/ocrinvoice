@@ -20,6 +20,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 from .delegates import DateEditDelegate, BusinessComboDelegate
 from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
+import re
 
 
 class EditableTableWidget(QTableWidget):
@@ -47,7 +48,7 @@ class DataPanelWidget(QWidget):
 
     # Signal emitted when project selection changes
     project_changed = pyqtSignal(str)  # Emits selected project name
-    
+
     # Signal emitted when document type selection changes
     document_type_changed = pyqtSignal(str)  # Emits selected document type
 
@@ -91,7 +92,9 @@ class DataPanelWidget(QWidget):
 
         self.document_type_combo = QComboBox()
         self.document_type_combo.addItems(["facture", "relevé", "invoice", "statement"])
-        self.document_type_combo.currentTextChanged.connect(self._on_document_type_changed)
+        self.document_type_combo.currentTextChanged.connect(
+            self._on_document_type_changed
+        )
         project_layout.addWidget(self.document_type_combo)
 
         project_layout.addStretch()
@@ -128,7 +131,9 @@ class DataPanelWidget(QWidget):
         # Assign delegates
         self.date_delegate = DateEditDelegate(self.data_table)
         self.data_table.setItemDelegateForRow(2, self.date_delegate)
-        self.business_delegate = BusinessComboDelegate(self.business_names, self.data_table)
+        self.business_delegate = BusinessComboDelegate(
+            self.business_names, self.data_table
+        )
         self.data_table.setItemDelegateForRow(0, self.business_delegate)
 
         # Action buttons
@@ -195,67 +200,189 @@ class DataPanelWidget(QWidget):
         if index >= 0:
             self.document_type_combo.setCurrentIndex(index)
 
+    def _recalculate_confidence(self, field_key: str) -> None:
+        """Recalculate confidence for a specific field when its value changes."""
+        if not self.current_data:
+            return
+
+        # Simple confidence calculation based on value quality
+        value = self.current_data.get(field_key)
+        if value is None or value == "":
+            confidence = 0.0
+        else:
+            confidence = 0.5  # Base confidence for having a value
+
+            # Field-specific confidence adjustments
+            if field_key == "company":
+                if len(str(value)) > 2:
+                    confidence += 0.3
+                # Check if it matches known business names
+                if hasattr(self, "business_names") and str(value).lower() in [
+                    name.lower() for name in self.business_names
+                ]:
+                    confidence += 0.2
+            elif field_key == "total":
+                try:
+                    amount = float(str(value).replace("$", "").replace(",", ""))
+                    if amount > 0:
+                        confidence += 0.3
+                    if 0.01 <= amount <= 1000000:  # Reasonable range
+                        confidence += 0.1
+                except (ValueError, TypeError):
+                    pass
+            elif field_key == "date":
+                # Check if it looks like a valid date format
+                if re.match(r"\d{4}-\d{2}-\d{2}", str(value)):
+                    confidence += 0.3
+                elif re.match(r"\d{1,2}/\d{1,2}/\d{4}", str(value)):
+                    confidence += 0.2
+            elif field_key == "invoice_number":
+                if len(str(value)) >= 4:
+                    confidence += 0.2
+                if re.search(r"[A-Z]", str(value), re.IGNORECASE):
+                    confidence += 0.1
+                if re.search(r"\d", str(value)):
+                    confidence += 0.1
+
+            confidence = min(confidence, 1.0)  # Cap at 1.0
+
+        # Update the confidence value
+        confidence_key = f"{field_key}_confidence"
+        self.current_data[confidence_key] = confidence
+
+        # Update the display in the table
+        self._update_confidence_display(field_key, confidence)
+
+    def _update_confidence_display(self, field_key: str, confidence: float) -> None:
+        """Update the confidence display in the table for a specific field."""
+        # Find the row for this field
+        field_mapping = {
+            "company": "Company Name",
+            "total": "Total Amount",
+            "date": "Invoice Date",
+            "invoice_number": "Invoice Number",
+        }
+
+        display_name = field_mapping.get(field_key)
+        if not display_name:
+            return
+
+        for row in range(self.data_table.rowCount()):
+            field_item = self.data_table.item(row, 0)
+            if field_item and field_item.text() == display_name:
+                # Update the confidence cell
+                confidence_item = self.data_table.item(row, 2)
+                if confidence_item:
+                    if confidence is not None:
+                        confidence_text = f"{confidence:.1%}"
+                        if confidence >= 0.8:
+                            confidence_item.setText("🟢 " + confidence_text)
+                        elif confidence >= 0.6:
+                            confidence_item.setText("🟡 " + confidence_text)
+                        else:
+                            confidence_item.setText("🔴 " + confidence_text)
+                    else:
+                        confidence_item.setText("N/A")
+                break
+
     def _on_cell_changed(self, item: QTableWidgetItem) -> None:
         """Handle cell content changes in the data table."""
         if not self.current_data:
             return
 
-        # Only handle changes to the Value column (column 1)
-        if item.column() != 1:
-            return
+        # Handle changes to the Value column (column 1)
+        if item.column() == 1:
+            row = item.row()
+            field_name = self.data_table.item(row, 0).text()
 
-        row = item.row()
-        field_name = self.data_table.item(row, 0).text()
+            # Map display names back to field keys
+            field_mapping = {
+                "Company Name": "company",
+                "Total Amount": "total",
+                "Invoice Date": "date",
+                "Invoice Number": "invoice_number",
+                "Parser Type": "parser_type",
+                "Valid": "is_valid",
+                "Overall Confidence": "confidence",
+            }
 
-        # Map display names back to field keys
-        field_mapping = {
-            "Company Name": "company",
-            "Total Amount": "total",
-            "Invoice Date": "date",
-            "Invoice Number": "invoice_number",
-            "Parser Type": "parser_type",
-            "Valid": "is_valid",
-            "Overall Confidence": "confidence",
-        }
+            field_key = field_mapping.get(field_name)
+            if not field_key:
+                return
 
-        field_key = field_mapping.get(field_name)
-        if not field_key:
-            return
+            new_value = item.text().strip()
 
-        new_value = item.text()
-
-        # Process the value based on field type
-        if field_key == "total":
-            # Remove currency symbols and convert to float
-            try:
-                # Remove $ and other currency symbols
-                clean_value = new_value.replace("$", "").replace(",", "").strip()
-                if clean_value:
-                    float_value = float(clean_value)
-                    self.current_data[field_key] = float_value
-                else:
-                    self.current_data[field_key] = None
-            except ValueError:
-                # Keep as string if not a valid number
+            # Process the value based on field type
+            if field_key == "company":
                 self.current_data[field_key] = new_value
-        elif field_key == "is_valid":
-            # Convert to boolean
-            self.current_data[field_key] = new_value.lower() in ["yes", "true", "1"]
-        elif field_key == "confidence":
-            # Remove % and convert to float
-            try:
-                clean_value = new_value.replace("%", "").strip()
-                if clean_value:
-                    float_value = float(clean_value) / 100.0
-                    self.current_data[field_key] = float_value
-                else:
-                    self.current_data[field_key] = None
-            except ValueError:
-                # Keep as string if not a valid number
+            elif field_key == "date":
+                # Keep as string for dates
                 self.current_data[field_key] = new_value
-        else:
-            # Keep as string for other fields
-            self.current_data[field_key] = new_value
+            elif field_key == "invoice_number":
+                # Keep as string for invoice numbers
+                self.current_data[field_key] = new_value
+            elif field_key == "total":
+                # Remove currency symbols and convert to float
+                try:
+                    # Remove $ and other currency symbols
+                    clean_value = new_value.replace("$", "").replace(",", "").strip()
+                    if clean_value:
+                        float_value = float(clean_value)
+                        self.current_data[field_key] = float_value
+                    else:
+                        self.current_data[field_key] = None
+                except ValueError:
+                    # Keep as string if not a valid number
+                    self.current_data[field_key] = new_value
+            elif field_key == "is_valid":
+                # Convert to boolean
+                self.current_data[field_key] = new_value.lower() in ["yes", "true", "1"]
+            elif field_key == "confidence":
+                # Remove % and convert to float
+                try:
+                    clean_value = new_value.replace("%", "").strip()
+                    if clean_value:
+                        float_value = float(clean_value) / 100.0
+                        self.current_data[field_key] = float_value
+                    else:
+                        self.current_data[field_key] = None
+                except ValueError:
+                    # Keep as string if not a valid number
+                    self.current_data[field_key] = new_value
+            else:
+                # Keep as string for other fields
+                self.current_data[field_key] = new_value
+
+            # Recalculate confidence for this field
+            if field_key in ["company", "total", "date", "invoice_number"]:
+                self._recalculate_confidence(field_key)
+
+        # Handle changes to the Confidence column (column 2)
+        elif item.column() == 2:
+            user_data = item.data(Qt.ItemDataRole.UserRole)
+            if user_data and isinstance(user_data, dict):
+                confidence_key = user_data.get("confidence_key")
+                if confidence_key:
+                    new_value = item.text().strip()
+
+                    # Remove emoji and % symbol, then convert to float
+                    new_value = (
+                        new_value.replace("🟢 ", "")
+                        .replace("🟡 ", "")
+                        .replace("🔴 ", "")
+                        .replace("%", "")
+                        .strip()
+                    )
+
+                    try:
+                        if new_value and new_value.lower() != "n/a":
+                            float_value = float(new_value) / 100.0
+                            self.current_data[confidence_key] = float_value
+                        else:
+                            self.current_data[confidence_key] = 0.0
+                    except ValueError:
+                        # Keep original value if conversion fails
+                        pass
 
         # Emit the updated data
         self.data_changed.emit(self.current_data.copy())
@@ -357,12 +484,12 @@ class DataPanelWidget(QWidget):
             value_item.setFlags(value_item.flags() | Qt.ItemFlag.ItemIsEditable)
             self.data_table.setItem(row, 1, value_item)
 
-            # Confidence indicator (if available) - make non-editable
+            # Confidence indicator (if available) - make editable
             if field_key in ["company", "total", "date", "invoice_number"]:
                 confidence_key = f"{field_key}_confidence"
                 confidence_value = data.get(confidence_key, 0)
 
-                if confidence_value:
+                if confidence_value is not None:
                     if isinstance(confidence_value, (int, float)):
                         confidence_text = f"{confidence_value:.1%}"
                         # Color code based on confidence
@@ -377,8 +504,13 @@ class DataPanelWidget(QWidget):
                 else:
                     confidence_item = QTableWidgetItem("N/A")
 
+                # Make confidence editable
                 confidence_item.setFlags(
-                    confidence_item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                    confidence_item.flags() | Qt.ItemFlag.ItemIsEditable
+                )
+                confidence_item.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {"field": field_key, "confidence_key": confidence_key},
                 )
                 self.data_table.setItem(row, 2, confidence_item)
             else:
@@ -411,17 +543,29 @@ class DataPanelWidget(QWidget):
         """Handle rename button click."""
         self.rename_requested.emit()
 
+
+
     def _on_business_added(self, business_name: str) -> None:
         """Handle a new business being added via the delegate."""
-        print(f"[DEBUG] DataPanelWidget: Adding new business '{business_name}' to mapping manager.")
-        added = self.mapping_manager.add_official_name(business_name)
+        print(
+            f"[DEBUG] DataPanelWidget: Adding new business '{business_name}' to mapping manager."
+        )
+        added = self.mapping_manager.add_canonical_name(business_name)
         if added:
-            print(f"[DEBUG] DataPanelWidget: Successfully added '{business_name}' to mapping manager.")
+            print(
+                f"[DEBUG] DataPanelWidget: Successfully added '{business_name}' to mapping manager."
+            )
             # Also add a self-referencing alias mapping (business name as both key and value)
-            self.mapping_manager.add_mapping(business_name, business_name, "exact_matches")
-            print(f"[DEBUG] DataPanelWidget: Added self-referencing alias mapping for '{business_name}'.")
+            self.mapping_manager.add_mapping(
+                business_name, business_name, "exact_matches"
+            )
+            print(
+                f"[DEBUG] DataPanelWidget: Added self-referencing alias mapping for '{business_name}'."
+            )
             # Reload business names from mapping manager
             self.business_names = self.mapping_manager.get_all_business_names()
             self.business_delegate.business_list = self.business_names
         else:
-            print(f"[DEBUG] DataPanelWidget: '{business_name}' already exists in mapping manager.")
+            print(
+                f"[DEBUG] DataPanelWidget: '{business_name}' already exists in mapping manager."
+            )

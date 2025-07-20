@@ -15,7 +15,7 @@
         "test-company-exact": "test-official-with-aliases",
         "New Test Business": "New Test Business",
         "Gagnon": "Gagnon",
-        "banque-td": "banque-td"
+        "aaa": "aaa"
     },
     "partial_matches": {
         "centre de services scolaires": "taxes-scolaires",
@@ -68,20 +68,24 @@
         "fuzzy_match": 0.6
     },
     "canonical_names": [
-        "hydro-québec",
-        "rona",
-        "Gagnon",
-        "desjardins",
-        "gary-chartran",
-        "gagnon",
-        "banque-scotia",
-        "bmr",
-        "test-official-with-aliases",
-        "banque-td",
         "taxes-scolaires",
-        "test-official-name",
-        "New Test Business",
+        "gary-chartran",
+        "bmr",
         "la-forfaiterie",
-        "pharmacie"
+        "Gagnon3",
+        "hydro-québec",
+        "Deneigement",
+        "rona",
+        "desjardins",
+        "New Test Business",
+        "aaa",
+        "banque-scotia",
+        "pharmacie",
+        "banque-td",
+        "gagnon",
+        "Test Canonical Business",
+        "Gagnon",
+        "test-official-name",
+        "test-official-with-aliases"
     ]
 }

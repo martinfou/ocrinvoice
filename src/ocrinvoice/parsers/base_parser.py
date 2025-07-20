@@ -293,6 +293,67 @@ class BaseParser(ABC):
 
         return None
 
+    def calculate_field_confidence(self, field: str, value: Any, text: str) -> float:
+        """Calculate confidence score for a specific field.
+
+        Args:
+            field: Field name (company, total, date, invoice_number)
+            value: Extracted value for the field
+            text: Original text used for extraction
+
+        Returns:
+            Confidence score between 0.0 and 1.0
+        """
+        if value is None or value == "":
+            return 0.0
+
+        # Base confidence for having a value
+        confidence = 0.5
+
+        # Field-specific confidence calculations
+        if field == "company":
+            if len(str(value)) > 2:
+                confidence += 0.3
+            # Additional confidence if it matches business aliases
+            if hasattr(self, "company_aliases") and str(value).lower() in [
+                alias.lower() for alias in self.company_aliases
+            ]:
+                confidence += 0.2
+        elif field == "total":
+            if self.amount_normalizer.validate_amount(str(value)):
+                confidence += 0.3
+            # Additional confidence for reasonable amounts (not too small or too large)
+            try:
+                amount = float(str(value).replace("$", "").replace(",", ""))
+                if 0.01 <= amount <= 1000000:  # Reasonable range for invoice amounts
+                    confidence += 0.1
+            except (ValueError, TypeError):
+                pass
+        elif field == "date":
+            if self._parse_date_string(str(value)):
+                confidence += 0.3
+            # Additional confidence for recent dates
+            try:
+                parsed_date = self._parse_date_string(str(value))
+                if parsed_date:
+                    from datetime import datetime, timedelta
+
+                    now = datetime.now()
+                    if abs((parsed_date - now).days) < 365 * 5:  # Within 5 years
+                        confidence += 0.1
+            except:
+                pass
+        elif field == "invoice_number":
+            # Confidence based on pattern matching
+            if len(str(value)) >= 4:
+                confidence += 0.2
+            if re.search(r"[A-Z]", str(value), re.IGNORECASE):
+                confidence += 0.1
+            if re.search(r"\d", str(value)):
+                confidence += 0.1
+
+        return min(confidence, 1.0)  # Cap at 1.0
+
     def calculate_confidence(self, extracted_data: Dict[str, Any], text: str) -> float:
         """Calculate confidence score for extracted data.
 
@@ -356,8 +417,17 @@ class BaseParser(ABC):
         if "parser_type" not in validated:
             validated["parser_type"] = self.__class__.__name__
 
-        # Calculate confidence
-        confidence = self.calculate_confidence(validated, validated.get("raw_text", ""))
+        # Calculate individual field confidence scores
+        text = validated.get("raw_text", "")
+        for field in ["company", "total", "date", "invoice_number"]:
+            if field in validated:
+                field_confidence = self.calculate_field_confidence(
+                    field, validated[field], text
+                )
+                validated[f"{field}_confidence"] = field_confidence
+
+        # Calculate overall confidence
+        confidence = self.calculate_confidence(validated, text)
         validated["confidence"] = confidence
 
         # Add validation status

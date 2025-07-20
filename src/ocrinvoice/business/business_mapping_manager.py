@@ -27,7 +27,7 @@ class BusinessMappingManager:
     """
     Manages business name mappings for invoice OCR extraction.
     Supports exact matches, partial matches, and fuzzy matching with indicators.
-    All outputs resolve to one of the official business names.
+    All outputs resolve to one of the canonical business names.
     """
 
     def __init__(self, mapping_file: Optional[str] = None):
@@ -41,12 +41,12 @@ class BusinessMappingManager:
         self.mapping_file = self._resolve_mapping_file_path(mapping_file)
         self.config = self._load_config()
 
-        # Load official business names
-        self.official_names = set(self.config.get("official_names", []))
-        if not self.official_names:
-            print("Warning: No official business names defined in configuration.")
+        # Load canonical business names
+        self.canonical_names = set(self.config.get("canonical_names", []))
+        if not self.canonical_names:
+            print("Warning: No canonical business names defined in configuration.")
 
-        # Validate that all mappings resolve to an official name
+        # Validate that all mappings resolve to a canonical name
         self._validate_mappings()
 
     def _resolve_mapping_file_path(self, mapping_file: Optional[str]) -> str:
@@ -88,7 +88,7 @@ class BusinessMappingManager:
         if not os.path.exists(self.mapping_file):
             # Return default empty config if file doesn't exist
             return {
-                "official_names": [],
+                "canonical_names": [],
                 "exact_matches": {},
                 "partial_matches": {},
                 "fuzzy_candidates": [],
@@ -102,12 +102,22 @@ class BusinessMappingManager:
 
         try:
             with open(self.mapping_file, "r", encoding="utf-8") as f:
-                return json.load(f)
+                config = json.load(f)
+
+            # Migrate from old "official_names" to "canonical_names" if needed
+            if "official_names" in config and "canonical_names" not in config:
+                config["canonical_names"] = config.pop("official_names")
+                print("Migrated 'official_names' to 'canonical_names' in configuration")
+                # Save the migrated config
+                with open(self.mapping_file, "w", encoding="utf-8") as f:
+                    json.dump(config, f, indent=4, ensure_ascii=False)
+
+            return config
         except (json.JSONDecodeError, IOError) as e:
             print(f"Warning: Could not load mapping file {self.mapping_file}: {e}")
             # Return default config instead of recursive call
             return {
-                "official_names": [],
+                "canonical_names": [],
                 "exact_matches": {},
                 "partial_matches": {},
                 "fuzzy_candidates": [],
@@ -120,11 +130,11 @@ class BusinessMappingManager:
             }
 
     def _validate_mappings(self) -> None:
-        """Validate that all mappings resolve to an official business name."""
+        """Validate that all mappings resolve to a canonical business name."""
 
         def check_name(name: str) -> None:
-            if name not in self.official_names:
-                print(f"Warning: Mapping '{name}' is not in official_names list.")
+            if name not in self.canonical_names:
+                print(f"Warning: Mapping '{name}' is not in canonical_names list.")
 
         # Check exact_matches
         for mapping, business_name in self.config.get("exact_matches", {}).items():
@@ -136,64 +146,73 @@ class BusinessMappingManager:
         for business_name in self.config.get("fuzzy_candidates", []):
             check_name(business_name)
 
-    def get_official_names(self) -> List[str]:
-        """Return the list of official business names."""
-        return sorted(list(self.official_names))
+    def get_canonical_names(self) -> List[str]:
+        """Return the list of canonical business names."""
+        return sorted(list(self.canonical_names))
 
-    def add_official_name(self, name: str) -> bool:
+    def add_canonical_name(self, name: str) -> bool:
         """
-        Add a new official business name.
+        Add a new canonical business name.
 
         Args:
-            name: The official business name to add
+            name: The canonical business name to add
 
         Returns:
             True if added successfully, False if already exists
         """
-        if name not in self.official_names:
-            self.official_names.add(name)
-            self.config["official_names"] = list(self.official_names)
+        if name not in self.canonical_names:
+            self.canonical_names.add(name)
+            # Preserve order by appending to the existing list instead of converting set to list
+            if "canonical_names" not in self.config:
+                self.config["canonical_names"] = []
+            if name not in self.config["canonical_names"]:
+                self.config["canonical_names"].append(name)
             self._save_config()
             return True
         return False
 
-    def remove_official_name(self, name: str) -> bool:
+    def remove_canonical_name(self, name: str) -> bool:
         """
-        Remove an official business name.
+        Remove a canonical business name.
 
         Args:
-            name: The official business name to remove
+            name: The canonical business name to remove
 
         Returns:
             True if removed successfully, False if not found
         """
-        if name in self.official_names:
-            self.official_names.remove(name)
-            self.config["official_names"] = list(self.official_names)
+        if name in self.canonical_names:
+            self.canonical_names.remove(name)
+            # Remove from the list while preserving order
+            if "canonical_names" in self.config and name in self.config["canonical_names"]:
+                self.config["canonical_names"].remove(name)
             self._save_config()
             return True
         return False
 
-    def update_official_name(self, old_name: str, new_name: str) -> bool:
+    def update_canonical_name(self, old_name: str, new_name: str) -> bool:
         """
-        Update an official business name.
+        Update a canonical business name.
 
         Args:
-            old_name: The current official business name
-            new_name: The new official business name
+            old_name: The current canonical business name
+            new_name: The new canonical business name
 
         Returns:
             True if updated successfully, False if old name not found or new name already exists
         """
-        if old_name not in self.official_names:
+        if old_name not in self.canonical_names:
             return False
-        if new_name in self.official_names and new_name != old_name:
+        if new_name in self.canonical_names and new_name != old_name:
             return False
 
         # Remove old name and add new name
-        self.official_names.remove(old_name)
-        self.official_names.add(new_name)
-        self.config["official_names"] = list(self.official_names)
+        self.canonical_names.remove(old_name)
+        self.canonical_names.add(new_name)
+        # Update the list while preserving order
+        if "canonical_names" in self.config and old_name in self.config["canonical_names"]:
+            old_index = self.config["canonical_names"].index(old_name)
+            self.config["canonical_names"][old_index] = new_name
 
         # Update all mappings that reference the old name
         exact_matches = self.config.get("exact_matches", {})
@@ -220,16 +239,16 @@ class BusinessMappingManager:
         self._save_config()
         return True
 
-    def is_official_name(self, name: str) -> bool:
-        """Check if a name is in the official business names list (case-insensitive)."""
+    def is_canonical_name(self, name: str) -> bool:
+        """Check if a name is in the canonical business names list (case-insensitive)."""
         if not name:
             return False
-        # Normalize both the input name and official names to lowercase for case-insensitive comparison
+        # Normalize both the input name and canonical names to lowercase for case-insensitive comparison
         name_normalized = name.lower()
-        official_names_normalized = {
-            official.lower() for official in self.official_names
+        canonical_names_normalized = {
+            canonical.lower() for canonical in self.canonical_names
         }
-        return name_normalized in official_names_normalized
+        return name_normalized in canonical_names_normalized
 
     def find_business_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """
@@ -289,13 +308,37 @@ class BusinessMappingManager:
         # Normalize the input text (simple lowercase and whitespace normalization)
         text_norm = text.lower().strip()
 
+        def create_spaced_variants(s: str) -> List[str]:
+            """Create variants of a string with different spacing patterns for OCR artifacts."""
+            variants = [s]
+            # Remove all spaces
+            no_spaces = s.replace(" ", "")
+            if no_spaces != s:
+                variants.append(no_spaces)
+            # Add spaces between each character (OCR artifact)
+            spaced = " ".join(no_spaces)
+            if spaced != s:
+                variants.append(spaced)
+            return variants
+
         for mapping, business_name in exact_matches.items():
-            # Check if the exact match string is found anywhere in the normalized text
-            if mapping.lower() in text_norm:
+            mapping_lower = mapping.lower()
+            
+            # Check direct match
+            if mapping_lower in text_norm:
                 confidence = self.config.get("confidence_weights", {}).get(
                     "exact_match", 1.0
                 )
                 return (business_name, "exact_match", confidence)
+            
+            # Check spaced variants for OCR artifacts
+            mapping_variants = create_spaced_variants(mapping_lower)
+            for variant in mapping_variants:
+                if variant in text_norm:
+                    confidence = self.config.get("confidence_weights", {}).get(
+                        "exact_match", 1.0
+                    )
+                    return (business_name, "exact_match", confidence)
 
         return None
 
@@ -309,6 +352,19 @@ class BusinessMappingManager:
             s = unicodedata.normalize("NFKC", s)
             s = " ".join(s.split())
             return s
+
+        def create_spaced_variants(s: str) -> List[str]:
+            """Create variants of a string with different spacing patterns for OCR artifacts."""
+            variants = [s]
+            # Remove all spaces
+            no_spaces = s.replace(" ", "")
+            if no_spaces != s:
+                variants.append(no_spaces)
+            # Add spaces between each character (OCR artifact)
+            spaced = " ".join(no_spaces)
+            if spaced != s:
+                variants.append(spaced)
+            return variants
 
         partial_matches = self.config.get("partial_matches", {})
         print("[DEBUG] BusinessMappingManager: Checking partial matches...")
@@ -324,6 +380,8 @@ class BusinessMappingManager:
             print(
                 f"[DEBUG] BusinessMappingManager: Checking if mapping '{mapping}' (norm: '{mapping_norm}') is in text (norm)..."
             )
+            
+            # Check direct match
             if mapping_norm in text_norm:
                 print(
                     f"[DEBUG] BusinessMappingManager: Found partial match! '{mapping_norm}' is in text (norm)"
@@ -332,6 +390,18 @@ class BusinessMappingManager:
                     "partial_match", 0.8
                 )
                 return (business_name, "partial_match", confidence)
+            
+            # Check spaced variants for OCR artifacts
+            mapping_variants = create_spaced_variants(mapping_norm)
+            for variant in mapping_variants:
+                if variant in text_norm:
+                    print(
+                        f"[DEBUG] BusinessMappingManager: Found partial match with variant! '{variant}' (from '{mapping_norm}') is in text (norm)"
+                    )
+                    confidence = self.config.get("confidence_weights", {}).get(
+                        "partial_match", 0.8
+                    )
+                    return (business_name, "partial_match", confidence)
 
         print("[DEBUG] BusinessMappingManager: No partial matches found")
         return None
@@ -382,8 +452,8 @@ class BusinessMappingManager:
     def reload_config(self) -> None:
         """Reload the configuration from the JSON file."""
         self.config = self._load_config()
-        # Reload official business names
-        self.official_names = set(self.config.get("official_names", []))
+        # Reload canonical business names
+        self.canonical_names = set(self.config.get("canonical_names", []))
         # Validate mappings
         self._validate_mappings()
 
@@ -409,7 +479,7 @@ class BusinessMappingManager:
             "partial_matches": len(self.config.get("partial_matches", {})),
             "fuzzy_candidates": len(self.config.get("fuzzy_candidates", [])),
             "total_businesses": len(self.get_all_business_names()),
-            "official_names": len(self.official_names),
+            "canonical_names": len(self.canonical_names),
         }
 
     def create_backup(

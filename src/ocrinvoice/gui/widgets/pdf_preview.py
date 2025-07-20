@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QSlider,
     QFrame,
 )
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import (
     QPixmap,
     QImage,
@@ -30,6 +30,12 @@ from pdf2image import convert_from_path
 
 class PDFPreviewWidget(QWidget):
     """PDF Preview Widget with zoom and pan capabilities."""
+
+    # Signal emitted when raw data button is clicked
+    raw_data_requested = pyqtSignal()
+    
+    # Signal emitted when force OCR button is clicked
+    force_ocr_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,12 +89,25 @@ class PDFPreviewWidget(QWidget):
         self.fit_width_btn.setCheckable(True)
         self.fit_width_btn.clicked.connect(self.fit_to_width)
 
+        # Raw data button
+        self.raw_data_btn = QPushButton("📊 Raw Data")
+        self.raw_data_btn.setToolTip("View complete raw data structure")
+        self.raw_data_btn.clicked.connect(self._on_raw_data_clicked)
+
+        # Force OCR button
+        self.force_ocr_btn = QPushButton("🔄 Force OCR")
+        self.force_ocr_btn.setToolTip("Force fresh OCR processing, ignoring saved metadata")
+        self.force_ocr_btn.clicked.connect(self._on_force_ocr_clicked)
+        self.force_ocr_btn.setEnabled(False)  # Disabled until PDF is loaded
+
         # Add controls to toolbar
         toolbar_layout.addWidget(self.zoom_out_btn)
         toolbar_layout.addWidget(self.zoom_slider)
         toolbar_layout.addWidget(self.zoom_in_btn)
         toolbar_layout.addWidget(self.reset_zoom_btn)
         toolbar_layout.addWidget(self.fit_width_btn)
+        toolbar_layout.addWidget(self.raw_data_btn)
+        toolbar_layout.addWidget(self.force_ocr_btn)
         toolbar_layout.addStretch()
 
         # Create scroll area for zooming
@@ -291,6 +310,9 @@ class PDFPreviewWidget(QWidget):
             # Use a timer to ensure the widget has fully rendered before calculating fit-to-width
             QTimer.singleShot(100, self._update_fit_to_width)
 
+            # Enable Force OCR button
+            self.force_ocr_btn.setEnabled(True)
+
             return True
 
         except Exception as e:
@@ -321,3 +343,14 @@ class PDFPreviewWidget(QWidget):
         self.fit_to_width_mode = False
         self.fit_width_btn.setChecked(False)
         self.reset_zoom()
+        
+        # Disable Force OCR button
+        self.force_ocr_btn.setEnabled(False)
+
+    def _on_raw_data_clicked(self) -> None:
+        """Handle raw data button click."""
+        self.raw_data_requested.emit()
+
+    def _on_force_ocr_clicked(self) -> None:
+        """Handle force OCR button click."""
+        self.force_ocr_requested.emit()

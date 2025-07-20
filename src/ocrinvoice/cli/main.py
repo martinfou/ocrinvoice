@@ -460,11 +460,11 @@ def list_mappings():
         click.echo("📋 Business Mappings Configuration")
         click.echo("=" * 50)
 
-        # Official business names
-        click.echo("\n🏢 Official Business Names:")
-        official_names = manager.get_official_names()
-        if official_names:
-            for name in official_names:
+        # Canonical business names
+        click.echo("\n🏢 Canonical Business Names:")
+        canonical_names = manager.get_canonical_names()
+        if canonical_names:
+            for name in canonical_names:
                 click.echo(f"  • {name}")
         else:
             click.echo("  (none defined)")
@@ -501,7 +501,7 @@ def list_mappings():
         # Statistics
         stats = manager.get_stats()
         click.echo("\n📊 Statistics:")
-        click.echo(f"  Total canonical names: {stats['official_names']}")
+        click.echo(f"  Total canonical names: {stats['canonical_names']}")
         click.echo(f"  Total exact matches: {stats['exact_matches']}")
         click.echo(f"  Total partial matches: {stats['partial_matches']}")
         click.echo(f"  Total fuzzy candidates: {stats['fuzzy_candidates']}")
@@ -529,12 +529,12 @@ def add_mapping(mapping: str, official_name: str, match_type: str):
         manager = BusinessMappingManager()
 
         # Check if canonical name exists
-        if not manager.is_official_name(official_name):
+        if not manager.is_canonical_name(official_name):
             click.echo(
                 f"❌ Error: '{official_name}' is not a canonical business name.",
                 err=True,
             )
-            click.echo("Use 'ocrinvoice mappings add-official' to add it first.")
+            click.echo("Use 'ocrinvoice mappings add-canonical' to add it first.")
             return
 
         # Check if mapping already exists
@@ -555,23 +555,24 @@ def add_mapping(mapping: str, official_name: str, match_type: str):
         sys.exit(1)
 
 
-@mappings.command("add-official")
+@mappings.command("add-canonical")
 @click.argument("name")
-def add_official(name: str):
+def add_canonical(name: str):
     """Add a new canonical business name"""
     try:
         manager = BusinessMappingManager()
 
         # Check if name already exists
-        if manager.is_official_name(name):
+        if manager.is_canonical_name(name):
             click.echo(f"ℹ️  '{name}' is already a canonical business name.")
             return
 
         # Add the canonical name
-        manager.official_names.add(name)
-        manager.config["official_names"] = sorted(manager.official_names)
-        manager._save_config()
-        click.echo(f"✅ Added canonical business name: '{name}'")
+        success = manager.add_canonical_name(name)
+        if success:
+            click.echo(f"✅ Added canonical business name: '{name}'")
+        else:
+            click.echo(f"ℹ️  '{name}' is already a canonical business name.")
 
     except Exception as e:
         logger.error(f"Error adding canonical name: {e}")
@@ -616,23 +617,23 @@ def remove_mapping(mapping: str, match_type: str):
         sys.exit(1)
 
 
-@mappings.command("remove-official")
+@mappings.command("remove-canonical")
 @click.argument("name")
-def remove_official(name: str):
+def remove_canonical(name: str):
     """Remove a canonical business name"""
     try:
         manager = BusinessMappingManager()
 
         # Check if name exists
-        if not manager.is_official_name(name):
+        if not manager.is_canonical_name(name):
             click.echo(f"❌ Error: '{name}' is not a canonical business name.")
             return
 
         # Check for dependencies
         dependencies = []
         for match_type in ["exact_matches", "partial_matches"]:
-            for mapping, official_name in manager.config.get(match_type, {}).items():
-                if official_name == name:
+            for mapping, canonical_name in manager.config.get(match_type, {}).items():
+                if canonical_name == name:
                     dependencies.append(f"{mapping} ({match_type})")
 
         if dependencies:
@@ -648,19 +649,20 @@ def remove_official(name: str):
             for match_type in ["exact_matches", "partial_matches"]:
                 mappings_to_remove = [
                     mapping
-                    for mapping, official_name in manager.config.get(
+                    for mapping, canonical_name in manager.config.get(
                         match_type, {}
                     ).items()
-                    if official_name == name
+                    if canonical_name == name
                 ]
                 for mapping in mappings_to_remove:
                     del manager.config[match_type][mapping]
 
         # Remove the canonical name
-        manager.official_names.remove(name)
-        manager.config["official_names"] = sorted(manager.official_names)
-        manager._save_config()
-        click.echo(f"✅ Removed canonical business name: '{name}'")
+        success = manager.remove_canonical_name(name)
+        if success:
+            click.echo(f"✅ Removed canonical business name: '{name}'")
+        else:
+            click.echo(f"❌ Error: Could not remove canonical business name: '{name}'")
 
     except Exception as e:
         logger.error(f"Error removing canonical name: {e}")

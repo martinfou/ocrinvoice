@@ -126,7 +126,9 @@ class OCRMainWindow(QMainWindow):
         # Initialize business mapping manager for backups
         self.business_mapping_manager = None
         try:
-            from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
+            from ocrinvoice.business.business_mapping_manager import (
+                BusinessMappingManager,
+            )
 
             self.business_mapping_manager = BusinessMappingManager()
             print("✅ Business mapping manager initialized")
@@ -189,7 +191,6 @@ class OCRMainWindow(QMainWindow):
         self._create_single_pdf_tab()
         self._create_file_naming_tab()
         self._create_project_tab()
-        self._create_official_names_tab()
         self._create_business_aliases_tab()
         self._create_settings_tab()
 
@@ -230,6 +231,8 @@ class OCRMainWindow(QMainWindow):
 
         # PDF Preview (left side)
         self.pdf_preview = PDFPreviewWidget()
+        self.pdf_preview.raw_data_requested.connect(self._on_raw_data_requested)
+        self.pdf_preview.force_ocr_requested.connect(self._on_force_ocr)
         content_splitter.addWidget(self.pdf_preview)
 
         # Data Panel (right side)
@@ -263,9 +266,11 @@ class OCRMainWindow(QMainWindow):
 
         # Connect template changes to config updates
         self.file_naming_widget.template_changed.connect(self._on_template_changed)
-        
+
         # Connect filename changes to status bar updates
-        self.file_naming_widget.filename_changed.connect(self._update_filename_status_label)
+        self.file_naming_widget.filename_changed.connect(
+            self._update_filename_status_label
+        )
 
         self.tab_widget.addTab(self.file_naming_widget, "File Naming")
 
@@ -357,7 +362,7 @@ class OCRMainWindow(QMainWindow):
         self.tab_widget.addTab(settings_widget, "Settings")
 
     def _create_business_aliases_tab(self) -> None:
-        """Create the Business Aliases tab."""
+        """Create the Business tab."""
         try:
             from .business_alias_tab import BusinessAliasTab
 
@@ -367,14 +372,14 @@ class OCRMainWindow(QMainWindow):
             business_aliases_widget.alias_updated.connect(self._on_aliases_updated)
 
             # Add to tab widget
-            self.tab_widget.addTab(business_aliases_widget, "Business Aliases")
+            self.tab_widget.addTab(business_aliases_widget, "Business")
 
         except ImportError:
             # Fallback if business alias components are not available
             fallback_widget = QWidget()
             layout = QVBoxLayout(fallback_widget)
 
-            fallback_title = QLabel("Business Aliases")
+            fallback_title = QLabel("Business")
             title_font = QFont()
             title_font.setBold(True)
             title_font.setPointSize(16)
@@ -382,45 +387,11 @@ class OCRMainWindow(QMainWindow):
             fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(fallback_title)
 
-            fallback_content = QLabel("Business alias management is not available.")
+            fallback_content = QLabel("Business management is not available.")
             fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(fallback_content)
 
-            self.tab_widget.addTab(fallback_widget, "Business Aliases")
-
-    def _create_official_names_tab(self) -> None:
-        """Create the Official Names tab."""
-        try:
-            from .official_names_tab import OfficialNamesTab
-
-            official_names_widget = OfficialNamesTab()
-
-            # Connect official names update signal to refresh OCR data if needed
-            official_names_widget.official_names_updated.connect(
-                self._on_official_names_updated
-            )
-
-            # Add to tab widget
-            self.tab_widget.addTab(official_names_widget, "Official Names")
-
-        except ImportError:
-            # Fallback if official names components are not available
-            fallback_widget = QWidget()
-            layout = QVBoxLayout(fallback_widget)
-
-            fallback_title = QLabel("Official Names")
-            title_font = QFont()
-            title_font.setBold(True)
-            title_font.setPointSize(16)
-            fallback_title.setFont(title_font)
-            fallback_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(fallback_title)
-
-            fallback_content = QLabel("Official names management is not available.")
-            fallback_content.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(fallback_content)
-
-            self.tab_widget.addTab(fallback_widget, "Official Names")
+            self.tab_widget.addTab(fallback_widget, "Business")
 
     def _on_aliases_updated(self) -> None:
         """Handle business aliases updates."""
@@ -429,14 +400,6 @@ class OCRMainWindow(QMainWindow):
             # Reinitialize parser to pick up new aliases
             self.ocr_parser = InvoiceParser(self.config)
         self.status_bar.showMessage("Business aliases updated - OCR parser refreshed")
-
-    def _on_official_names_updated(self) -> None:
-        """Handle official names updates."""
-        # Refresh OCR parser with updated official names if needed
-        if hasattr(self, "ocr_parser"):
-            # Reinitialize parser to pick up new official names
-            self.ocr_parser = InvoiceParser(self.config)
-        self.status_bar.showMessage("Official names updated - OCR parser refreshed")
 
     def _create_project_tab(self) -> None:
         """Create the Projects tab."""
@@ -531,28 +494,18 @@ class OCRMainWindow(QMainWindow):
         settings_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
         view_menu.addAction(settings_action)
 
-        business_aliases_action = QAction("&Business Aliases", self)
+        business_aliases_action = QAction("&Business", self)
         business_aliases_action.setShortcut(QKeySequence("Ctrl+4"))
-        business_aliases_action.setStatusTip(
-            "Switch to Business Aliases management tab"
-        )
+        business_aliases_action.setStatusTip("Switch to Business management tab")
         business_aliases_action.triggered.connect(
             lambda: self.tab_widget.setCurrentIndex(3)
         )
         view_menu.addAction(business_aliases_action)
 
-        official_names_action = QAction("&Official Names", self)
-        official_names_action.setShortcut(QKeySequence("Ctrl+5"))
-        official_names_action.setStatusTip("Switch to Official Names management tab")
-        official_names_action.triggered.connect(
-            lambda: self.tab_widget.setCurrentIndex(4)
-        )
-        view_menu.addAction(official_names_action)
-
         projects_action = QAction("&Projects", self)
-        projects_action.setShortcut(QKeySequence("Ctrl+6"))
+        projects_action.setShortcut(QKeySequence("Ctrl+5"))
         projects_action.setStatusTip("Switch to Projects management tab")
-        projects_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(5))
+        projects_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(4))
         view_menu.addAction(projects_action)
 
         # Help menu
@@ -612,13 +565,9 @@ class OCRMainWindow(QMainWindow):
             self.status_bar.showMessage(
                 "⚙️ Settings - Configure application preferences"
             )
-        elif tab_name == "Business Aliases":
+        elif tab_name == "Business":
             self.status_bar.showMessage(
-                "🏢 Business Aliases - Manage company name mappings for improved OCR accuracy"
-            )
-        elif tab_name == "Official Names":
-            self.status_bar.showMessage(
-                "📋 Official Names - Manage canonical business names that aliases resolve to"
+                "🏢 Business - Manage company name mappings for improved OCR accuracy"
             )
         else:
             self.status_bar.showMessage(f"Switched to {tab_name} tab")
@@ -634,7 +583,14 @@ class OCRMainWindow(QMainWindow):
         except Exception as e:
             self._show_error_message(f"Error selecting PDF file: {str(e)}")
 
-    def _load_and_process_pdf(self, pdf_path: str) -> None:
+    def _on_force_ocr(self) -> None:
+        """Handle Force OCR button click."""
+        if self.current_pdf_path:
+            self._load_and_process_pdf(self.current_pdf_path, force_ocr=True)
+        else:
+            self._show_error_message("No PDF file loaded. Please select a PDF file first.")
+
+    def _load_and_process_pdf(self, pdf_path: str, force_ocr: bool = False) -> None:
         """Load PDF and check for metadata first, then start OCR processing if needed."""
         try:
             # Load PDF in preview widget
@@ -642,21 +598,33 @@ class OCRMainWindow(QMainWindow):
                 self.current_pdf_path = pdf_path
                 self.status_bar.showMessage(f"Loaded PDF: {pdf_path}")
                 self._show_success_message("PDF loaded successfully")
+                
 
-                # Check for saved metadata first
-                if self.pdf_metadata_manager and self.pdf_metadata_manager.has_saved_data(pdf_path):
-                    self.status_bar.showMessage("📋 Loading saved data from PDF metadata...")
+
+                # Check for saved metadata first (unless force_ocr is True)
+                if (
+                    not force_ocr
+                    and self.pdf_metadata_manager
+                    and self.pdf_metadata_manager.has_saved_data(pdf_path)
+                ):
+                    self.status_bar.showMessage(
+                        "📋 Loading saved data from PDF metadata..."
+                    )
                     saved_data = self.pdf_metadata_manager.load_data_from_pdf(pdf_path)
                     if saved_data:
                         print(f"📋 [PDF METADATA LOADED] File: {pdf_path}")
                         print(f"📋 [PDF METADATA LOADED] Data: {saved_data}")
-                        print(f"📋 [PDF METADATA LOADED] Fields: {list(saved_data.keys())}")
+                        print(
+                            f"📋 [PDF METADATA LOADED] Fields: {list(saved_data.keys())}"
+                        )
                         # Use saved data instead of running OCR
                         self._on_ocr_finished(saved_data)
                         self.status_bar.showMessage("✅ Loaded data from PDF metadata")
                         return
 
-                # No saved data found, start OCR processing
+                # No saved data found or force_ocr is True, start OCR processing
+                if force_ocr:
+                    self.status_bar.showMessage("🔄 Force OCR: Processing PDF with fresh OCR...")
                 self._start_ocr_processing(pdf_path)
             else:
                 self._show_error_message("Failed to load PDF file")
@@ -684,20 +652,16 @@ class OCRMainWindow(QMainWindow):
         self.ocr_progress.setVisible(True)
         self.status_bar.showMessage("🔄 Processing PDF with OCR - Please wait...")
         self.select_pdf_btn.setEnabled(False)
+        self.pdf_preview.force_ocr_btn.setEnabled(False)
 
     def _on_ocr_finished(self, extracted_data: Dict[str, Any]) -> None:
         """Handle OCR processing finished successfully."""
         self.ocr_progress.setVisible(False)
         self.select_pdf_btn.setEnabled(True)
+        self.pdf_preview.force_ocr_btn.setEnabled(True)
 
         # Store extracted data
         self.extracted_data = extracted_data
-
-        # Debug: Print extracted data
-        print(f"[DEBUG] Extracted data: {extracted_data}")
-        print(f"[DEBUG] Company field: {extracted_data.get('company', 'NOT_FOUND')}")
-        print(f"[DEBUG] Company field type: {type(extracted_data.get('company'))}")
-        print(f"[DEBUG] All fields: {list(extracted_data.keys())}")
 
         # Update data panel
         self.data_panel.update_data(extracted_data)
@@ -705,14 +669,14 @@ class OCRMainWindow(QMainWindow):
         # Restore project and document type selections from metadata
         selected_project = extracted_data.get("selected_project", "")
         selected_document_type = extracted_data.get("selected_document_type", "")
-        
+
         # Set project selection if found in metadata
         if selected_project:
             self.data_panel.set_selected_project(selected_project)
             if self.file_naming_widget:
                 self.file_naming_widget.set_project(selected_project)
             print(f"✅ Restored project selection: {selected_project}")
-        
+
         # Set document type selection if found in metadata
         if selected_document_type:
             self.data_panel.set_selected_document_type(selected_document_type)
@@ -736,7 +700,7 @@ class OCRMainWindow(QMainWindow):
                 print(f"💾 [PDF METADATA SAVING] File: {self.current_pdf_path}")
                 print(f"💾 [PDF METADATA SAVING] Data: {extracted_data}")
                 print(f"💾 [PDF METADATA SAVING] Fields: {list(extracted_data.keys())}")
-                
+
                 success = self.pdf_metadata_manager.save_data_to_pdf(
                     self.current_pdf_path, extracted_data
                 )
@@ -787,6 +751,7 @@ class OCRMainWindow(QMainWindow):
         """Handle OCR processing error."""
         self.ocr_progress.setVisible(False)
         self.select_pdf_btn.setEnabled(True)
+        self.pdf_preview.force_ocr_btn.setEnabled(True)
 
         # Provide more specific error messages
         if "tesseract" in error_message.lower():
@@ -927,12 +892,18 @@ class OCRMainWindow(QMainWindow):
                     self.current_pdf_path, updated_data
                 )
                 if success:
-                    self.status_bar.showMessage("✅ Data updated and saved to PDF metadata")
+                    self.status_bar.showMessage(
+                        "✅ Data updated and saved to PDF metadata"
+                    )
                 else:
-                    self.status_bar.showMessage("⚠️ Data updated but failed to save to PDF metadata")
+                    self.status_bar.showMessage(
+                        "⚠️ Data updated but failed to save to PDF metadata"
+                    )
             except Exception as e:
                 print(f"⚠️ Error saving metadata: {e}")
-                self.status_bar.showMessage("⚠️ Data updated but failed to save to PDF metadata")
+                self.status_bar.showMessage(
+                    "⚠️ Data updated but failed to save to PDF metadata"
+                )
         else:
             # Show status message indicating data was updated
             self.status_bar.showMessage("✅ Data updated - file name preview refreshed")
@@ -942,7 +913,7 @@ class OCRMainWindow(QMainWindow):
         # Update the file naming widget with the selected project
         if self.file_naming_widget:
             self.file_naming_widget.set_project(project_name)
-        
+
         # Update the status bar
         self.status_bar.showMessage(f"Project selected: {project_name}")
 
@@ -951,7 +922,7 @@ class OCRMainWindow(QMainWindow):
         # Update the file naming widget's preview to reflect the new document type
         if self.file_naming_widget:
             self.file_naming_widget._update_preview()
-        
+
         # Update the status bar
         self.status_bar.showMessage(f"Document type selected: {document_type}")
 
@@ -976,6 +947,18 @@ class OCRMainWindow(QMainWindow):
         if hasattr(self.file_naming_widget, "_rename_file"):
             self.file_naming_widget._rename_file()
 
+    def _on_raw_data_requested(self) -> None:
+        """Handle raw data request from PDF preview."""
+        if hasattr(self, "extracted_data") and self.extracted_data:
+            try:
+                from .dialogs.raw_data_dialog import RawDataDialog
+                dialog = RawDataDialog(self.extracted_data, self)
+                dialog.exec()
+            except ImportError as e:
+                self._show_error_message(f"Raw data dialog is not available: {str(e)}")
+        else:
+            self._show_error_message("No data available to display")
+
     def _show_keyboard_shortcuts(self) -> None:
         """Show keyboard shortcuts help dialog."""
         shortcuts_text = """
@@ -990,9 +973,8 @@ Navigation:
   Ctrl+1          Switch to Single PDF tab
   Ctrl+2          Switch to File Naming tab
   Ctrl+3          Switch to Settings tab
-  Ctrl+4          Switch to Business Aliases tab
-  Ctrl+5          Switch to Official Names tab
-  Ctrl+6          Switch to Projects tab
+  Ctrl+4          Switch to Business tab
+  Ctrl+5          Switch to Projects tab
 
 Help:
   F1              Show this help dialog

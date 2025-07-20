@@ -53,8 +53,8 @@ class TestOCRMainWindow:
         """Test that the tab widget is created and accessible."""
         assert main_window.tab_widget is not None
         assert (
-            main_window.tab_widget.count() == 6
-        )  # Single PDF, File Naming, Projects, Official Names, Business Aliases, Settings
+            main_window.tab_widget.count() == 5
+        )  # Single PDF, File Naming, Projects, Business, Settings
 
     def test_tab_names(self, main_window: OCRMainWindow) -> None:
         """Test that the correct tabs are created."""
@@ -65,8 +65,7 @@ class TestOCRMainWindow:
         assert "Single PDF" in tab_names
         assert "File Naming" in tab_names
         assert "Projects" in tab_names
-        assert "Official Names" in tab_names
-        assert "Business Aliases" in tab_names
+        assert "Business" in tab_names
         assert "Settings" in tab_names
 
     def test_status_bar_exists(self, main_window: OCRMainWindow) -> None:
@@ -103,10 +102,15 @@ class TestOCRMainWindow:
         main_window.close()
         qtbot.wait(100)  # Small delay to allow close processing
 
-    def test_edit_business_field_in_single_pdf_table(self, main_window: OCRMainWindow, qtbot: QtBot) -> None:
+    def test_edit_business_field_in_single_pdf_table(
+        self, main_window: OCRMainWindow, qtbot: QtBot
+    ) -> None:
         """Test editing the business field in the single PDF table, including adding a new business."""
         # Switch to Single PDF tab
-        tab_names = [main_window.tab_widget.tabText(i) for i in range(main_window.tab_widget.count())]
+        tab_names = [
+            main_window.tab_widget.tabText(i)
+            for i in range(main_window.tab_widget.count())
+        ]
         single_pdf_index = tab_names.index("Single PDF")
         main_window.tab_widget.setCurrentIndex(single_pdf_index)
         qtbot.wait(100)
@@ -145,7 +149,9 @@ class TestOCRMainWindow:
         new_business = "New Test Business"
         editor.setCurrentText(new_business)
         # Simulate user confirming addition
-        business_delegate._check_add_new(editor)  # Normally triggered by editingFinished
+        business_delegate._check_add_new(
+            editor
+        )  # Normally triggered by editingFinished
         business_delegate.setModelData(editor, table.model(), table.model().index(0, 1))
         qtbot.wait(100)
         assert table.item(0, 1).text() == new_business
