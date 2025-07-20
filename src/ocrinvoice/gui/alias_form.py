@@ -97,7 +97,7 @@ class AliasForm(QWidget):
 
         # Match Type field
         self.match_type_combo = QComboBox()
-        self.match_type_combo.addItems(["Exact", "Partial", "Fuzzy"])
+        self.match_type_combo.addItems(["Exact", "Variant", "Fuzzy"])
         self.match_type_combo.setToolTip("Type of matching to use for this alias")
         form_layout.addRow("Match Type:", self.match_type_combo)
 

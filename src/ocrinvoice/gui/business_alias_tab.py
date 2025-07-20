@@ -25,7 +25,7 @@ from PyQt6.QtGui import QFont
 
 from .alias_table import AliasTable
 from .alias_form import AliasForm
-from ocrinvoice.business.business_mapping_manager import BusinessMappingManager
+from ocrinvoice.business.business_mapping_manager_v2 import BusinessMappingManagerV2 as BusinessMappingManager
 
 
 class AliasManagerThread(QThread):
@@ -64,8 +64,7 @@ class AliasManagerThread(QThread):
         """Run the background operation."""
         try:
             if self._operation == "load":
-                # Reload configuration before loading aliases
-                self.mapping_manager.reload_config()
+                # For v2, we don't need to reload config - just load aliases
                 aliases = self._load_aliases_from_manager()
                 self.aliases_loaded.emit(aliases)
             elif self._operation == "save":
@@ -81,47 +80,25 @@ class AliasManagerThread(QThread):
         """Load aliases from the business mapping manager."""
         aliases = []
 
-        # Get exact matches
-        exact_matches = self.mapping_manager.config.get("exact_matches", {})
-        for company_name, canonical_name in exact_matches.items():
-            alias_data = {
-                "company_name": company_name,
-                "canonical_name": canonical_name,
-                "match_type": "Exact",
-                "usage_count": 0,  # TODO: Implement usage tracking
-                "last_used": "",
-                "fuzzy_matching": True,
-                "case_sensitive": False,
-            }
-            aliases.append(alias_data)
-
-        # Get partial matches
-        partial_matches = self.mapping_manager.config.get("partial_matches", {})
-        for company_name, canonical_name in partial_matches.items():
-            alias_data = {
-                "company_name": company_name,
-                "canonical_name": canonical_name,
-                "match_type": "Partial",
-                "usage_count": 0,  # TODO: Implement usage tracking
-                "last_used": "",
-                "fuzzy_matching": True,
-                "case_sensitive": False,
-            }
-            aliases.append(alias_data)
-
-        # Get fuzzy candidates
-        fuzzy_candidates = self.mapping_manager.config.get("fuzzy_candidates", [])
-        for canonical_name in fuzzy_candidates:
-            alias_data = {
-                "company_name": canonical_name,  # Use canonical name as company name for fuzzy
-                "canonical_name": canonical_name,
-                "match_type": "Fuzzy",
-                "usage_count": 0,  # TODO: Implement usage tracking
-                "last_used": "",
-                "fuzzy_matching": True,
-                "case_sensitive": False,
-            }
-            aliases.append(alias_data)
+        # Get all businesses from the new structure
+        businesses = self.mapping_manager.get_all_businesses()
+        
+        for business in businesses:
+            canonical_name = business["canonical_name"]
+            
+            # Add all aliases for this business
+            for alias in business["aliases"]:
+                alias_data = {
+                    "company_name": alias["keyword"],
+                    "canonical_name": canonical_name,
+                    "match_type": alias["match_type"].title(),  # Convert to title case
+                    "usage_count": 0,  # TODO: Implement usage tracking
+                    "last_used": "",
+                    "fuzzy_matching": alias.get("fuzzy_matching", True),
+                    "case_sensitive": alias.get("case_sensitive", False),
+                    "business_id": business["id"],  # Add business ID for reference
+                }
+                aliases.append(alias_data)
 
         return aliases
 
@@ -129,50 +106,101 @@ class AliasManagerThread(QThread):
         """Save an alias to the business mapping manager."""
         company_name = alias_data["company_name"]
         canonical_name = alias_data["canonical_name"]
-        match_type = alias_data["match_type"]
+        match_type = alias_data["match_type"].lower()  # Convert to lowercase for new structure
 
-        # Add to appropriate mapping type
-        if match_type == "Exact":
-            self.mapping_manager.add_mapping(
-                company_name, canonical_name, "exact_matches"
-            )
-        elif match_type == "Partial":
-            self.mapping_manager.add_mapping(
-                company_name, canonical_name, "partial_matches"
-            )
-        elif match_type == "Fuzzy":
-            # For fuzzy matches, add to fuzzy_candidates if not already there
-            if canonical_name not in self.mapping_manager.config.get(
-                "fuzzy_candidates", []
-            ):
-                self.mapping_manager.config.setdefault("fuzzy_candidates", []).append(
-                    canonical_name
-                )
+        # First, ensure the canonical name exists
+        if canonical_name not in self.mapping_manager.canonical_names:
+            self.mapping_manager.add_canonical_name(canonical_name)
 
-        # Save the configuration
-        self.mapping_manager._save_config()
+        # Find the business by canonical name
+        business = self.mapping_manager.get_business_by_name(canonical_name)
+        if business:
+            # Add the alias to the business
+            self.mapping_manager.add_alias(business["id"], company_name, match_type)
+        else:
+            # This shouldn't happen since we just added the canonical name
+            print(f"Warning: Could not find business for canonical name: {canonical_name}")
 
     def _delete_alias_from_manager(self, company_name: str):
         """Delete an alias from the business mapping manager."""
-        # Remove from exact matches
-        if company_name in self.mapping_manager.config.get("exact_matches", {}):
-            del self.mapping_manager.config["exact_matches"][company_name]
+        # Find the business that contains this alias
+        for business in self.mapping_manager.get_all_businesses():
+            for alias in business["aliases"]:
+                if alias["keyword"] == company_name:
+                    # Remove the alias from the business
+                    self.mapping_manager.remove_alias(business["id"], company_name, alias["match_type"])
+                    
+                    # Check if this was the last alias for the business
+                    remaining_aliases = self.mapping_manager.get_business_aliases(business["id"])
+                    if not remaining_aliases:
+                        # Remove the business if it has no more aliases
+                        self.mapping_manager.remove_canonical_name(business["canonical_name"])
+                    
+                    return
+        
+        # If we get here, the alias wasn't found
+        print(f"Warning: Could not find alias to delete: {company_name}")
 
-        # Remove from partial matches
-        if company_name in self.mapping_manager.config.get("partial_matches", {}):
-            del self.mapping_manager.config["partial_matches"][company_name]
 
-        # Remove from fuzzy candidates (for fuzzy matches, company_name is the canonical_name)
-        fuzzy_candidates = self.mapping_manager.config.get("fuzzy_candidates", [])
-        if company_name in fuzzy_candidates:
-            fuzzy_candidates.remove(company_name)
+class NewBusinessDialog(QDialog):
+    """Dialog for creating a new business."""
 
-        # Ensure the configuration is properly saved
-        try:
-            self.mapping_manager._save_config()
-        except Exception as e:
-            print(f"Error saving configuration after deletion: {e}")
-            raise
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("🏢 Create New Business")
+        self.setModal(True)
+        self.setMinimumSize(400, 200)
+
+        layout = QVBoxLayoutDialog(self)
+
+        # Business name input
+        name_layout = QHBoxLayout()
+        name_label = QLabel("Business Name:")
+        self.name_edit = QLineEdit()
+        self.name_edit.setPlaceholderText("Enter the business name...")
+        self.name_edit.textChanged.connect(self._on_name_changed)
+        self.name_edit.returnPressed.connect(self._on_return_pressed)  # Handle Enter key
+        name_layout.addWidget(name_label)
+        name_layout.addWidget(self.name_edit)
+        layout.addLayout(name_layout)
+
+        # Description
+        desc_label = QLabel(
+            "This will create a new business with:\n"
+            "• Keyword = Business Name\n"
+            "• Match Type = Exact"
+        )
+        desc_label.setWordWrap(True)
+        layout.addWidget(desc_label)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(self.cancel_btn)
+        
+        self.save_btn = QPushButton("Create Business")
+        self.save_btn.setEnabled(False)
+        self.save_btn.clicked.connect(self.accept)
+        self.save_btn.setDefault(True)  # Make this the default button (activated by Enter)
+        button_layout.addWidget(self.save_btn)
+        
+        layout.addLayout(button_layout)
+
+    def _on_name_changed(self, text: str) -> None:
+        """Handle business name text changes."""
+        self.save_btn.setEnabled(bool(text.strip()))
+
+    def _on_return_pressed(self) -> None:
+        """Handle Enter key press in the business name field."""
+        if self.save_btn.isEnabled():
+            self.accept()  # Accept the dialog (same as clicking Create Business)
+
+    def get_business_name(self) -> str:
+        """Get the entered business name."""
+        return self.name_edit.text().strip()
 
 
 class AliasDialog(QDialog):
@@ -245,7 +273,7 @@ class BusinessAliasTab(QWidget):
         header_layout = QHBoxLayout()
 
         # Title
-        title_label = QLabel("Business Aliases Manager")
+        title_label = QLabel("Business Manager")
         title_font = QFont()
         title_font.setBold(True)
         title_font.setPointSize(16)
@@ -266,8 +294,15 @@ class BusinessAliasTab(QWidget):
         # Toolbar section
         toolbar_layout = QHBoxLayout()
 
-        # Add button
+        # Add new business button
+        self.add_business_button = QPushButton("🏢 New Business")
+        self.add_business_button.setToolTip("Create a new business with exact match")
+        self.add_business_button.clicked.connect(self._on_add_new_business)
+        toolbar_layout.addWidget(self.add_business_button)
+
+        # Add alias button
         self.add_button = QPushButton("➕ Add Alias")
+        self.add_button.setToolTip("Add an alias for an existing business")
         self.add_button.clicked.connect(self._on_add_alias)
         toolbar_layout.addWidget(self.add_button)
 
@@ -328,12 +363,12 @@ class BusinessAliasTab(QWidget):
 
         self.total_aliases_label = QLabel("Total Aliases: 0")
         self.exact_matches_label = QLabel("Exact Matches: 0")
-        self.partial_matches_label = QLabel("Partial Matches: 0")
+        self.variant_matches_label = QLabel("Variant Matches: 0")
         self.fuzzy_matches_label = QLabel("Fuzzy Matches: 0")
 
         stats_layout.addWidget(self.total_aliases_label)
         stats_layout.addWidget(self.exact_matches_label)
-        stats_layout.addWidget(self.partial_matches_label)
+        stats_layout.addWidget(self.variant_matches_label)
         stats_layout.addWidget(self.fuzzy_matches_label)
 
         layout.addWidget(stats_group)
@@ -347,6 +382,9 @@ class BusinessAliasTab(QWidget):
         self.alias_table.alias_selected.connect(self._on_alias_selected)
         self.alias_table.alias_double_clicked.connect(self._on_edit_alias)
         self.alias_table.alias_updated.connect(self._on_alias_updated)
+        self.alias_table.alias_deletion_requested.connect(
+            self._on_delete_alias_requested
+        )
 
         # Thread connections
         self.alias_thread.aliases_loaded.connect(self._on_aliases_loaded)
@@ -369,12 +407,12 @@ class BusinessAliasTab(QWidget):
         """Update the statistics panel."""
         total = len(aliases)
         exact = len([a for a in aliases if a.get("match_type") == "Exact"])
-        partial = len([a for a in aliases if a.get("match_type") == "Partial"])
+        variant = len([a for a in aliases if a.get("match_type") == "Variant"])
         fuzzy = len([a for a in aliases if a.get("match_type") == "Fuzzy"])
 
         self.total_aliases_label.setText(f"Total Aliases: {total}")
         self.exact_matches_label.setText(f"Exact Matches: {exact}")
-        self.partial_matches_label.setText(f"Partial Matches: {partial}")
+        self.variant_matches_label.setText(f"Variant Matches: {variant}")
         self.fuzzy_matches_label.setText(f"Fuzzy Matches: {fuzzy}")
 
     def _on_search_changed(self, search_text: str) -> None:
@@ -386,10 +424,28 @@ class BusinessAliasTab(QWidget):
         self.edit_button.setEnabled(True)
         self.delete_button.setEnabled(True)
 
+    def _on_add_new_business(self) -> None:
+        """Handle add new business button click."""
+        dialog = NewBusinessDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            business_name = dialog.get_business_name()
+            if business_name:
+                # Create alias data with business name as both keyword and canonical name
+                alias_data = {
+                    "company_name": business_name,  # This is the keyword
+                    "canonical_name": business_name,  # This is the business name
+                    "match_type": "Exact",
+                    "usage_count": 0,
+                    "last_used": "",
+                    "fuzzy_matching": True,
+                    "case_sensitive": False,
+                }
+                self.alias_thread.save_alias(alias_data)
+
     def _on_add_alias(self) -> None:
         """Handle add alias button click."""
-        official_names = self.mapping_manager.get_official_names()
-        dialog = AliasDialog(self, official_names=official_names)
+        canonical_names = self.mapping_manager.get_canonical_names()
+        dialog = AliasDialog(self, official_names=canonical_names)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             alias_data = dialog.get_alias_data()
             self.alias_thread.save_alias(alias_data)
@@ -400,8 +456,8 @@ class BusinessAliasTab(QWidget):
             alias_data = self.alias_table.get_selected_alias()
             if not alias_data:
                 return
-        official_names = self.mapping_manager.get_official_names()
-        dialog = AliasDialog(self, alias_data, official_names=official_names)
+        canonical_names = self.mapping_manager.get_canonical_names()
+        dialog = AliasDialog(self, alias_data, official_names=canonical_names)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             alias_data = dialog.get_alias_data()
             self.alias_thread.save_alias(alias_data)
@@ -412,15 +468,62 @@ class BusinessAliasTab(QWidget):
 
     def _on_delete_alias(self) -> None:
         """Handle delete alias button click."""
+        # Try multiple methods to get the selected alias
+        alias_data = None
+        
+        # Method 1: Try get_selected_alias
         alias_data = self.alias_table.get_selected_alias()
+        
+        # Method 2: If that fails, try currentRow
         if not alias_data:
+            current_row = self.alias_table.currentRow()
+            if current_row >= 0:
+                alias_data = self.alias_table.get_alias_at_row(current_row)
+        
+        # Method 3: If that fails, try selection model
+        if not alias_data:
+            selection_model = self.alias_table.selectionModel()
+            if selection_model and selection_model.hasSelection():
+                selected_rows = selection_model.selectedRows()
+                if selected_rows:
+                    row = selected_rows[0].row()
+                    alias_data = self.alias_table.get_alias_at_row(row)
+        
+        if not alias_data:
+            QMessageBox.warning(self, "No Selection", "Please select an alias to delete.")
             return
 
         company_name = alias_data["company_name"]
+        canonical_name = alias_data["canonical_name"]
+        
+        # Show more detailed confirmation message
         reply = QMessageBox.question(
             self,
             "Confirm Delete",
-            f"Are you sure you want to delete the alias for '{company_name}'?",
+            f"Are you sure you want to delete the alias?\n\n"
+            f"Keyword: '{company_name}'\n"
+            f"Business: '{canonical_name}'\n"
+            f"Match Type: {alias_data.get('match_type', 'Unknown')}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.alias_thread.delete_alias(company_name)
+
+    def _on_delete_alias_requested(self, alias_data: Dict[str, Any]) -> None:
+        """Handle delete alias request from table context menu."""
+        company_name = alias_data["company_name"]
+        canonical_name = alias_data["canonical_name"]
+        
+        # Show more detailed confirmation message
+        reply = QMessageBox.question(
+            self,
+            "Confirm Delete",
+            f"Are you sure you want to delete the alias?\n\n"
+            f"Keyword: '{company_name}'\n"
+            f"Business: '{canonical_name}'\n"
+            f"Match Type: {alias_data.get('match_type', 'Unknown')}",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -443,15 +546,48 @@ class BusinessAliasTab(QWidget):
         self.status_bar.showMessage(f"Alias deleted: {company_name}")
         self.alias_updated.emit()
 
-        # Clear the table selection before reloading
+        # Clear the table selection and disable buttons
         self.alias_table.clearSelection()
         self.edit_button.setEnabled(False)
         self.delete_button.setEnabled(False)
 
-        # Add a small delay to ensure file is saved before reloading
+        # Clear any active search to ensure we see all data
+        self.search_edit.clear()
+
+        # Add a longer delay to ensure file is saved and system is stable before reloading
         from PyQt6.QtCore import QTimer
 
-        QTimer.singleShot(100, self._load_aliases)
+        QTimer.singleShot(200, self._safe_reload_aliases)
+
+    def _safe_reload_aliases(self) -> None:
+        """Safely reload aliases with error handling."""
+        try:
+            # Disable sorting temporarily to prevent issues during reload
+            self.alias_table.setSortingEnabled(False)
+            
+            # Reload the aliases
+            self._load_aliases()
+            
+            # Re-enable sorting after a short delay
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(100, lambda: self.alias_table.setSortingEnabled(True))
+            
+        except Exception as e:
+            # If reload fails, show error and try to recover
+            QMessageBox.warning(
+                self,
+                "Reload Error",
+                f"Failed to reload data after deletion: {str(e)}\n\nTrying to recover...",
+            )
+            # Try to recover by forcing a full refresh
+            try:
+                self.refresh_data()
+            except Exception as e2:
+                QMessageBox.critical(
+                    self,
+                    "Recovery Failed",
+                    f"Failed to recover from deletion error: {str(e2)}",
+                )
 
     def _on_error_occurred(self, error_message: str) -> None:
         """Handle error from background thread."""
@@ -460,7 +596,18 @@ class BusinessAliasTab(QWidget):
 
     def refresh_data(self) -> None:
         """Refresh the alias data."""
-        self._load_aliases()
+        try:
+            # For v2, just reload aliases directly
+            self._load_aliases()
+        except Exception as e:
+            # If refresh fails, show error and try to recover
+            QMessageBox.warning(
+                self,
+                "Refresh Error",
+                f"Failed to refresh data: {str(e)}\n\nTrying to recover...",
+            )
+            # Try to load without reloading config
+            self._load_aliases()
 
     def _on_backup_restore(self) -> None:
         """Handle backup/restore button click."""

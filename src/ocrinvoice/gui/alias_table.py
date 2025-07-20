@@ -33,6 +33,7 @@ class AliasTable(QTableWidget):
     alias_updated = pyqtSignal(
         dict
     )  # Emitted when an alias is updated via direct editing
+    alias_deletion_requested = pyqtSignal(dict)  # Emitted when deletion is requested
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -82,8 +83,8 @@ class AliasTable(QTableWidget):
         """Set up the table headers for business aliases."""
         # Set header labels for business aliases
         headers = [
-            "Company Name",
-            "Canonical Name",
+            "Business Name",
+            "Keyword",
             "Match Type",
             "Usage Count",
             "Last Used",
@@ -116,6 +117,9 @@ class AliasTable(QTableWidget):
         # Connect item changed signal for direct editing
         self.itemChanged.connect(self._on_item_changed)
 
+        # Connect cell clicked signal to ensure proper selection
+        self.cellClicked.connect(self._on_cell_clicked)
+
         # Set context menu policy
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
@@ -127,18 +131,34 @@ class AliasTable(QTableWidget):
         Args:
             aliases: List of alias dictionaries with company_name, canonical_name, match_type, etc.
         """
-        # Clear existing data
-        self.clearContents()
-        self._aliases = aliases.copy()
+        try:
+            # Block signals temporarily to prevent interference
+            self.blockSignals(True)
+            
+            # Clear existing data
+            self.clearContents()
+            self.setRowCount(0)  # Ensure table is completely empty
+            
+            # Update data
+            self._aliases = aliases.copy()
+            self._filtered_aliases = self._aliases.copy()
 
-        # Update filtered list
-        self._filtered_aliases = self._aliases.copy()
+            # Set row count before populating
+            self.setRowCount(len(self._filtered_aliases))
 
-        # Populate table
-        self._populate_table()
-
-        # Update row count
-        self.setRowCount(len(self._filtered_aliases))
+            # Populate table
+            self._populate_table()
+            
+        except Exception as e:
+            print(f"Error loading aliases: {e}")
+            # Try to recover by clearing everything
+            self.clearContents()
+            self.setRowCount(0)
+            self._aliases = []
+            self._filtered_aliases = []
+        finally:
+            # Always restore signals
+            self.blockSignals(False)
 
     def _populate_table(self) -> None:
         """Populate the table with alias data."""
@@ -148,19 +168,19 @@ class AliasTable(QTableWidget):
         self.setRowCount(len(self._filtered_aliases))
 
         for row, alias_data in enumerate(self._filtered_aliases):
-            # Company Name (editable)
-            company_item = QTableWidgetItem(alias_data.get("company_name", ""))
-            company_item.setData(Qt.ItemDataRole.UserRole, alias_data)
-            company_item.setFlags(company_item.flags() | Qt.ItemFlag.ItemIsEditable)
-            self.setItem(row, 0, company_item)
-
-            # Canonical Name (editable)
+            # Business Name (editable) - Column 0
             canonical_item = QTableWidgetItem(alias_data.get("canonical_name", ""))
             canonical_item.setData(Qt.ItemDataRole.UserRole, alias_data)
             canonical_item.setFlags(canonical_item.flags() | Qt.ItemFlag.ItemIsEditable)
-            self.setItem(row, 1, canonical_item)
+            self.setItem(row, 0, canonical_item)
 
-            # Match Type (editable via dropdown)
+            # Keyword (editable) - Column 1
+            company_item = QTableWidgetItem(alias_data.get("company_name", ""))
+            company_item.setData(Qt.ItemDataRole.UserRole, alias_data)
+            company_item.setFlags(company_item.flags() | Qt.ItemFlag.ItemIsEditable)
+            self.setItem(row, 1, company_item)
+
+            # Match Type (editable via dropdown) - Column 2
             match_type = alias_data.get("match_type", "Unknown")
             match_type_item = QTableWidgetItem(match_type)
             match_type_item.setData(Qt.ItemDataRole.UserRole, alias_data)
@@ -171,7 +191,7 @@ class AliasTable(QTableWidget):
 
             self.setItem(row, 2, match_type_item)
 
-            # Usage Count (read-only)
+            # Usage Count (read-only) - Column 3
             usage_count = alias_data.get("usage_count", 0)
             usage_item = QTableWidgetItem(str(usage_count))
             usage_item.setData(Qt.ItemDataRole.UserRole, alias_data)
@@ -179,7 +199,7 @@ class AliasTable(QTableWidget):
             usage_item.setFlags(usage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.setItem(row, 3, usage_item)
 
-            # Last Used (read-only)
+            # Last Used (read-only) - Column 4
             last_used = alias_data.get("last_used", "")
             last_used_item = QTableWidgetItem(str(last_used))
             last_used_item.setData(Qt.ItemDataRole.UserRole, alias_data)
@@ -199,9 +219,53 @@ class AliasTable(QTableWidget):
         Returns:
             Dictionary containing the selected alias data, or None if no selection
         """
-        current_row = self.currentRow()
-        if current_row >= 0 and current_row < len(self._filtered_aliases):
-            return self._filtered_aliases[current_row]
+        # Get the current row from selection model
+        selection_model = self.selectionModel()
+        if not selection_model or not selection_model.hasSelection():
+            return None
+            
+        selected_rows = selection_model.selectedRows()
+        if not selected_rows:
+            return None
+            
+        current_row = selected_rows[0].row()
+        if current_row >= 0 and current_row < self.rowCount():
+            # Get the item at the selected row to get the actual alias data
+            # This handles sorting correctly by getting data from the visual row
+            item = self.item(current_row, 0)  # Use first column to get the alias data
+            if item:
+                alias_data = item.data(Qt.ItemDataRole.UserRole)
+                if alias_data:
+                    return alias_data
+            
+            # Fallback: try to get from filtered aliases (for backward compatibility)
+            if current_row < len(self._filtered_aliases):
+                selected_alias = self._filtered_aliases[current_row]
+                return selected_alias
+        return None
+
+    def get_alias_at_row(self, row: int) -> Optional[Dict[str, Any]]:
+        """
+        Get alias data at a specific row.
+
+        Args:
+            row: Row index
+
+        Returns:
+            Dictionary containing the alias data, or None if row is invalid
+        """
+        if row >= 0 and row < self.rowCount():
+            # Get the item at the specified row to get the actual alias data
+            # This handles sorting correctly by getting data from the visual row
+            item = self.item(row, 0)  # Use first column to get the alias data
+            if item:
+                alias_data = item.data(Qt.ItemDataRole.UserRole)
+                if alias_data:
+                    return alias_data
+            
+            # Fallback: try to get from filtered aliases (for backward compatibility)
+            if row < len(self._filtered_aliases):
+                return self._filtered_aliases[row]
         return None
 
     def search_aliases(self, search_text: str) -> None:
@@ -237,6 +301,16 @@ class AliasTable(QTableWidget):
         if selected_alias:
             self.alias_selected.emit(selected_alias)
 
+    def _on_cell_clicked(self, row: int, column: int) -> None:
+        """Handle cell click events to ensure proper selection."""
+        # Ensure the row is selected when clicked
+        self.selectRow(row)
+        
+        # Get the alias data for the clicked row
+        alias_data = self.get_alias_at_row(row)
+        if alias_data:
+            self.alias_selected.emit(alias_data)
+
     def _on_item_double_clicked(self, item: QTableWidgetItem) -> None:
         """Handle double-click events on table items."""
         alias_data = item.data(Qt.ItemDataRole.UserRole)
@@ -258,19 +332,19 @@ class AliasTable(QTableWidget):
             column = item.column()
             new_value = item.text().strip()
 
-            if column == 0:  # Company Name
-                original_alias["company_name"] = new_value
-            elif column == 1:  # Canonical Name
+            if column == 0:  # Business Name
                 original_alias["canonical_name"] = new_value
+            elif column == 1:  # Keyword
+                original_alias["company_name"] = new_value
             elif column == 2:  # Match Type
                 # Validate match type
-                valid_types = ["Exact", "Partial", "Fuzzy"]
+                valid_types = ["Exact", "Variant", "Fuzzy"]
                 if new_value in valid_types:
                     original_alias["match_type"] = new_value
                     # Update background color
                     if new_value == "Exact":
                         item.setBackground(QColor(200, 255, 200))  # Light green
-                    elif new_value == "Partial":
+                    elif new_value == "Variant":
                         item.setBackground(QColor(255, 255, 200))  # Light yellow
                     elif new_value == "Fuzzy":
                         item.setBackground(QColor(255, 200, 200))  # Light red
@@ -302,47 +376,31 @@ class AliasTable(QTableWidget):
         # Get the item at the clicked position
         item = self.itemAt(position)
         if item:
+            # Get the alias data once
+            alias_data = item.data(Qt.ItemDataRole.UserRole)
+            
             # Add context menu items
             edit_action = menu.addAction("✏️ Edit Alias")
             delete_action = menu.addAction("🗑️ Delete Alias")
             menu.addSeparator()
-            copy_company_action = menu.addAction("📋 Copy Company Name")
-            copy_canonical_action = menu.addAction("📋 Copy Canonical Name")
+            copy_keyword_action = menu.addAction("📋 Copy Keyword")
+            copy_business_action = menu.addAction("📋 Copy Business Name")
 
             # Show menu and handle action
             action = menu.exec(self.mapToGlobal(position))
 
             if action == edit_action:
-                alias_data = item.data(Qt.ItemDataRole.UserRole)
                 if alias_data:
                     self.alias_double_clicked.emit(alias_data)
             elif action == delete_action:
-                self._delete_selected_alias()
-            elif action == copy_company_action:
-                alias_data = item.data(Qt.ItemDataRole.UserRole)
+                if alias_data:
+                    self.alias_deletion_requested.emit(alias_data)
+            elif action == copy_keyword_action:
                 if alias_data:
                     self._copy_to_clipboard(alias_data.get("company_name", ""))
-            elif action == copy_canonical_action:
-                alias_data = item.data(Qt.ItemDataRole.UserRole)
+            elif action == copy_business_action:
                 if alias_data:
                     self._copy_to_clipboard(alias_data.get("canonical_name", ""))
-
-    def _delete_selected_alias(self) -> None:
-        """Delete the currently selected alias."""
-        selected_alias = self.get_selected_alias()
-        if selected_alias:
-            # Remove from both lists
-            if selected_alias in self._aliases:
-                self._aliases.remove(selected_alias)
-            if selected_alias in self._filtered_aliases:
-                self._filtered_aliases.remove(selected_alias)
-
-            # Clear selection before refreshing
-            self.clearSelection()
-
-            # Refresh display
-            self._populate_table()
-            self.setRowCount(len(self._filtered_aliases))
 
     def _copy_to_clipboard(self, text: str) -> None:
         """Copy text to clipboard."""
