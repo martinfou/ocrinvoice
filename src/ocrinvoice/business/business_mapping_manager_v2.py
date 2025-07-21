@@ -250,11 +250,19 @@ class BusinessMappingManagerV2:
     def get_canonical_names(self) -> List[str]:
         """Get all canonical business names."""
         return sorted(list(self.canonical_names))
+    
+    def get_business_names(self) -> List[str]:
+        """Get all business names (compatibility method)."""
+        return self.get_canonical_names()
 
     def add_canonical_name(self, name: str) -> bool:
         """Add a business name."""
         if name in self.canonical_names:
             return False
+    
+    def add_business_name(self, name: str) -> bool:
+        """Add a business name (compatibility method)."""
+        return self.add_canonical_name(name)
         
         # Generate business ID
         business_id = self._generate_business_id(name)
@@ -284,6 +292,10 @@ class BusinessMappingManagerV2:
         """Remove a business name."""
         if name not in self.canonical_names:
             return False
+    
+    def remove_business_name(self, name: str) -> bool:
+        """Remove a business name (compatibility method)."""
+        return self.remove_canonical_name(name)
         
         # Find the business by name
         business_to_remove = None
@@ -335,6 +347,10 @@ class BusinessMappingManagerV2:
     def is_canonical_name(self, name: str) -> bool:
         """Check if a name is a canonical business name."""
         return name in self.canonical_names
+    
+    def is_business_name(self, name: str) -> bool:
+        """Check if a name is a business name (compatibility method)."""
+        return self.is_canonical_name(name)
 
     def find_business_match(self, text: str) -> Optional[Tuple[str, str, float]]:
         """Find a business match in the given text."""

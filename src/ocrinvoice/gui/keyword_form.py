@@ -23,9 +23,9 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 
-class AliasForm(QWidget):
+class KeywordForm(QWidget):
     """
-    Form widget for adding and editing business aliases.
+    Form widget for adding and editing business keywords.
 
     Provides input fields for company name, canonical name, match type,
     and validation with preview functionality.
@@ -83,17 +83,17 @@ class AliasForm(QWidget):
         self.company_name_edit.setMinimumWidth(300)  # 50% longer than default
         form_layout.addRow("Company Name:", self.company_name_edit)
 
-        # Canonical Name field
-        self.canonical_name_combo = QComboBox()
-        self.canonical_name_combo.setEditable(False)
-        self.canonical_name_combo.setToolTip(
-            "Select the official or canonical name for the company (e.g., 'HYDRO-QUÉBEC')"
+        # Business Name field
+        self.business_name_combo = QComboBox()
+        self.business_name_combo.setEditable(False)
+        self.business_name_combo.setToolTip(
+            "Select the official business name for the company (e.g., 'HYDRO-QUÉBEC')"
         )
-        self.canonical_name_combo.addItems(self._official_names)
-        self.canonical_name_combo.setMinimumWidth(
+        self.business_name_combo.addItems(self._official_names)
+        self.business_name_combo.setMinimumWidth(
             300
         )  # Same size as company name field
-        form_layout.addRow("Canonical Name:", self.canonical_name_combo)
+        form_layout.addRow("Business Name:", self.business_name_combo)
 
         # Match Type field
         self.match_type_combo = QComboBox()
@@ -150,7 +150,7 @@ class AliasForm(QWidget):
         """Set up signal connections."""
         # Text change connections for real-time preview
         self.company_name_edit.textChanged.connect(self._update_preview)
-        self.canonical_name_combo.currentTextChanged.connect(self._update_preview)
+        self.business_name_combo.currentTextChanged.connect(self._update_preview)
         self.match_type_combo.currentTextChanged.connect(self._update_preview)
 
         # Button connections
@@ -159,7 +159,7 @@ class AliasForm(QWidget):
 
         # Validation connections
         self.company_name_edit.textChanged.connect(self._validate_form)
-        self.canonical_name_combo.currentTextChanged.connect(self._validate_form)
+        self.business_name_combo.currentTextChanged.connect(self._validate_form)
 
     def _setup_validation(self) -> None:
         """Set up form validation."""
@@ -171,11 +171,11 @@ class AliasForm(QWidget):
     def _update_preview(self) -> None:
         """Update the preview section with current form data."""
         company_name = self.company_name_edit.text().strip()
-        canonical_name = self.canonical_name_combo.currentText().strip()
+        business_name = self.business_name_combo.currentText().strip()
         match_type = self.match_type_combo.currentText()
 
-        if company_name and canonical_name:
-            preview_text = f'"{company_name}" → "{canonical_name}"\n'
+        if company_name and business_name:
+            preview_text = f'"{company_name}" → "{business_name}"\n'
             preview_text += f"Match Type: {match_type}\n"
 
             if self.fuzzy_matching_check.isChecked():
@@ -204,12 +204,12 @@ class AliasForm(QWidget):
         else:
             self.company_name_edit.setStyleSheet(self._invalid_style)
 
-        if canonical_name:
-            self.canonical_name_combo.setStyleSheet(self._valid_style)
-        elif canonical_name == "":
-            self.canonical_name_combo.setStyleSheet(self._normal_style)
+        if business_name:
+            self.business_name_combo.setStyleSheet(self._valid_style)
+        elif business_name == "":
+            self.business_name_combo.setStyleSheet(self._normal_style)
         else:
-            self.canonical_name_combo.setStyleSheet(self._invalid_style)
+            self.business_name_combo.setStyleSheet(self._invalid_style)
 
         # Enable/disable save button
         self.save_button.setEnabled(is_valid)
@@ -234,7 +234,7 @@ class AliasForm(QWidget):
     def _validate_form_data(self) -> bool:
         """Validate form data and show error messages if needed."""
         company_name = self.company_name_edit.text().strip()
-        canonical_name = self.canonical_name_combo.currentText().strip()
+        business_name = self.business_name_combo.currentText().strip()
 
         errors = []
 
@@ -243,10 +243,10 @@ class AliasForm(QWidget):
         elif len(company_name) < 2:
             errors.append("Company name must be at least 2 characters")
 
-        if not canonical_name:
-            errors.append("Canonical name is required")
-        elif len(canonical_name) < 2:
-            errors.append("Canonical name must be at least 2 characters")
+        if not business_name:
+            errors.append("Business name is required")
+        elif len(business_name) < 2:
+            errors.append("Business name must be at least 2 characters")
 
         if errors:
             error_message = "Please fix the following errors:\n\n" + "\n".join(
@@ -261,7 +261,7 @@ class AliasForm(QWidget):
         """Get the current form data as a dictionary."""
         return {
             "company_name": self.company_name_edit.text().strip(),
-            "canonical_name": self.canonical_name_combo.currentText().strip(),
+            "business_name": self.business_name_combo.currentText().strip(),
             "match_type": self.match_type_combo.currentText(),
             "fuzzy_matching": self.fuzzy_matching_check.isChecked(),
             "case_sensitive": self.case_sensitive_check.isChecked(),
@@ -276,12 +276,12 @@ class AliasForm(QWidget):
         self._current_alias = alias_data.copy()
         self.title_label.setText("Edit Business Alias")
         self.company_name_edit.setText(alias_data.get("company_name", ""))
-        canonical_name = alias_data.get("canonical_name", "")
-        idx = self.canonical_name_combo.findText(canonical_name)
+        business_name = alias_data.get("business_name", "")
+        idx = self.business_name_combo.findText(business_name)
         if idx >= 0:
-            self.canonical_name_combo.setCurrentIndex(idx)
+            self.business_name_combo.setCurrentIndex(idx)
         else:
-            self.canonical_name_combo.setCurrentIndex(0)
+            self.business_name_combo.setCurrentIndex(0)
         match_type = alias_data.get("match_type", "Exact")
         idx = self.match_type_combo.findText(match_type)
         if idx >= 0:
@@ -301,13 +301,13 @@ class AliasForm(QWidget):
 
         # Clear form fields
         self.company_name_edit.clear()
-        self.canonical_name_combo.setCurrentIndex(0)
+        self.business_name_combo.setCurrentIndex(0)
         self.fuzzy_matching_check.setChecked(True)
         self.case_sensitive_check.setChecked(False)
 
         # Reset styles
         self.company_name_edit.setStyleSheet(self._normal_style)
-        self.canonical_name_combo.setStyleSheet(self._normal_style)
+        self.business_name_combo.setStyleSheet(self._normal_style)
 
         # Update preview
         self._update_preview()
@@ -321,7 +321,7 @@ class AliasForm(QWidget):
         return self._current_alias
 
     def set_official_names(self, official_names: List[str]) -> None:
-        """Set the list of official names for the canonical name dropdown."""
+        """Set the list of official names for the business name dropdown."""
         self._official_names = official_names
-        self.canonical_name_combo.clear()
-        self.canonical_name_combo.addItems(self._official_names)
+        self.business_name_combo.clear()
+        self.business_name_combo.addItems(self._official_names)

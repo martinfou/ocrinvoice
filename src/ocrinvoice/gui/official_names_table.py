@@ -291,7 +291,7 @@ class OfficialNamesTable(QTableWidget):
             "This will also remove all aliases that reference this name.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
-        )
+        , QMessageBox.StandardButton.Yes)
 
         if reply == QMessageBox.StandardButton.Yes:
             # Remove from lists

@@ -21,7 +21,7 @@ def main():
     
     print(f"📊 Version: {manager.version}")
     print(f"📊 Total businesses: {len(manager.businesses)}")
-    print(f"📊 Canonical names: {len(manager.canonical_names)}")
+    print(f"📊 Business names: {len(manager.get_business_names())}")
     
     # Get stats
     stats = manager.get_stats()
@@ -51,12 +51,12 @@ def main():
     print("\n🏢 Testing business retrieval:")
     businesses = manager.get_all_businesses()
     for business in businesses[:3]:  # Show first 3
-        print(f"  • {business['canonical_name']} ({business['id']})")
-        print(f"    - Aliases: {len(business['aliases'])}")
+        print(f"  • {business['business_name']} ({business['id']})")
+        print(f"    - Keywords: {len(business['keywords'])}")
         print(f"    - Indicators: {len(business['indicators'])}")
     
     # Test getting canonical names
-    print(f"\n📋 Canonical names: {manager.get_canonical_names()}")
+    print(f"\n📋 Business names: {manager.get_business_names()}")
     
     print("\n🎉 Test completed successfully!")
     return True

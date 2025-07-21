@@ -1,7 +1,7 @@
 """
 Category Tab Widget
 
-A tab widget for managing CRA expense categories within the main OCR application.
+A tab widget for managing expense categories within the main OCR application.
 Integrates the category table and form components with the category manager.
 """
 
@@ -64,9 +64,8 @@ class CategoryManagerThread(QThread):
         """Run the background operation."""
         try:
             if self._operation == "load":
-                # Reload configuration before loading categories
-                self.category_manager.reload_categories()
-                categories = self.category_manager.get_categories()
+                # Load categories from the manager
+                categories = self.category_manager.get_all_categories()
                 self.categories_loaded.emit(categories)
             elif self._operation == "save":
                 self._save_category_to_manager(self._data)
@@ -92,6 +91,8 @@ class CategoryManagerThread(QThread):
         else:
             # Add new category
             new_id = self.category_manager.add_category(name, description, cra_code)
+            if new_id is None:
+                raise ValueError(f"Category '{name}' already exists")
             category_data["id"] = new_id
 
     def _delete_category_from_manager(self, category_id: str):
@@ -133,7 +134,7 @@ class CategoryTab(QWidget):
     """
     Category management tab for the main OCR application.
 
-    Provides a complete interface for managing CRA expense categories with
+    Provides a complete interface for managing expense categories with
     table view, search, add/edit functionality, and integration with
     the category manager.
     """
@@ -141,9 +142,11 @@ class CategoryTab(QWidget):
     # Custom signals
     category_updated = pyqtSignal()  # Emitted when categories are modified
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: Optional[QWidget] = None, category_manager: Optional[CategoryManager] = None) -> None:
         super().__init__(parent)
-        self.category_manager = CategoryManager()
+        
+        # Use shared category manager if provided, otherwise create new instance
+        self.category_manager = category_manager or CategoryManager()
         self.category_manager_thread = CategoryManagerThread(self.category_manager)
         self._setup_ui()
         self._setup_connections()
@@ -241,7 +244,7 @@ class CategoryTab(QWidget):
         stats_layout = QVBoxLayout(stats_group)
 
         self.total_categories_label = QLabel("Total Categories: 0")
-        self.cra_codes_label = QLabel("CRA Codes: 0")
+        self.cra_codes_label = QLabel("Expense Codes: 0")
         self.recent_categories_label = QLabel("Recent Categories: 0")
 
         stats_layout.addWidget(self.total_categories_label)
@@ -286,7 +289,7 @@ class CategoryTab(QWidget):
         recent = len([cat for cat in categories if cat.get("created_date", "")])
 
         self.total_categories_label.setText(f"Total Categories: {total}")
-        self.cra_codes_label.setText(f"CRA Codes: {cra_codes}")
+        self.cra_codes_label.setText(f"Expense Codes: {cra_codes}")
         self.recent_categories_label.setText(f"Recent Categories: {recent}")
 
     def _on_search_changed(self, search_text: str) -> None:
@@ -330,7 +333,7 @@ class CategoryTab(QWidget):
             self,
             "Confirm Delete",
             f"Are you sure you want to delete the category '{name}'?\n\n"
-            f"CRA Code: {category_data.get('cra_code', 'N/A')}\n"
+            f"Expense Code: {category_data.get('cra_code', 'N/A', QMessageBox.StandardButton.Yes)}\n"
             "This action cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -347,9 +350,9 @@ class CategoryTab(QWidget):
             reply = QMessageBox.question(
                 self,
                 "Confirm Delete",
-                f"Are you sure you want to delete the category '{name}'?\n\n"
-                f"CRA Code: {category_data.get('cra_code', 'N/A')}\n"
-                "This action cannot be undone.",
+                            f"Are you sure you want to delete the category '{name}'?\n\n"
+            f"Expense Code: {category_data.get('cra_code', 'N/A', QMessageBox.StandardButton.Yes)}\n"
+            "This action cannot be undone.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -424,7 +427,7 @@ class CategoryTab(QWidget):
         return self.category_manager.get_category_names()
 
     def get_category_codes(self) -> List[str]:
-        """Get list of CRA codes."""
+        """Get list of expense codes."""
         return self.category_manager.get_category_codes()
 
     def get_default_category(self) -> str:

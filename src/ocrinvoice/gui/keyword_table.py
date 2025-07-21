@@ -19,9 +19,9 @@ from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPoint
 from PyQt6.QtGui import QFont, QColor
 
 
-class AliasTable(QTableWidget):
+class KeywordTable(QTableWidget):
     """
-    Custom table widget for displaying business aliases.
+    Custom table widget for displaying business keywords.
 
     Provides a sortable, searchable table with context menus
     and selection handling for business alias management.
@@ -129,7 +129,7 @@ class AliasTable(QTableWidget):
         Load business aliases into the table.
 
         Args:
-            aliases: List of alias dictionaries with company_name, canonical_name, match_type, etc.
+            aliases: List of alias dictionaries with company_name, business_name, match_type, etc.
         """
         try:
             # Block signals temporarily to prevent interference
@@ -169,10 +169,10 @@ class AliasTable(QTableWidget):
 
         for row, alias_data in enumerate(self._filtered_aliases):
             # Business Name (editable) - Column 0
-            canonical_item = QTableWidgetItem(alias_data.get("canonical_name", ""))
-            canonical_item.setData(Qt.ItemDataRole.UserRole, alias_data)
-            canonical_item.setFlags(canonical_item.flags() | Qt.ItemFlag.ItemIsEditable)
-            self.setItem(row, 0, canonical_item)
+            business_name_item = QTableWidgetItem(alias_data.get("business_name", ""))
+            business_name_item.setData(Qt.ItemDataRole.UserRole, alias_data)
+            business_name_item.setFlags(business_name_item.flags() | Qt.ItemFlag.ItemIsEditable)
+            self.setItem(row, 0, business_name_item)
 
             # Keyword (editable) - Column 1
             company_item = QTableWidgetItem(alias_data.get("company_name", ""))
@@ -288,7 +288,7 @@ class AliasTable(QTableWidget):
                 for alias in self._aliases
                 if (
                     self._current_search in alias.get("company_name", "").lower()
-                    or self._current_search in alias.get("canonical_name", "").lower()
+                    or self._current_search in alias.get("business_name", "").lower()
                 )
             ]
 
@@ -333,7 +333,7 @@ class AliasTable(QTableWidget):
             new_value = item.text().strip()
 
             if column == 0:  # Business Name
-                original_alias["canonical_name"] = new_value
+                original_alias["business_name"] = new_value
             elif column == 1:  # Keyword
                 original_alias["company_name"] = new_value
             elif column == 2:  # Match Type
@@ -360,9 +360,9 @@ class AliasTable(QTableWidget):
             for i, alias in enumerate(self._aliases):
                 if alias.get("company_name") == original_alias.get(
                     "company_name"
-                ) and alias.get("canonical_name") == original_alias.get(
-                    "canonical_name"
-                ):
+                            ) and alias.get("business_name") == original_alias.get(
+                "business_name"
+            ):
                     self._aliases[i] = original_alias
                     break
 
@@ -400,7 +400,7 @@ class AliasTable(QTableWidget):
                     self._copy_to_clipboard(alias_data.get("company_name", ""))
             elif action == copy_business_action:
                 if alias_data:
-                    self._copy_to_clipboard(alias_data.get("canonical_name", ""))
+                    self._copy_to_clipboard(alias_data.get("business_name", ""))
 
     def _copy_to_clipboard(self, text: str) -> None:
         """Copy text to clipboard."""
@@ -448,7 +448,7 @@ class AliasTable(QTableWidget):
         self._aliases.append(alias_data)
         if not self._current_search or (
             self._current_search in alias_data.get("company_name", "").lower()
-            or self._current_search in alias_data.get("canonical_name", "").lower()
+            or self._current_search in alias_data.get("business_name", "").lower()
         ):
             self._filtered_aliases.append(alias_data)
 

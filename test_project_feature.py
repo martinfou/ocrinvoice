@@ -46,7 +46,7 @@ def test_project_manager():
 
         # Test getting projects
         print("\n📋 Testing project retrieval...")
-        projects = pm.get_projects()
+        projects = pm.get_all_projects()
         print(f"✅ Retrieved {len(projects)} projects:")
         for project in projects:
             print(f"   - {project['name']} ({project['id']}): {project['description']}")
@@ -69,7 +69,7 @@ def test_project_manager():
         if success:
             print("✅ Project updated successfully")
             # Get the new ID after update (ID changes when name changes)
-            updated_projects = pm.get_projects()
+            updated_projects = pm.get_all_projects()
             updated_project = next(
                 (p for p in updated_projects if "Kitchen & Bath" in p["name"]), None
             )
@@ -106,7 +106,7 @@ def test_project_manager():
             print("❌ Project deletion failed")
 
         # Verify deletion
-        remaining_projects = pm.get_projects()
+        remaining_projects = pm.get_all_projects()
         print(f"Remaining projects: {len(remaining_projects)}")
 
         print("\n🎉 All ProjectManager tests passed!")

@@ -37,7 +37,8 @@ from ocrinvoice.gui.widgets.file_naming import FileNamingWidget
 from ocrinvoice.parsers.invoice_parser import InvoiceParser
 from ocrinvoice.config import get_config
 from ocrinvoice.utils.pdf_metadata_manager import PDFMetadataManager
-from ocrinvoice.business.business_mapping_manager_v2 import BusinessMappingManagerV2
+# Update imports to use SQLite managers
+from ocrinvoice.business.business_mapping_manager_sqlite import BusinessMappingManagerSQLite
 from ocrinvoice.business.project_manager import ProjectManager
 from ocrinvoice.business.category_manager import CategoryManager
 
@@ -113,9 +114,7 @@ class OCRMainWindow(QMainWindow):
         self.config = self._load_config()
 
         # Initialize managers with shared instances
-        self.business_mapping_manager = BusinessMappingManagerV2()
-        self.project_manager = ProjectManager()
-        self.category_manager = CategoryManager()
+        self._initialize_managers()
         self.pdf_metadata_manager = PDFMetadataManager()
 
         # Initialize OCR parser
@@ -148,9 +147,25 @@ class OCRMainWindow(QMainWindow):
 
         # Set window properties
         self.setWindowTitle("OCR Invoice Parser")
-        self.resize(1800, 800)
-        self.move(100, 100)
         self.setMinimumSize(1200, 600)  # Ensure window doesn't get too small
+        
+        # Get screen geometry and set appropriate window size
+        screen = self.screen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            # Use 80% of screen size, but cap at reasonable maximum
+            max_width = min(1800, int(screen_geometry.width() * 0.8))
+            max_height = min(800, int(screen_geometry.height() * 0.8))
+            self.resize(max_width, max_height)
+            
+            # Center the window on screen
+            x = (screen_geometry.width() - max_width) // 2
+            y = (screen_geometry.height() - max_height) // 2
+            self.move(x, y)
+        else:
+            # Fallback to default size
+            self.resize(1600, 800)
+            self.move(100, 100)
 
         # Create startup backup
         self._create_startup_backup()
@@ -160,6 +175,30 @@ class OCRMainWindow(QMainWindow):
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration for the application."""
         return get_config()
+
+    def _initialize_managers(self):
+        """Initialize business managers."""
+        # Initialize database manager (shared across all managers)
+        from ocrinvoice.business.database_manager import DatabaseManager
+        db_manager = DatabaseManager()
+        
+        # Initialize managers with shared database
+        self.mapping_manager = BusinessMappingManagerSQLite(db_manager)
+        self.project_manager = ProjectManager(db_manager)
+        self.category_manager = CategoryManager(db_manager)
+        
+        # Initialize default data if database is empty
+        default_projects_added = self.project_manager.initialize_default_projects()
+        if default_projects_added > 0:
+            print(f"✅ Added {default_projects_added} default projects")
+        
+        default_categories_added = self.category_manager.initialize_default_categories()
+        if default_categories_added > 0:
+            print(f"✅ Added {default_categories_added} default categories")
+        
+        print("✅ Business mapping manager initialized")
+        print("✅ Project manager initialized")
+        print("✅ Category manager initialized")
 
     def _setup_ui(self) -> None:
         """Set up the main user interface components."""
@@ -228,15 +267,15 @@ class OCRMainWindow(QMainWindow):
 
         # Data Panel (right side)
         business_names = []
-        if self.business_mapping_manager:
-            business_names = self.business_mapping_manager.get_all_dropdown_names()
+        if self.mapping_manager:
+            business_names = self.mapping_manager.get_all_dropdown_names()
         category_names = []
         if self.category_manager:
             category_names = self.category_manager.get_category_names()
         self.data_panel = DataPanelWidget(
             business_names=business_names, 
             category_names=category_names,
-            mapping_manager=self.business_mapping_manager
+            mapping_manager=self.mapping_manager
         )
         self.data_panel.rename_requested.connect(self._on_rename_from_data_panel)
         # Connect data changes to file naming updates
@@ -366,18 +405,18 @@ class OCRMainWindow(QMainWindow):
     def _create_business_aliases_tab(self) -> None:
         """Create the Business tab."""
         try:
-            from .business_alias_tab import BusinessAliasTab
+            from .business_keyword_tab import BusinessKeywordTab
 
-            self.business_aliases_widget = BusinessAliasTab(mapping_manager=self.business_mapping_manager)
+            self.business_keywords_widget = BusinessKeywordTab(mapping_manager=self.mapping_manager)
 
-            # Connect alias update signal to refresh OCR data if needed
-            self.business_aliases_widget.alias_updated.connect(self._on_aliases_updated)
+            # Connect keyword update signal to refresh OCR data if needed
+            self.business_keywords_widget.alias_updated.connect(self._on_aliases_updated)
 
             # Add to tab widget
-            self.tab_widget.addTab(self.business_aliases_widget, "Business")
+            self.tab_widget.addTab(self.business_keywords_widget, "Business")
 
         except ImportError:
-            # Fallback if business alias components are not available
+            # Fallback if business keyword components are not available
             fallback_widget = QWidget()
             layout = QVBoxLayout(fallback_widget)
 
@@ -409,6 +448,7 @@ class OCRMainWindow(QMainWindow):
             from .project_tab import ProjectTab
 
             project_widget = ProjectTab()
+            self.project_tab = project_widget  # Store reference for refreshing
 
             # Connect project update signal to refresh file naming if needed
             project_widget.project_updated.connect(self._on_projects_updated)
@@ -440,14 +480,19 @@ class OCRMainWindow(QMainWindow):
         # Refresh the project dropdown in the data panel
         self._update_project_dropdown()
 
-        self.status_bar.showMessage("Projects updated")
+        # Force a UI refresh to ensure the dropdown shows the new items
+        if self.data_panel and self.data_panel.project_combo:
+            self.data_panel.project_combo.update()
+
+        # Update the status bar
+        self.status_bar.showMessage("Projects updated - dropdown refreshed")
 
     def _create_category_tab(self) -> None:
         """Create the Categories tab."""
         try:
             from .category_tab import CategoryTab
 
-            category_widget = CategoryTab()
+            category_widget = CategoryTab(category_manager=self.category_manager)
 
             # Connect category update signal to refresh if needed
             category_widget.category_updated.connect(self._on_categories_updated)
@@ -615,7 +660,7 @@ class OCRMainWindow(QMainWindow):
             )
         elif tab_name == "Categories":
             self.status_bar.showMessage(
-                "📊 Categories - Manage CRA expense categories for tax purposes"
+                "📊 Categories - Manage expense categories for tax purposes"
             )
         else:
             self.status_bar.showMessage(f"Switched to {tab_name} tab")
@@ -1119,6 +1164,30 @@ class OCRMainWindow(QMainWindow):
 
     def _on_project_changed(self, project_name: str) -> None:
         """Handle project selection changes from the data panel."""
+        # Only handle non-empty project names
+        if not project_name:
+            return
+            
+        # Check if this is a new project being added
+        if self.project_manager:
+            existing_projects = self.project_manager.get_project_names()
+            if project_name not in existing_projects:
+                # This is a new project, add it to the project manager
+                try:
+                    self.project_manager.add_project(project_name, f"Auto-added from Single PDF tab")
+                    
+                    # Refresh the project tab to show the new project
+                    if hasattr(self, "project_tab") and self.project_tab:
+                        self.project_tab.refresh_data()
+                    
+                    # Update the status bar
+                    self.status_bar.showMessage(f"New project added: {project_name}")
+                    return
+                except Exception as e:
+                    print(f"⚠️ Failed to add project '{project_name}': {e}")
+                    self.status_bar.showMessage(f"Failed to add project: {project_name}")
+                    return
+        
         # Update the file naming widget with the selected project
         if self.file_naming_widget:
             self.file_naming_widget.set_project(project_name)
@@ -1146,9 +1215,9 @@ class OCRMainWindow(QMainWindow):
 
     def _on_business_added(self) -> None:
         """Handle business added signal from data panel."""
-        # Refresh the business aliases tab to show the new business
-        if hasattr(self, "business_aliases_widget") and self.business_aliases_widget:
-            self.business_aliases_widget.refresh_aliases()
+        # Refresh the business keywords tab to show the new business
+        if hasattr(self, "business_keywords_widget") and self.business_keywords_widget:
+            self.business_keywords_widget.refresh_aliases()
         self.status_bar.showMessage("Business added - Business tab refreshed")
 
     def _update_project_dropdown(self) -> None:
@@ -1157,6 +1226,8 @@ class OCRMainWindow(QMainWindow):
             try:
                 projects = self.project_manager.get_project_names()
                 self.data_panel.update_projects(projects)
+                # Force a repaint of the combo box to ensure it shows the new items
+                self.data_panel.project_combo.repaint()
             except Exception as e:
                 print(f"⚠️ Could not load projects: {e}")
 
@@ -1216,9 +1287,9 @@ PDF Preview (when focused):
 
     def _create_startup_backup(self) -> None:
         """Create a backup on application startup."""
-        if self.business_mapping_manager:
+        if self.mapping_manager:
             try:
-                backup_path = self.business_mapping_manager.create_startup_backup()
+                backup_path = self.mapping_manager.create_startup_backup()
                 if backup_path:
                     self.status_bar.showMessage(
                         f"Startup backup created: {os.path.basename(backup_path)}", 3000
@@ -1228,9 +1299,9 @@ PDF Preview (when focused):
 
     def _create_shutdown_backup(self) -> None:
         """Create a backup on application shutdown."""
-        if self.business_mapping_manager:
+        if self.mapping_manager:
             try:
-                backup_path = self.business_mapping_manager.create_shutdown_backup()
+                backup_path = self.mapping_manager.create_shutdown_backup()
                 if backup_path:
                     print(
                         f"✅ Shutdown backup created: {os.path.basename(backup_path)}"
@@ -1325,10 +1396,6 @@ def main() -> None:
     window.show()
     window.raise_()
     window.activateWindow()
-    
-    # Set window size and position without forcing it
-    window.resize(1800, 800)
-    window.move(100, 100)
 
     splash.finish(window)
 

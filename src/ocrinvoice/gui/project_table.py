@@ -244,8 +244,7 @@ class ProjectTable(QTableWidget):
             f"Are you sure you want to delete the project '{project_name}'?\n\n"
             "This action cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
+            QMessageBox.StandardButton.Yes)
 
         if reply == QMessageBox.StandardButton.Yes:
             project_id = project.get("id")

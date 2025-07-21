@@ -66,7 +66,7 @@ class ProjectManagerThread(QThread):
             if self._operation == "load":
                 # Reload configuration before loading projects
                 self.project_manager.reload_projects()
-                projects = self.project_manager.get_projects()
+                projects = self.project_manager.get_all_projects()
                 self.projects_loaded.emit(projects)
             elif self._operation == "save":
                 self._save_project_to_manager(self._data)
@@ -338,6 +338,8 @@ class ProjectTab(QWidget):
     def refresh_data(self) -> None:
         """Refresh the project data."""
         self._load_projects()
+        # Emit signal to notify other components that projects have been updated
+        self.project_updated.emit()
 
     def get_project_names(self) -> List[str]:
         """Get list of all project names."""

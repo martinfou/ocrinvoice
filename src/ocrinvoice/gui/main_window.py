@@ -279,8 +279,7 @@ class MainWindow(QMainWindow):
             "Confirm Deletion",
             f"Are you sure you want to delete the mapping '{selected_mapping['mapping']}'?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
+            QMessageBox.StandardButton.Yes)
 
         if reply == QMessageBox.StandardButton.Yes:
             try:

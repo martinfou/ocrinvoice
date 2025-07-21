@@ -81,7 +81,7 @@ class BusinessComboDelegate(QStyledItemDelegate):
                     parent = combo.window() if combo.window() else None
                     print(f"[DEBUG] Showing QMessageBox for: {text}, parent={parent}", file=sys.stderr)
                     reply = QMessageBox.question(parent, "Add New Business", f'Add "{text}" as a new business/alias?',
-                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
                     print(f"[DEBUG] QMessageBox reply: {reply}", file=sys.stderr)
                     if reply == QMessageBox.StandardButton.Yes:
                         print(f"[DEBUG] Adding new business: {text}", file=sys.stderr)
@@ -153,7 +153,7 @@ class CategoryComboDelegate(QStyledItemDelegate):
                     parent = combo.window() if combo.window() else None
                     print(f"[DEBUG] Showing QMessageBox for: {text}, parent={parent}", file=sys.stderr)
                     reply = QMessageBox.question(parent, "Add New Business", f'Add "{text}" as a new business/alias?',
-                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
                     print(f"[DEBUG] QMessageBox reply: {reply}", file=sys.stderr)
                     if reply == QMessageBox.StandardButton.Yes:
                         print(f"[DEBUG] Adding new business: {text}", file=sys.stderr)
@@ -218,7 +218,7 @@ class CategoryComboDelegate(QStyledItemDelegate):
                     parent = combo.window() if combo.window() else None
                     print(f"[DEBUG] Showing QMessageBox for: {text}, parent={parent}", file=sys.stderr)
                     reply = QMessageBox.question(parent, "Add New Category", f'Add "{text}" as a new category?',
-                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
                     print(f"[DEBUG] QMessageBox reply: {reply}", file=sys.stderr)
                     if reply == QMessageBox.StandardButton.Yes:
                         print(f"[DEBUG] Adding new category: {text}", file=sys.stderr)

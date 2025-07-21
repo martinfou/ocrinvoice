@@ -1,356 +1,327 @@
 """
-Category Manager
+Category Manager using SQLite Database
 
-Manages CRA expense categories for the OCR invoice application.
-Handles CRUD operations for categories with CRA codes.
+Manages expense categories using the new SQLite database system instead of JSON files.
 """
 
-import json
 import os
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Any, Optional
 from datetime import datetime
-import uuid
+
+from ocrinvoice.business.database_manager import DatabaseManager
 
 
 class CategoryManager:
     """
-    Manager for CRA expense categories.
+    Category manager using SQLite database for data storage.
     
-    Handles storage and retrieval of expense categories with their
-    associated CRA codes for tax purposes.
+    Provides a clean interface for managing expense categories with proper
+    data validation and relationships.
     """
-
-    def __init__(self, config_dir: str = "config"):
+    
+    def __init__(self, db_manager: Optional[DatabaseManager] = None):
         """
         Initialize the category manager.
         
         Args:
-            config_dir: Directory to store category configuration
+            db_manager: Database manager instance. If None, creates a new one.
         """
-        self.config_dir = config_dir
-        self.categories_file = os.path.join(config_dir, "categories.json")
-        self.categories: List[Dict[str, str]] = []
-        self._load_categories()
-
-    def _load_categories(self) -> None:
-        """Load categories from the configuration file."""
-        try:
-            if os.path.exists(self.categories_file):
-                with open(self.categories_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.categories = data.get("categories", [])
-            else:
-                # Initialize with default CRA categories
-                self.categories = self._get_default_categories()
-                self._save_categories()
-        except Exception as e:
-            print(f"Error loading categories: {e}")
-            # Fallback to default categories
-            self.categories = self._get_default_categories()
-
-    def _save_categories(self) -> None:
-        """Save categories to the configuration file."""
-        try:
-            # Ensure config directory exists
-            os.makedirs(self.config_dir, exist_ok=True)
+        self.db_manager = db_manager or DatabaseManager()
+    
+    def add_category(self, name: str, description: Optional[str] = None, cra_code: Optional[str] = None) -> Optional[int]:
+        """
+        Add a new category.
+        
+        Args:
+            name: Category name
+            description: Optional category description
+            cra_code: Optional expense code
             
-            data = {
-                "categories": self.categories,
-                "last_updated": datetime.now().isoformat()
-            }
-            
-            with open(self.categories_file, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"Error saving categories: {e}")
-
-    def _get_default_categories(self) -> List[Dict[str, str]]:
-        """Get default CRA expense categories."""
-        return [
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Office Supplies",
-                "description": "General office supplies and stationery",
-                "cra_code": "8520",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Meals and Entertainment",
-                "description": "Business meals and entertainment expenses",
-                "cra_code": "8530",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Travel Expenses",
-                "description": "Business travel and accommodation",
-                "cra_code": "8540",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Vehicle Expenses",
-                "description": "Vehicle operating costs and maintenance",
-                "cra_code": "8550",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Professional Fees",
-                "description": "Legal, accounting, and professional services",
-                "cra_code": "8560",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Advertising and Promotion",
-                "description": "Marketing, advertising, and promotional expenses",
-                "cra_code": "8570",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Insurance",
-                "description": "Business insurance premiums",
-                "cra_code": "8580",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Utilities",
-                "description": "Electricity, water, gas, and other utilities",
-                "cra_code": "8590",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Rent",
-                "description": "Office and equipment rental expenses",
-                "cra_code": "8600",
-                "created_date": datetime.now().isoformat()
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "name": "Telephone and Internet",
-                "description": "Communication and internet service costs",
-                "cra_code": "8610",
-                "created_date": datetime.now().isoformat()
-            }
-        ]
-
-    def get_categories(self) -> List[Dict[str, str]]:
+        Returns:
+            Category ID if added successfully, None if it already exists
+        """
+        return self.db_manager.add_category(name, description, cra_code)
+    
+    def get_all_categories(self) -> List[Dict[str, Any]]:
         """
         Get all categories.
         
         Returns:
             List of category dictionaries
         """
-        return self.categories.copy()
-
-    def get_category(self, category_id: str) -> Optional[Dict[str, str]]:
+        categories = self.db_manager.get_all_categories()
+        return [
+            {
+                "id": str(category["id"]),
+                "name": category["name"],
+                "description": category["description"],
+                "cra_code": category["cra_code"],
+                "created_at": category["created_at"],
+                "updated_at": category["updated_at"]
+            }
+            for category in categories
+        ]
+    
+    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get a specific category by ID.
+        Get a category by ID.
         
         Args:
-            category_id: The category ID
+            category_id: Category ID
             
         Returns:
             Category dictionary or None if not found
         """
-        for category in self.categories:
-            if category.get("id") == category_id:
-                return category.copy()
+        try:
+            category = self.db_manager.get_category(int(category_id))
+            if category:
+                return {
+                    "id": str(category["id"]),
+                    "name": category["name"],
+                    "description": category["description"],
+                    "cra_code": category["cra_code"],
+                    "created_at": category["created_at"],
+                    "updated_at": category["updated_at"]
+                }
+        except (ValueError, TypeError):
+            pass
         return None
-
-    def get_category_by_code(self, cra_code: str) -> Optional[Dict[str, str]]:
+    
+    def get_category_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         """
-        Get a category by CRA code.
-        
-        Args:
-            cra_code: The CRA expense code
-            
-        Returns:
-            Category dictionary or None if not found
-        """
-        for category in self.categories:
-            if category.get("cra_code") == cra_code:
-                return category.copy()
-        return None
-
-    def add_category(self, name: str, description: str, cra_code: str) -> str:
-        """
-        Add a new category.
+        Get a category by name.
         
         Args:
             name: Category name
-            description: Category description
-            cra_code: CRA expense code
             
         Returns:
-            The ID of the newly created category
-            
-        Raises:
-            ValueError: If CRA code already exists
+            Category dictionary or None if not found
         """
-        # Check for duplicate CRA code
-        cra_code = cra_code.strip()
-        existing_category = self.get_category_by_code(cra_code)
-        if existing_category:
-            raise ValueError(f"CRA code '{cra_code}' is already used by category '{existing_category['name']}'")
-        
-        category_id = str(uuid.uuid4())
-        category = {
-            "id": category_id,
-            "name": name.strip(),
-            "description": description.strip(),
-            "cra_code": cra_code,
-            "created_date": datetime.now().isoformat()
-        }
-        
-        self.categories.append(category)
-        self._save_categories()
-        return category_id
-
-    def update_category(self, category_id: str, name: str, description: str, cra_code: str) -> bool:
+        categories = self.get_all_categories()
+        for category in categories:
+            if category["name"] == name:
+                return category
+        return None
+    
+    def get_category_by_cra_code(self, cra_code: str) -> Optional[Dict[str, Any]]:
         """
-        Update an existing category.
+        Get a category by expense code.
         
         Args:
-            category_id: The category ID to update
-            name: New category name
-            description: New category description
-            cra_code: New CRA expense code
+            cra_code: Expense code
             
         Returns:
-            True if category was updated, False if not found
-            
-        Raises:
-            ValueError: If CRA code already exists in another category
+            Category dictionary or None if not found
         """
-        cra_code = cra_code.strip()
+        categories = self.get_all_categories()
+        for category in categories:
+            if category.get("cra_code") == cra_code:
+                return category
+        return None
+    
+    def update_category(self, category_id: str, name: str, description: Optional[str] = None, 
+                       cra_code: Optional[str] = None) -> bool:
+        """
+        Update a category.
         
-        # Check for duplicate CRA code in other categories
-        existing_category = self.get_category_by_code(cra_code)
-        if existing_category and existing_category.get("id") != category_id:
-            raise ValueError(f"CRA code '{cra_code}' is already used by category '{existing_category['name']}'")
-        
-        for category in self.categories:
-            if category.get("id") == category_id:
-                category["name"] = name.strip()
-                category["description"] = description.strip()
-                category["cra_code"] = cra_code
-                self._save_categories()
-                return True
-        return False
-
+        Args:
+            category_id: Category ID
+            name: New category name
+            description: New category description
+            cra_code: New expense code
+            
+        Returns:
+            True if category was updated successfully, False otherwise
+        """
+        try:
+            return self.db_manager.update_category(int(category_id), name, description, cra_code)
+        except (ValueError, TypeError):
+            return False
+    
     def delete_category(self, category_id: str) -> bool:
         """
         Delete a category.
         
         Args:
-            category_id: The category ID to delete
+            category_id: Category ID
             
         Returns:
-            True if category was deleted, False if not found
+            True if category was deleted successfully, False otherwise
         """
-        for i, category in enumerate(self.categories):
-            if category.get("id") == category_id:
-                del self.categories[i]
-                self._save_categories()
-                return True
-        return False
-
-    def search_categories(self, search_term: str) -> List[Dict[str, str]]:
+        try:
+            return self.db_manager.delete_category(int(category_id))
+        except (ValueError, TypeError):
+            return False
+    
+    def category_exists(self, name: str) -> bool:
         """
-        Search categories by name, description, or CRA code.
+        Check if a category exists by name.
         
         Args:
-            search_term: Search term to match against
+            name: Category name
             
         Returns:
-            List of matching category dictionaries
+            True if category exists, False otherwise
         """
-        search_term = search_term.lower().strip()
-        if not search_term:
-            return self.categories.copy()
+        return self.get_category_by_name(name) is not None
+    
+    def cra_code_exists(self, cra_code: str) -> bool:
+        """
+        Check if an expense code exists.
         
-        matches = []
-        for category in self.categories:
-            name = category.get("name", "").lower()
-            description = category.get("description", "").lower()
-            cra_code = category.get("cra_code", "").lower()
+        Args:
+            cra_code: Expense code
             
-            if (search_term in name or 
-                search_term in description or 
-                search_term in cra_code):
-                matches.append(category.copy())
-        
-        return matches
-
+        Returns:
+            True if expense code exists, False otherwise
+        """
+        return self.get_category_by_cra_code(cra_code) is not None
+    
     def get_category_names(self) -> List[str]:
         """
-        Get list of category names.
+        Get list of all category names.
         
         Returns:
             List of category names
         """
-        return [category.get("name", "") for category in self.categories]
-
-    def get_category_codes(self) -> List[str]:
+        categories = self.get_all_categories()
+        return [category["name"] for category in categories]
+    
+    def get_cra_codes(self) -> List[str]:
         """
-        Get list of CRA codes.
+        Get list of all expense codes.
         
         Returns:
-            List of CRA codes
+            List of expense codes (excluding None values)
         """
-        return [category.get("cra_code", "") for category in self.categories]
-
-    def reload_categories(self) -> None:
-        """Reload categories from the configuration file."""
-        self._load_categories()
-
+        categories = self.get_all_categories()
+        return [category["cra_code"] for category in categories if category.get("cra_code")]
+    
+    def get_stats(self) -> Dict[str, int]:
+        """
+        Get category statistics.
+        
+        Returns:
+            Dictionary with category statistics
+        """
+        categories = self.get_all_categories()
+        return {
+            "total_categories": len(categories),
+            "categories_with_descriptions": len([c for c in categories if c.get("description")]),
+            "categories_with_cra_codes": len([c for c in categories if c.get("cra_code")])
+        }
+    
+    def search_categories(self, search_term: str) -> List[Dict[str, Any]]:
+        """
+        Search categories by name, description, or expense code.
+        
+        Args:
+            search_term: Search term
+            
+        Returns:
+            List of matching categories
+        """
+        categories = self.get_all_categories()
+        search_term_lower = search_term.lower()
+        
+        matching_categories = []
+        for category in categories:
+            name_match = search_term_lower in category["name"].lower()
+            description_match = (
+                category.get("description") and 
+                search_term_lower in category["description"].lower()
+            )
+            cra_code_match = (
+                category.get("cra_code") and 
+                search_term_lower in category["cra_code"].lower()
+            )
+            
+            if name_match or description_match or cra_code_match:
+                matching_categories.append(category)
+        
+        return matching_categories
+    
+    def get_categories_by_cra_code_pattern(self, pattern: str) -> List[Dict[str, Any]]:
+        """
+        Get categories that match an expense code pattern.
+        
+        Args:
+            pattern: Expense code pattern (e.g., "SDE*" for software development)
+            
+        Returns:
+            List of matching categories
+        """
+        categories = self.get_all_categories()
+        matching_categories = []
+        
+        for category in categories:
+            cra_code = category.get("cra_code", "")
+            if cra_code and pattern.lower() in cra_code.lower():
+                matching_categories.append(category)
+        
+        return matching_categories
+    
     def backup_categories(self) -> str:
         """
-        Create a backup of the categories.
+        Create a backup of the categories database.
         
         Returns:
             Path to the backup file
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_file = os.path.join(self.config_dir, f"categories_backup_{timestamp}.json")
-        
-        try:
-            data = {
-                "categories": self.categories,
-                "backup_date": datetime.now().isoformat(),
-                "original_file": self.categories_file
-            }
-            
-            with open(backup_file, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-            
-            return backup_file
-        except Exception as e:
-            print(f"Error creating backup: {e}")
-            return ""
-
-    def restore_categories(self, backup_file: str) -> bool:
+        return self.db_manager.backup_database()
+    
+    def get_default_categories(self) -> List[Dict[str, Any]]:
         """
-        Restore categories from a backup file.
+        Get a list of default CRA categories.
         
-        Args:
-            backup_file: Path to the backup file
-            
         Returns:
-            True if restore was successful, False otherwise
+            List of default category dictionaries
         """
-        try:
-            with open(backup_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                self.categories = data.get("categories", [])
-                self._save_categories()
-            return True
-        except Exception as e:
-            print(f"Error restoring categories: {e}")
-            return False 
+        return [
+            {
+                "name": "Software Development",
+                "description": "Software development and programming expenses",
+                "cra_code": "SDE001"
+            },
+            {
+                "name": "Office Supplies",
+                "description": "Office supplies and equipment",
+                "cra_code": "OFS002"
+            },
+            {
+                "name": "Travel Expenses",
+                "description": "Business travel and accommodation",
+                "cra_code": "TRA003"
+            },
+            {
+                "name": "Marketing",
+                "description": "Marketing and advertising expenses",
+                "cra_code": "MAR004"
+            },
+            {
+                "name": "Professional Services",
+                "description": "Legal, accounting, and consulting services",
+                "cra_code": "PRO005"
+            }
+        ]
+    
+    def initialize_default_categories(self) -> int:
+        """
+        Initialize the database with default categories if none exist.
+        
+        Returns:
+            Number of categories added
+        """
+        existing_categories = self.get_all_categories()
+        if existing_categories:
+            return 0  # Categories already exist
+        
+        default_categories = self.get_default_categories()
+        added_count = 0
+        
+        for category in default_categories:
+            if self.add_category(category["name"], category["description"], category["cra_code"]):
+                added_count += 1
+        
+        return added_count 

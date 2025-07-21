@@ -318,8 +318,7 @@ class MappingForm(QWidget):
                 "Unsaved Changes",
                 "You have unsaved changes. Are you sure you want to cancel?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
+                QMessageBox.StandardButton.Yes)
 
             if reply == QMessageBox.StandardButton.No:
                 return

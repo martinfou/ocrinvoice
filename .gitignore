@@ -131,7 +131,14 @@ dmypy.json
 # OCR Invoice Parser specific files
 # ================================
 
-# Invoice database
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+ocrinvoice.db
+ocrinvoice_backup_*.db
+
+# Invoice database (legacy)
 invoice_database.json
 
 # Log files
@@ -201,7 +208,12 @@ config.ini
 *.bak
 *.backup
 
+# Configuration data files (user-specific)
+config/business_mappings*.json
+config/categories.json
+config/projects.json
+config/backups/
+
 # PDF processing temporary files
 pdf_temp/
 converted_images/
-config/backups/

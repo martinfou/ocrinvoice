@@ -613,8 +613,7 @@ class FileNamingWidget(QWidget):
                 QMessageBox.StandardButton.Yes
                 | QMessageBox.StandardButton.No
                 | QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Yes,
-            )
+                QMessageBox.StandardButton.Yes)
 
             if reply == QMessageBox.StandardButton.Yes:
                 # Add timestamp

@@ -1,7 +1,7 @@
 """
 Category Form Widget
 
-A form widget for adding and editing CRA expense categories in the GUI.
+A form widget for adding and editing expense categories in the GUI.
 """
 
 from typing import Dict, Optional
@@ -21,12 +21,12 @@ from PyQt6.QtCore import pyqtSignal
 
 class CategoryForm(QWidget):
     """
-    Form widget for adding and editing CRA expense categories.
+    Form widget for adding and editing expense categories.
 
     Provides input fields for:
     - Category Name
     - Description
-    - CRA Code
+    - Expense Code
     """
 
     # Custom signals
@@ -71,11 +71,11 @@ class CategoryForm(QWidget):
         preview_layout.addWidget(self.preview_edit)
         details_layout.addLayout(preview_layout)
 
-        # CRA Code
+        # Expense Code
         code_layout = QVBoxLayout()
-        code_label = QLabel("CRA Code:")
+        code_label = QLabel("Expense Code:")
         self.code_edit = QLineEdit()
-        self.code_edit.setPlaceholderText("Enter CRA expense code (e.g., 8520)")
+        self.code_edit.setPlaceholderText("Enter expense code (e.g., 8520)")
         self.code_edit.setMaximumWidth(200)
         code_layout.addWidget(code_label)
         code_layout.addWidget(self.code_edit)
@@ -95,7 +95,7 @@ class CategoryForm(QWidget):
 
         # Help text
         help_text = QLabel(
-            "💡 Tip: Use standard CRA expense categories for tax purposes. "
+            "💡 Tip: Use standard expense categories for tax purposes. "
             "Common codes include:\n"
             "• 8811 - Office stationery and supplies\n"
             "• 8523 - Meals and entertainment\n"
@@ -108,8 +108,8 @@ class CategoryForm(QWidget):
             "• 8910 - Rent\n"
             "• 8810 - Office expenses\n"
             "• 8960 - Repairs and maintenance\n"
-            "• Each CRA code can only be used once\n"
-            "• Category names are automatically generated as: CRA-code-lowercase-words"
+            "• Each expense code can only be used once\n"
+            "• Category names are automatically generated as: code-lowercase-words"
         )
         help_text.setWordWrap(True)
         layout.addWidget(help_text)
@@ -152,7 +152,7 @@ class CategoryForm(QWidget):
         cra_code = category_data.get("cra_code", "")
         
         if kebab_name and cra_code and kebab_name.startswith(f"{cra_code}-"):
-            # Extract the words part after the CRA code
+            # Extract the words part after the expense code
             words_part = kebab_name[len(f"{cra_code}-"):]
             # Convert back to readable format (replace hyphens with spaces, title case)
             original_name = words_part.replace('-', ' ').title()
@@ -182,7 +182,7 @@ class CategoryForm(QWidget):
         Returns:
             Dictionary with category data
         """
-        # Generate the kebab-case name from CRA code and category name
+        # Generate the kebab-case name from expense code and category name
         cra_code = self.code_edit.text().strip()
         category_name = self.name_edit.text().strip()
         generated_name = self._generate_kebab_name(cra_code, category_name)
@@ -222,10 +222,10 @@ class CategoryForm(QWidget):
 
     def _generate_kebab_name(self, cra_code: str, category_name: str) -> str:
         """
-        Generate kebab-case name from CRA code and category name.
+        Generate kebab-case name from expense code and category name.
         
         Args:
-            cra_code: The CRA code (e.g., "8520")
+            cra_code: The expense code (e.g., "8520")
             category_name: The category name (e.g., "Office Supplies")
             
         Returns:
@@ -240,7 +240,7 @@ class CategoryForm(QWidget):
         words = re.sub(r'[-\s]+', '-', words)  # Replace spaces and multiple hyphens with single hyphen
         words = words.strip('-')  # Remove leading/trailing hyphens
         
-        # Combine CRA code and words
+        # Combine expense code and words
         return f"{cra_code}-{words}"
 
     def _update_preview(self) -> None:

@@ -4,7 +4,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from src.ocrinvoice.gui.business_alias_tab import BusinessAliasTab
+from src.ocrinvoice.gui.business_keyword_tab import BusinessKeywordTab
 
 def test_alias_edit_bug():
     """Test to reproduce the alias editing bug where wrong data is loaded."""
@@ -15,14 +15,14 @@ def test_alias_edit_bug():
     if app is None:
         app = QApplication(sys.argv)
     
-    # Create the business alias tab
-    tab = BusinessAliasTab()
+    # Create the business keyword tab
+    tab = BusinessKeywordTab()
     
     # Create test aliases
     test_aliases = [
         {
             "company_name": "banque-td",
-            "canonical_name": "TD Bank",
+            "business_name": "TD Bank",
             "match_type": "Exact",
             "usage_count": 0,
             "last_used": "",
@@ -31,7 +31,7 @@ def test_alias_edit_bug():
         },
         {
             "company_name": "gagnon",
-            "canonical_name": "Gagnon & Associates",
+            "business_name": "Gagnon & Associates",
             "match_type": "Exact",
             "usage_count": 0,
             "last_used": "",
@@ -40,7 +40,7 @@ def test_alias_edit_bug():
         },
         {
             "company_name": "hydro-quebec",
-            "canonical_name": "Hydro-Quebec",
+            "business_name": "Hydro-Quebec",
             "match_type": "Exact",
             "usage_count": 0,
             "last_used": "",
@@ -54,7 +54,7 @@ def test_alias_edit_bug():
     
     print(f"✅ Loaded {len(test_aliases)} test aliases")
     print(f"   Table structure:")
-    print(f"   - Column 0: Business Name (canonical_name)")
+    print(f"   - Column 0: Business Name (business_name)")
     print(f"   - Column 1: Keyword (company_name)")
     print(f"   - Column 2: Match Type")
     print(f"   - Column 3: Usage Count")
@@ -93,17 +93,17 @@ def test_alias_edit_bug():
     selected_alias = tab.alias_table.get_selected_alias()
     if selected_alias:
         company_name = selected_alias.get("company_name", "")
-        canonical_name = selected_alias.get("canonical_name", "")
-        print(f"   Row 0 after sorting by Business Name: {company_name} -> {canonical_name}")
+        business_name = selected_alias.get("business_name", "")
+        print(f"   Row 0 after sorting by Business Name: {company_name} -> {business_name}")
         
         # After sorting by Business Name, the order should be:
         # 1. Gagnon & Associates (G)
         # 2. Hydro-Quebec (H) 
         # 3. TD Bank (T)
-        if canonical_name == "Gagnon & Associates":
+        if business_name == "Gagnon & Associates":
             print(f"   ✅ Row 0 correctly shows Gagnon & Associates after sorting")
         else:
-            print(f"   ❌ Row 0 shows wrong business after sorting: {canonical_name}")
+            print(f"   ❌ Row 0 shows wrong business after sorting: {business_name}")
             return False
     else:
         print(f"   ❌ No alias selected at row 0 after sorting")

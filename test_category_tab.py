@@ -29,16 +29,16 @@ def test_category_manager():
         print("✅ Category manager initialized")
         
         # Test getting categories
-        categories = manager.get_categories()
+        categories = manager.get_all_categories()
         print(f"✅ Loaded {len(categories)} categories")
         
         # Test getting category names
         names = manager.get_category_names()
         print(f"✅ Category names: {names[:3]}...")  # Show first 3
         
-        # Test getting CRA codes
-        codes = manager.get_category_codes()
-        print(f"✅ CRA codes: {codes[:3]}...")  # Show first 3
+        # Test getting expense codes
+        codes = manager.get_cra_codes()
+        print(f"✅ Expense codes: {codes[:3]}...")  # Show first 3
         
         # Test search functionality
         search_results = manager.search_categories("office")
@@ -73,7 +73,7 @@ def test_category_tab():
         layout = QVBoxLayout(central_widget)
         
         # Create category tab
-        category_tab = CategoryTab()
+        category_tab = CategoryTab(category_manager=None)  # Will create its own manager
         layout.addWidget(category_tab)
         
         # Show window

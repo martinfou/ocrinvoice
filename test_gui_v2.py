@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from PyQt6.QtWidgets import QApplication
-from ocrinvoice.gui.business_alias_tab import BusinessAliasTab
+from ocrinvoice.gui.business_keyword_tab import BusinessKeywordTab
 
 
 def test_gui_loading():
@@ -23,15 +23,15 @@ def test_gui_loading():
     app = QApplication(sys.argv)
     
     try:
-        # Create the business alias tab
-        tab = BusinessAliasTab()
+        # Create the business keyword tab
+        tab = BusinessKeywordTab()
         
         print("✅ GUI created successfully")
         print(f"📊 Mapping manager version: {tab.mapping_manager.version}")
         print(f"📊 Total businesses: {len(tab.mapping_manager.businesses)}")
         
-        # Test loading aliases
-        print("\n🔄 Testing alias loading...")
+        # Test loading keywords
+        print("\n🔄 Testing keyword loading...")
         tab._load_aliases()
         
         # Wait a bit for the thread to complete
@@ -62,14 +62,14 @@ def test_business_operations():
     app = QApplication(sys.argv)
     
     try:
-        # Create the business alias tab
-        tab = BusinessAliasTab()
+        # Create the business keyword tab
+        tab = BusinessKeywordTab()
         
         # Test adding a new business
         print("  ➕ Testing new business creation...")
         
         # Simulate the new business dialog
-        from ocrinvoice.gui.business_alias_tab import NewBusinessDialog
+        from ocrinvoice.gui.business_keyword_tab import NewBusinessDialog
         dialog = NewBusinessDialog()
         dialog.name_edit.setText("Test GUI Business")
         

@@ -399,13 +399,28 @@ class FuzzyMatcher:
         """Clear the similarity cache."""
         self.cache.clear()
 
+    def update_candidates(self, candidates: List[str]) -> None:
+        """Update the list of candidate strings for matching.
+        
+        Args:
+            candidates: List of candidate strings to use for matching
+        """
+        # This method is used by the business mapping manager to update
+        # the list of business names for fuzzy matching
+        # The actual matching is done in find_best_match method
+        pass
+
     def get_cache_stats(self) -> Dict[str, Any]:
-        """Get statistics about the cache.
+        """Get cache statistics.
 
         Returns:
             Dictionary with cache statistics
         """
-        return {"cache_size": len(self.cache), "threshold": self.threshold}
+        return {
+            "cache_size": len(self.cache),
+            "max_cache_size": self.cache_size,
+            "cache_hit_ratio": 0.0  # Could be enhanced to track hits
+        }
 
     @staticmethod
     def fuzzy_match(

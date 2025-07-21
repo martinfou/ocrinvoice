@@ -23,7 +23,7 @@ def test_basic_functionality():
     
     print(f"📊 Version: {manager.version}")
     print(f"📊 Total businesses: {len(manager.businesses)}")
-    print(f"📊 Canonical names: {len(manager.canonical_names)}")
+    print(f"📊 Business names: {len(manager.get_business_names())}")
     
     # Get stats
     stats = manager.get_stats()
@@ -53,12 +53,12 @@ def test_basic_functionality():
     print("\n🏢 Testing business retrieval:")
     businesses = manager.get_all_businesses()
     for business in businesses[:3]:  # Show first 3
-        print(f"  • {business['canonical_name']} ({business['id']})")
-        print(f"    - Aliases: {len(business['aliases'])}")
+        print(f"  • {business['business_name']} ({business['id']})")
+        print(f"    - Keywords: {len(business['keywords'])}")
         print(f"    - Indicators: {len(business['indicators'])}")
     
     # Test getting canonical names
-    print(f"\n📋 Canonical names: {manager.get_canonical_names()}")
+    print(f"\n📋 Business names: {manager.get_business_names()}")
     
     return True
 
@@ -73,14 +73,14 @@ def test_business_operations():
     
     # Test adding a new business
     print("  ➕ Adding new business 'Test Company'...")
-    success = manager.add_canonical_name("Test Company")
+    success = manager.add_business_name("Test Company")
     print(f"    Result: {'✅ Success' if success else '❌ Failed'}")
     
     # Test adding an alias
     print("  ➕ Adding alias 'test' for Test Company...")
     business = manager.get_business_by_name("Test Company")
     if business:
-        success = manager.add_alias(business["id"], "test", "exact")
+        success = manager.add_keyword(business["id"], "test", "exact")
         print(f"    Result: {'✅ Success' if success else '❌ Failed'}")
     
     # Test matching the new business

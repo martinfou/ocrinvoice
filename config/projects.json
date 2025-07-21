@@ -39,24 +39,9 @@
     "description": "",
     "created_date": "2025-07-20 12:14:22"
   },
-  "test-project-1": {
-    "name": "test-project-1",
-    "description": "Test project: test-project-1",
-    "created_date": "2025-07-20 12:35:35"
-  },
-  "test-project-2": {
-    "name": "test-project-2",
-    "description": "Test project: test-project-2",
-    "created_date": "2025-07-20 12:35:35"
-  },
-  "kitchen-renovation": {
-    "name": "kitchen-renovation",
-    "description": "Test project: kitchen-renovation",
-    "created_date": "2025-07-20 12:35:35"
-  },
-  "non-existent-project": {
-    "name": "non-existent-project",
-    "description": "Auto-added from PDF metadata",
-    "created_date": "2025-07-20 12:35:35"
+  "compica": {
+    "name": "compica",
+    "description": "bills and invoice for my compica business",
+    "created_date": "2025-07-20 17:21:52"
   }
 }

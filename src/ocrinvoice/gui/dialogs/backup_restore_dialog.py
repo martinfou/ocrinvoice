@@ -298,8 +298,7 @@ Total Businesses: {stats['total_businesses']}"""
             "Create Backup",
             "Create a backup of your current business mappings configuration?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.Yes,
-        )
+            QMessageBox.StandardButton.Yes)
 
         if reply == QMessageBox.StandardButton.Yes:
             self.progress_bar.setVisible(True)
