@@ -86,7 +86,7 @@ ocrinvoice/
 │   │   └── utils.py             # CLI utilities
 │   ├── gui/                     # GUI components (Sprint 4 ✅ COMPLETED)
 │   │   ├── ocr_main_window.py   # Main GUI window
-│   │   ├── business_alias_tab.py # Business aliases management tab
+│   │   ├── business_keyword_tab.py # Business keywords management tab
 │   │   ├── official_names_tab.py # Official names management tab
 │   │   ├── alias_table.py       # Alias table widget
 │   │   ├── alias_form.py        # Alias form widget
@@ -121,7 +121,7 @@ ocrinvoice/
 
 #### GUI Development (Sprint 4 ✅ COMPLETED)
 - **`src/ocrinvoice/gui/ocr_main_window.py`**: Main application window with complete MVP
-- **`src/ocrinvoice/gui/business_alias_tab.py`**: Business aliases management tab
+- **`src/ocrinvoice/gui/business_keyword_tab.py`**: Business keywords management tab
 - **`src/ocrinvoice/gui/official_names_tab.py`**: Official names management tab
 - **`src/ocrinvoice/gui/alias_table.py`**: Alias table widget with CRUD operations
 - **`src/ocrinvoice/gui/alias_form.py`**: Alias form with canonical name dropdown

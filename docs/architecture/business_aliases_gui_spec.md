@@ -42,7 +42,7 @@ Create a desktop GUI application for managing business aliases and official name
 src/ocrinvoice/gui/
 ├── __init__.py
 ├── main_window.py              # Main application window
-├── business_alias_tab.py       # Business aliases management tab
+├── business_keyword_tab.py       # Business keywords management tab
 ├── official_names_tab.py       # Official names management tab
 ├── alias_table.py              # Custom table widget for aliases
 ├── alias_form.py               # Form for adding/editing aliases

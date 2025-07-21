@@ -189,7 +189,7 @@ ocrinvoice/
 │   │   │   ├── pdf_preview.py   # PDF preview widget
 │   │   │   ├── data_panel.py    # Data display widget
 │   │   │   └── file_naming.py   # File naming widget
-│   │   ├── business_alias_tab.py # Business aliases management tab
+│   │   ├── business_keyword_tab.py # Business keywords management tab
 │   │   ├── official_names_tab.py # Official names management tab
 │   │   ├── alias_table.py       # Alias table widget
 │   │   ├── alias_form.py        # Alias form widget
