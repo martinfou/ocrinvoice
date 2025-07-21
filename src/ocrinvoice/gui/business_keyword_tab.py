@@ -447,7 +447,10 @@ class BusinessKeywordTab(QWidget):
                     "usage_count": 0,
                     "last_used": "",
                     "fuzzy_matching": True,
-
+                }
+                
+                # Add the new keyword
+                self.keyword_thread.save_alias(alias_data)
 
         QTimer.singleShot(100, self._load_aliases)
 
